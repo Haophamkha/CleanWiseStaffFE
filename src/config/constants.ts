@@ -9,3 +9,5 @@ export const ROUTES = {
   REGISTER: "/(auth)/register",
   HOME: "/(tabs)/home",
 } as const;
+
+export const ALLOWED_APP_ROLE = "WORKER" as const;

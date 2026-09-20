@@ -1,5 +1,7 @@
 import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
+import { clearAuth } from "@/store/authSlice";
+import { store } from "@/store/store";
 import { storage } from "@/utils/storage";
 import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { createApi } from "@reduxjs/toolkit/query/react";
@@ -33,9 +35,23 @@ axiosInstance.interceptors.request.use(async (config) => {
   }
 
   if (__DEV__) {
+    const loggedBody =
+      config.data instanceof FormData
+        ? Object.fromEntries(
+            ((config.data as any)._parts ?? []).map(
+              ([key, value]: [string, any]) => [
+                key,
+                value && typeof value === "object" && "uri" in value
+                  ? { uri: value.uri, type: value.type, name: value.name }
+                  : value,
+              ],
+            ),
+          )
+        : config.data;
+
     console.log("[REQUEST]", config.method?.toUpperCase(), config.url, {
       hasAuthHeader: !!config.headers.Authorization,
-      body: config.data,
+      body: loggedBody,
     });
   }
 
@@ -56,9 +72,13 @@ const processQueue = (error: any, token: string | null = null) => {
   pendingQueue = [];
 };
 
+// Nguồn duy nhất để logout: luôn dọn storage + Redux + điều hướng cùng lúc,
+// tránh tình trạng Redux còn "authenticated" trong khi storage đã rỗng
+// (chính là nguyên nhân app tự bật lại vào (tabs) sau khi bị 401).
 const logoutAndRedirect = async () => {
   await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
   await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+  store.dispatch(clearAuth());
   router.replace("/(auth)/login");
 };
 
@@ -173,6 +193,6 @@ const axiosBaseQuery = (): BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Profile"],
+  tagTypes: ["Profile", "WorkingAreas"],
   endpoints: () => ({}),
 });

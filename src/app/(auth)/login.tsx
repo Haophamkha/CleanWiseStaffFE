@@ -1,9 +1,10 @@
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { ROUTES } from "@/config/constants";
+import { ROUTES, STORAGE_KEYS } from "@/config/constants";
 import { useLoginMutation } from "@/services/authApi";
 import { setUser } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
+import { storage } from "@/utils/storage";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { loginSchema } from "@/utils/validators";
 import { Feather } from "@expo/vector-icons";
@@ -33,6 +34,19 @@ export default function LoginScreen() {
     setError("");
     try {
       const res = await login({ phone, password }).unwrap();
+
+      if (res.user?.role !== "WORKER") {
+        // Token vừa được lưu bởi onQueryStarted trong authApi phải xoá lại,
+        // vì tài khoản này không thuộc app dành cho nhân viên.
+        await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
+        await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+        const message =
+          "Tài khoản này không phải tài khoản nhân viên. Vui lòng dùng đúng ứng dụng dành cho vai trò của bạn.";
+        setError(message);
+        showErrorToast("Không có quyền truy cập", message);
+        return;
+      }
+
       dispatch(setUser(res.user));
       showSuccessToast(
         "Đăng nhập thành công",
