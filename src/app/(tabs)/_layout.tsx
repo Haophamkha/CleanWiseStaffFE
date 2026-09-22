@@ -1,9 +1,21 @@
 import { Feather } from "@expo/vector-icons";
+import { useChatSocket } from "@/hooks/useChatSocket";
+import { useGetConversationsQuery } from "@/services/chatApi";
+import { useAppSelector } from "@/store/hooks";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const user = useAppSelector((state) => state.auth.user);
+  const { data: conversations, refetch } = useGetConversationsQuery(1, {
+    skip: !user,
+    refetchOnMountOrArgChange: 15,
+  });
+  useChatSocket(!!user, (event) => {
+    if (event.type === "message.created" || event.type === "messages.read") refetch();
+  }, refetch);
+  const unreadCount = user ? conversations?.total_unread ?? 0 : 0;
 
   return (
     <Tabs
@@ -62,6 +74,8 @@ export default function TabsLayout() {
         name="messages"
         options={{
           title: "Tin nhắn",
+          tabBarBadge: unreadCount > 0 ? (unreadCount > 99 ? "99+" : unreadCount) : undefined,
+          tabBarBadgeStyle: { backgroundColor: "#EF4444", color: "#FFFFFF" },
           tabBarIcon: ({ color, size }) => (
             <Feather name="message-circle" size={size} color={color} />
           ),

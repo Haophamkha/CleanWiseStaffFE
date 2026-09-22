@@ -5,6 +5,25 @@ export type JwtPayload = {
   [key: string]: unknown;
 };
 
+function decodeBase64(value: string): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let result = "";
+  let bits = 0;
+  let buffer = 0;
+  for (const char of value) {
+    if (char === "=") break;
+    const digit = alphabet.indexOf(char);
+    if (digit < 0) continue;
+    buffer = (buffer << 6) | digit;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      result += String.fromCharCode((buffer >> bits) & 255);
+    }
+  }
+  return result;
+}
+
 // Decode phần payload của JWT (base64url) — CHỈ để đọc claim (vd: role) phía
 // client cho mục đích điều hướng UX, KHÔNG dùng để xác thực bảo mật (việc đó
 // luôn do BE làm qua permission_classes ở mỗi endpoint).
@@ -20,15 +39,10 @@ export function decodeJwtPayload(token: string): JwtPayload | null {
       "=",
     );
 
-    const json =
-      typeof atob === "function"
-        ? decodeURIComponent(
-            atob(padded)
-              .split("")
-              .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
-              .join(""),
-          )
-        : Buffer.from(padded, "base64").toString("utf-8");
+    const binary = typeof atob === "function" ? atob(padded) : decodeBase64(padded);
+    const json = decodeURIComponent(
+      binary.split("").map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join(""),
+    );
 
     return JSON.parse(json) as JwtPayload;
   } catch {
