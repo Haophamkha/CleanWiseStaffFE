@@ -42,6 +42,7 @@ const MENU_ITEMS: {
   {
     icon: "credit-card",
     label: "Tài khoản ngân hàng",
+    onPress: () => router.push("/payment-methods" as any),
   },
   {
     icon: "dollar-sign",

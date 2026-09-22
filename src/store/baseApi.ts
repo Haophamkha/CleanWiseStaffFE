@@ -35,7 +35,7 @@ axiosInstance.interceptors.request.use(async (config) => {
   }
 
   if (__DEV__) {
-    const loggedBody =
+    const rawLoggedBody =
       config.data instanceof FormData
         ? Object.fromEntries(
             ((config.data as any)._parts ?? []).map(
@@ -48,6 +48,13 @@ axiosInstance.interceptors.request.use(async (config) => {
             ),
           )
         : config.data;
+
+    const loggedBody =
+      rawLoggedBody &&
+      typeof rawLoggedBody === "object" &&
+      Object.prototype.hasOwnProperty.call(rawLoggedBody, "account_number")
+        ? { ...rawLoggedBody, account_number: "[REDACTED]" }
+        : rawLoggedBody;
 
     console.log("[REQUEST]", config.method?.toUpperCase(), config.url, {
       hasAuthHeader: !!config.headers.Authorization,
@@ -193,6 +200,6 @@ const axiosBaseQuery = (): BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Profile", "WorkingAreas", "AvailableSchedules", "MySchedules"],
+  tagTypes: ["Profile", "WorkingAreas", "PaymentMethods", "BankCatalog", "AvailableSchedules", "MySchedules"],
   endpoints: () => ({}),
 });
