@@ -200,6 +200,6 @@ const axiosBaseQuery = (): BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Profile", "WorkingAreas", "PaymentMethods", "BankCatalog"],
+  tagTypes: ["Profile", "WorkingAreas", "PaymentMethods", "BankCatalog", "AvailableSchedules", "MySchedules"],
   endpoints: () => ({}),
 });
