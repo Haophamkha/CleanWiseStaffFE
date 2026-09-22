@@ -1,7 +1,6 @@
 import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
 import { clearAuth } from "@/store/authSlice";
-import { store } from "@/store/store";
 import { storage } from "@/utils/storage";
 import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { createApi } from "@reduxjs/toolkit/query/react";
@@ -23,6 +22,12 @@ const PUBLIC_ENDPOINTS = [
 ];
 
 const REFRESH_URL = "/api/auth/refresh/";
+
+let dispatchClearAuth: ((action: ReturnType<typeof clearAuth>) => unknown) | null = null;
+
+export const registerAuthDispatch = (dispatch: typeof dispatchClearAuth) => {
+  dispatchClearAuth = dispatch;
+};
 
 axiosInstance.interceptors.request.use(async (config) => {
   const isPublic = PUBLIC_ENDPOINTS.some((path) => config.url?.includes(path));
@@ -85,7 +90,7 @@ const processQueue = (error: any, token: string | null = null) => {
 const logoutAndRedirect = async () => {
   await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
   await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
-  store.dispatch(clearAuth());
+  dispatchClearAuth?.(clearAuth());
   router.replace("/(auth)/login");
 };
 
@@ -200,6 +205,6 @@ const axiosBaseQuery = (): BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Profile", "WorkingAreas", "PaymentMethods", "BankCatalog", "AvailableSchedules", "MySchedules"],
+  tagTypes: ["Profile", "WorkingAreas", "PaymentMethods", "BankCatalog", "AvailableSchedules", "MySchedules", "ChatConversations"],
   endpoints: () => ({}),
 });

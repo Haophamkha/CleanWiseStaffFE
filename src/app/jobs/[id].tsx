@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ServiceDetailReadOnly } from "@/components/job/ServiceDetailReadOnly";
+import { useLazyGetAssignmentConversationQuery } from "@/services/chatApi";
 import {
   useCancelAssignmentMutation,
   useClaimScheduleMutation,
@@ -163,6 +164,7 @@ export default function JobDetailScreen() {
   const [claimSchedule, { isLoading: isClaiming }] = useClaimScheduleMutation();
   const [cancelAssignment, { isLoading: isCancelling }] =
     useCancelAssignmentMutation();
+  const [getChat, { isFetching: openingChat }] = useLazyGetAssignmentConversationQuery();
 
   const isLoading = isMine ? mineQuery.isLoading : availableQuery.isLoading;
 
@@ -202,6 +204,19 @@ export default function JobDetailScreen() {
     Linking.openURL(url).catch(() =>
       Alert.alert("Không thể mở bản đồ", "Vui lòng thử lại sau."),
     );
+  };
+
+  const handleOpenChat = async () => {
+    if (!item || !("assignment_id" in item) || !item.assignment_id) return;
+    try {
+      const result = await getChat(item.assignment_id).unwrap();
+      router.push({
+        pathname: "/messages/[id]",
+        params: { id: String(result.conversation.id), assignmentId: String(item.assignment_id) },
+      });
+    } catch {
+      Alert.alert("Không mở được trò chuyện", "Vui lòng kiểm tra lịch phân công và thử lại.");
+    }
   };
 
   if (isLoading) {
@@ -415,6 +430,19 @@ export default function JobDetailScreen() {
           >
             <Text className="text-white font-semibold text-base">
               {isClaiming ? "Đang xử lý..." : "Nhận việc"}
+            </Text>
+          </Pressable>
+        )}
+
+        {isMine && mineItem?.assignment_id && (
+          <Pressable
+            onPress={handleOpenChat}
+            disabled={openingChat}
+            className="bg-[#2563EB] rounded-xl py-4 items-center flex-row justify-center mb-3"
+          >
+            <Feather name="message-circle" size={19} color="#FFFFFF" />
+            <Text className="text-white font-semibold text-base ml-2">
+              {openingChat ? "Đang mở..." : "Liên hệ khách hàng"}
             </Text>
           </Pressable>
         )}
