@@ -37,15 +37,15 @@ const MENU_ITEMS: {
   {
     icon: "map-pin",
     label: "Khu vực hoạt động",
-    // Màn riêng, không dùng lại bước Area trong wizard vì bước đó có
-    // step-progress + tự động gọi submitProfile() (chỉ hợp lệ khi hồ sơ
-    // đang DRAFT), gây lỗi "Dữ liệu gửi lên không hợp lệ" khi sửa khu vực
-    // của hồ sơ đã ACTIVE.
     onPress: () => router.push("/(profile-setup)/working-areas"),
   },
   {
     icon: "credit-card",
     label: "Tài khoản ngân hàng",
+  },
+  {
+    icon: "dollar-sign",
+    label: "Thu nhập",
   },
   {
     icon: "folder",

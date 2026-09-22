@@ -183,7 +183,6 @@ export const authApi = baseApi.injectEndpoints({
 
         try {
           const { data } = await queryFulfilled;
-          // đồng bộ lại theo data thật từ server (id/created_at chuẩn)
           dispatch(
             authApi.util.updateQueryData(
               "getWorkingAreas",

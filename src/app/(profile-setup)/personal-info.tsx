@@ -32,7 +32,6 @@ const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: "OTHER", label: "Khác" },
 ];
 
-// Nhân viên phải đủ 18 tuổi — không cho chọn ngày sinh gần hơn mốc này
 const MAX_BIRTH_DATE = new Date(
   new Date().setFullYear(new Date().getFullYear() - 18),
 );
@@ -75,7 +74,6 @@ export default function PersonalInfoStep() {
     : null;
   const isBusy = isSaving || isSubmitting;
 
-  // Field không bị admin đánh dấu sai -> hiện dữ liệu cũ nhưng khóa
   const firstNameLocked = isFieldLocked(profile, "first_name");
   const lastNameLocked = isFieldLocked(profile, "last_name");
   const phoneLocked = isFieldLocked(profile, "phone_number");
@@ -84,12 +82,10 @@ export default function PersonalInfoStep() {
   const bioLocked = isFieldLocked(profile, "bio");
   const yearsLocked = isFieldLocked(profile, "experience_years");
 
-  // Prefill 1 lần khi profile tải xong — tránh đè lên dữ liệu người dùng
-  // đang gõ dở nếu query refetch ngầm trong lúc chỉnh sửa.
   useEffect(() => {
     if (profile && !prefilled) {
-      setFirstName(profile.first_name ?? "");
-      setLastName(profile.last_name ?? "");
+      setFirstName(profile.last_name ?? "");
+      setLastName(profile.first_name ?? "");
       setPhoneNumber(profile.phone_number ?? "");
       setGender(profile.gender ?? null);
       setBirthDate(profile.birth_date ?? "");
