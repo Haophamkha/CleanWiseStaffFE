@@ -2,7 +2,6 @@ import { StepHeader } from "@/components/profile-setup/StepHeader";
 import {
   useGetActiveAreasQuery,
   useGetWorkingAreasQuery,
-  useSubmitWorkerProfileMutation,
   useUpdateWorkingAreasMutation,
 } from "@/services/authApi";
 import { showErrorToast } from "@/utils/toast";
@@ -31,8 +30,6 @@ export default function AreaStep() {
 
   const [updateWorkingAreas, { isLoading: isSaving }] =
     useUpdateWorkingAreasMutation();
-  const [submitProfile, { isLoading: isSubmitting }] =
-    useSubmitWorkerProfileMutation();
 
   useEffect(() => {
     if (myAreas && myAreas.length > 0) {
@@ -58,7 +55,7 @@ export default function AreaStep() {
   };
 
   const isLoading = loadingAreas || loadingMyAreas;
-  const isBusy = isSaving || isSubmitting;
+  const isBusy = isSaving;
 
   const handleSubmit = async () => {
     if (selected.size === 0) {
@@ -68,7 +65,8 @@ export default function AreaStep() {
     setError("");
     try {
       await updateWorkingAreas(Array.from(selected)).unwrap();
-      await submitProfile().unwrap();
+      // Chỉ lưu khu vực rồi sang bước cuối. Việc gửi duyệt hồ sơ
+      // (submitProfile) do màn Experience đảm nhiệm, không gọi ở đây.
       router.replace("/(profile-setup)/experience");
     } catch (e: any) {
       const message =
@@ -191,7 +189,7 @@ export default function AreaStep() {
           disabled={isBusy || selected.size === 0}
         >
           <Text className="text-white font-semibold text-[15px]">
-            {isBusy ? "Đang gửi hồ sơ..." : "Tiếp tục"}
+            {isBusy ? "Đang lưu..." : "Tiếp tục"}
           </Text>
         </TouchableOpacity>
       </View>

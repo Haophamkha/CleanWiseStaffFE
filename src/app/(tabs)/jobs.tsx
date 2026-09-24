@@ -1,3 +1,4 @@
+import { ActiveProfileGate } from "@/components/common/ActiveProfileGate";
 import {
   useGetAvailableSchedulesQuery,
   useGetMySchedulesQuery,
@@ -142,7 +143,7 @@ function JobCard({
   );
 }
 
-export default function JobsScreen() {
+function JobsContent() {
   const insets = useSafeAreaInsets();
   const { tab: initialTab } = useLocalSearchParams<{ tab?: Tab }>();
   const [tab, setTab] = useState<Tab>(
@@ -252,5 +253,13 @@ export default function JobsScreen() {
         />
       )}
     </View>
+  );
+}
+
+export default function JobsScreen() {
+  return (
+    <ActiveProfileGate>
+      <JobsContent />
+    </ActiveProfileGate>
   );
 }

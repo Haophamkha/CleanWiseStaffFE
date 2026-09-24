@@ -4,9 +4,12 @@ import type {
   CancelAssignmentResult,
   ClaimScheduleResult,
   MySchedulesParams,
+  ScheduleImage,
+  ScheduleImageType,
   WorkerMySchedule,
   WorkerSchedule,
 } from "@/types/Schedule";
+import type { PickedFile } from "@/types/WorkerProfile";
 
 const unwrapResponse = (response: any) =>
   response?.data?.data ?? response?.data ?? response;
@@ -85,6 +88,71 @@ export const jobsApi = baseApi.injectEndpoints({
         { type: "MySchedules", id: "LIST" },
       ],
     }),
+
+    // POST /api/worker/schedules/:id/check-in/
+    checkIn: builder.mutation<WorkerMySchedule, number>({
+      query: (scheduleId) => ({
+        url: `/api/worker/schedules/${scheduleId}/check-in/`,
+        method: "POST",
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: (result, error, scheduleId) => [
+        { type: "MySchedules", id: scheduleId },
+        { type: "MySchedules", id: "LIST" },
+      ],
+    }),
+
+    // POST /api/worker/schedules/:id/check-out/
+    checkOut: builder.mutation<WorkerMySchedule, number>({
+      query: (scheduleId) => ({
+        url: `/api/worker/schedules/${scheduleId}/check-out/`,
+        method: "POST",
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: (result, error, scheduleId) => [
+        { type: "MySchedules", id: scheduleId },
+        { type: "MySchedules", id: "LIST" },
+      ],
+    }),
+
+    // POST /api/worker/schedules/:id/images/ (multipart)
+    uploadScheduleImage: builder.mutation<
+      ScheduleImage,
+      {
+        scheduleId: number;
+        image: PickedFile;
+        imageType: ScheduleImageType;
+        note?: string;
+      }
+    >({
+      query: ({ scheduleId, image, imageType, note }) => {
+        const formData = new FormData();
+
+        formData.append("image", {
+          uri: image.uri,
+          name: image.name,
+          type: image.type,
+        } as any);
+
+        formData.append("image_type", imageType);
+
+        if (note) {
+          formData.append("note", note);
+        }
+
+        return {
+          url: `/api/worker/schedules/${scheduleId}/images/`,
+          method: "POST",
+          data: formData,
+        };
+      },
+
+      transformResponse: unwrapResponse,
+
+      invalidatesTags: (result, error, { scheduleId }) => [
+        { type: "MySchedules", id: scheduleId },
+      ],
+    }),
   }),
   overrideExisting: true,
 });
@@ -94,4 +162,7 @@ export const {
   useGetMySchedulesQuery,
   useClaimScheduleMutation,
   useCancelAssignmentMutation,
+  useCheckInMutation,
+  useCheckOutMutation,
+  useUploadScheduleImageMutation,
 } = jobsApi;

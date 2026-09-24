@@ -6,7 +6,8 @@ export async function pickImage(): Promise<PickedFile | null> {
   if (!permission.granted) return null;
 
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    // MediaTypeOptions.Images đã deprecated, thay bằng mảng MediaType
+    mediaTypes: ["images"],
     quality: 0.8,
   });
 

@@ -1,5 +1,5 @@
 import { STORAGE_KEYS } from "@/config/constants";
-import { baseApi } from "@/store/baseApi";
+import { baseApi, UPLOAD_TIMEOUT_MS } from "@/store/baseApi";
 import type { Area, WorkingArea } from "@/types/Area";
 import type {
   ForgotPasswordRequest,
@@ -39,10 +39,15 @@ export const authApi = baseApi.injectEndpoints({
         data: body,
       }),
       transformResponse: unwrapResponse,
-      onQueryStarted: async (_arg, { queryFulfilled }) => {
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled;
           await saveTokens(data.access, data.refresh);
+          // Xóa sạch cache RTK Query (profile, schedules, wallet...) của
+          // tài khoản trước đó — bắt buộc phải làm ở đây, không chỉ dựa
+          // vào bước logout, vì nếu logout lỡ lỗi giữa chừng (vd storage
+          // ném lỗi) thì cache cũ vẫn còn và user mới sẽ thấy data cũ.
+          dispatch(baseApi.util.resetApiState());
         } catch {}
       },
     }),
@@ -57,10 +62,13 @@ export const authApi = baseApi.injectEndpoints({
         data: body,
       }),
       transformResponse: unwrapResponse,
-      onQueryStarted: async (_arg, { queryFulfilled }) => {
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled;
           await saveTokens(data.access, data.refresh);
+          // Cùng lý do như login: đảm bảo tài khoản vừa đăng ký không
+          // dính cache của phiên trước đó.
+          dispatch(baseApi.util.resetApiState());
         } catch {}
       },
     }),
@@ -105,12 +113,27 @@ export const authApi = baseApi.injectEndpoints({
       WorkerProfileResponse,
       UpdateWorkerProfileRequest
     >({
-      query: (fields) => ({
-        url: "/api/auth/worker/profile/",
-        method: "PATCH",
-        data: buildWorkerProfileFormData(fields),
-      }),
-      transformResponse: unwrapResponse,
+      // queryFn thay vì query: buildWorkerProfileFormData giờ là async
+      // (cần await fetch().blob() trên web để lấy file thật trước khi
+      // gửi), mà `query` không hỗ trợ trả về Promise cho phần build args.
+      // transformResponse cũng không tự áp dụng với queryFn nên phải gọi
+      // unwrapResponse thủ công ở đây.
+      async queryFn(fields, _queryApi, _extraOptions, baseQuery) {
+        const formData = await buildWorkerProfileFormData(fields);
+        const result = await baseQuery({
+          url: "/api/auth/worker/profile/",
+          method: "PATCH",
+          data: formData,
+          // Request có ảnh (multipart) cần timeout cao hơn mặc định 10s,
+          // vì upload 1-2 ảnh qua mạng di động dễ mất hơn 10s -> axios
+          // tự hủy (ECONNABORTED) dù BE vẫn lưu thành công phía sau.
+          timeout: UPLOAD_TIMEOUT_MS,
+        });
+        if (result.error) {
+          return { error: result.error };
+        }
+        return { data: unwrapResponse(result.data) as WorkerProfileResponse };
+      },
       invalidatesTags: ["Profile"],
     }),
 

@@ -36,16 +36,22 @@ export function ImageUploadBox({
       onPress={handlePick}
       disabled={disabled}
       activeOpacity={0.7}
-      style={{ opacity: disabled ? 0.5 : 1 }}
+      // aspectRatio đặt qua style (Yoga xử lý trực tiếp) thay vì class
+      // NativeWind "aspect-square" — class utility này từng khiến ô ảnh
+      // co về kích thước tối thiểu (chỉ còn cái badge tròn nổi ra ngoài)
+      // trong một số trường hợp re-render, không rõ do version NativeWind
+      // hay timing layout. Set trực tiếp qua style đảm bảo Yoga luôn có
+      // đủ thông tin để tính kích thước ô vuông, không phụ thuộc NativeWind
+      // resolve class kịp lúc hay không.
+      style={[
+        { opacity: disabled ? 0.5 : 1 },
+        isCircle ? { width: 160, height: 160 } : { aspectRatio: 1 },
+      ]}
       className={`items-center justify-center border-2 border-dashed overflow-hidden ${
         disabled
           ? "border-[#9CA3AF] bg-[#F3F4F6]"
           : "border-[#2563EB] bg-[#EEF2FF]"
-      } ${
-        isCircle
-          ? "w-40 h-40 rounded-full self-center"
-          : "flex-1 aspect-square rounded-2xl"
-      }`}
+      } ${isCircle ? "rounded-full self-center" : "flex-1 rounded-2xl"}`}
     >
       {previewUri ? (
         <>

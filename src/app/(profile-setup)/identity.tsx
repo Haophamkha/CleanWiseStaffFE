@@ -242,7 +242,7 @@ export default function IdentityStep() {
                 ? "Hoàn tất & gửi lại"
                 : isRejectedFlow
                   ? "Tiếp tục"
-                  : "Gửi yêu cầu xác thực"}
+                  : "Tiếp tục"}
           </Text>
         </TouchableOpacity>
       </View>

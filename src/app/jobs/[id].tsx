@@ -15,24 +15,49 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ServiceDetailReadOnly } from "@/components/job/ServiceDetailReadOnly";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { useLazyGetAssignmentConversationQuery } from "@/services/chatApi";
 import {
   useCancelAssignmentMutation,
+  useCheckInMutation,
+  useCheckOutMutation,
   useClaimScheduleMutation,
   useGetAvailableSchedulesQuery,
   useGetMySchedulesQuery,
+  useUploadScheduleImageMutation,
 } from "@/services/jobsApi";
-import type { PaymentStatus } from "@/types/Schedule";
+import type { PaymentStatus, ScheduleImageType } from "@/types/Schedule";
+import { pickImage } from "@/utils/imagePicker";
 
 const STATUS_LABEL: Record<
   string,
   { label: string; color: string; bg: string }
 > = {
-  PENDING: { label: "Chờ thực hiện", color: "#B45309", bg: "#FEF3C7" },
-  IN_PROGRESS: { label: "Đang thực hiện", color: "#1D4ED8", bg: "#DBEAFE" },
-  COMPLETED: { label: "Hoàn thành", color: "#15803D", bg: "#DCFCE7" },
-  CANCELLED: { label: "Đã hủy", color: "#6B7280", bg: "#F3F4F6" },
-  MISSED: { label: "Đã bỏ lỡ", color: "#B91C1C", bg: "#FEE2E2" },
+  PENDING: {
+    label: "Chờ thực hiện",
+    color: "#B45309",
+    bg: "#FEF3C7",
+  },
+  IN_PROGRESS: {
+    label: "Đang thực hiện",
+    color: "#1D4ED8",
+    bg: "#DBEAFE",
+  },
+  COMPLETED: {
+    label: "Hoàn thành",
+    color: "#15803D",
+    bg: "#DCFCE7",
+  },
+  CANCELLED: {
+    label: "Đã hủy",
+    color: "#6B7280",
+    bg: "#F3F4F6",
+  },
+  MISSED: {
+    label: "Đã bỏ lỡ",
+    color: "#B91C1C",
+    bg: "#FEE2E2",
+  },
 };
 
 function formatDateTime(iso: string) {
@@ -91,9 +116,21 @@ const PAYMENT_STATUS_MAP: Record<
   PaymentStatus,
   { label: string; bg: string; text: string }
 > = {
-  UNPAID: { label: "Chưa thanh toán", bg: "#FEF3C7", text: "#92400E" },
-  PAID: { label: "Đã thanh toán", bg: "#D1FAE5", text: "#047857" },
-  REFUNDED: { label: "Đã hoàn tiền", bg: "#E5E7EB", text: "#374151" },
+  UNPAID: {
+    label: "Chưa thanh toán",
+    bg: "#FEF3C7",
+    text: "#92400E",
+  },
+  PAID: {
+    label: "Đã thanh toán",
+    bg: "#D1FAE5",
+    text: "#047857",
+  },
+  REFUNDED: {
+    label: "Đã hoàn tiền",
+    bg: "#E5E7EB",
+    text: "#374151",
+  },
 };
 
 function PaymentBadge({ status }: { status: PaymentStatus }) {
@@ -164,7 +201,12 @@ export default function JobDetailScreen() {
   const [claimSchedule, { isLoading: isClaiming }] = useClaimScheduleMutation();
   const [cancelAssignment, { isLoading: isCancelling }] =
     useCancelAssignmentMutation();
-  const [getChat, { isFetching: openingChat }] = useLazyGetAssignmentConversationQuery();
+  const [getChat, { isFetching: openingChat }] =
+    useLazyGetAssignmentConversationQuery();
+  const [checkIn, { isLoading: isCheckingIn }] = useCheckInMutation();
+  const [checkOut, { isLoading: isCheckingOut }] = useCheckOutMutation();
+  const [uploadImage, { isLoading: isUploading }] =
+    useUploadScheduleImageMutation();
 
   const isLoading = isMine ? mineQuery.isLoading : availableQuery.isLoading;
 
@@ -212,11 +254,67 @@ export default function JobDetailScreen() {
       const result = await getChat(item.assignment_id).unwrap();
       router.push({
         pathname: "/messages/[id]",
-        params: { id: String(result.conversation.id), assignmentId: String(item.assignment_id) },
+        params: {
+          id: String(result.conversation.id),
+          assignmentId: String(item.assignment_id),
+        },
       });
     } catch {
-      Alert.alert("Không mở được trò chuyện", "Vui lòng kiểm tra lịch phân công và thử lại.");
+      Alert.alert(
+        "Không mở được trò chuyện",
+        "Vui lòng kiểm tra lịch phân công và thử lại.",
+      );
     }
+  };
+
+  const handleCheckIn = async () => {
+    try {
+      await checkIn(scheduleId).unwrap();
+    } catch (err) {
+      Alert.alert("Không thể bắt đầu", getErrorMessage(err));
+    }
+  };
+
+  const handleCheckOut = () => {
+    Alert.alert(
+      "Xác nhận hoàn thành",
+      "Bạn chắc chắn đã hoàn thành công việc này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xác nhận",
+          onPress: async () => {
+            try {
+              await checkOut(scheduleId).unwrap();
+              Alert.alert("Hoàn thành", "Bạn đã hoàn thành buổi làm việc.", [
+                { text: "OK", onPress: () => router.back() },
+              ]);
+            } catch (err) {
+              Alert.alert("Không thể hoàn thành", getErrorMessage(err));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const pickAndUpload = async (imageType: ScheduleImageType) => {
+    const file = await pickImage();
+    if (!file) return;
+    try {
+      await uploadImage({ scheduleId, image: file, imageType }).unwrap();
+    } catch (err) {
+      Alert.alert("Tải ảnh thất bại", getErrorMessage(err));
+    }
+  };
+
+  const handleAddImage = () => {
+    Alert.alert("Chọn loại ảnh", "Ảnh này chụp vào thời điểm nào?", [
+      { text: "Trước khi làm", onPress: () => pickAndUpload("BEFORE") },
+      { text: "Sau khi làm", onPress: () => pickAndUpload("AFTER") },
+      { text: "Vấn đề phát sinh", onPress: () => pickAndUpload("ISSUE") },
+      { text: "Hủy", style: "cancel" },
+    ]);
   };
 
   if (isLoading) {
@@ -243,6 +341,10 @@ export default function JobDetailScreen() {
   const mineItem = isMine ? (item as any) : null;
   const hasCoordinates = !!item.address_latitude && !!item.address_longitude;
   const statusBadge = STATUS_LABEL[item.status] ?? STATUS_LABEL.PENDING;
+  const showImagesSection =
+    isMine &&
+    mineItem &&
+    !["PENDING", "CANCELLED", "MISSED"].includes(mineItem.status);
 
   return (
     <View className="flex-1 bg-[#F8F9FC]">
@@ -399,26 +501,51 @@ export default function JobDetailScreen() {
           </View>
         )}
 
-        {isMine && mineItem?.images?.length > 0 && (
+        {showImagesSection && (
           <View className="bg-white rounded-2xl p-4 mb-4 border border-[#F3F4F6]">
-            <Text className="text-[#111827] text-base font-bold mb-3">
-              Ảnh trước/sau khi làm
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {mineItem.images.map((img: any) => (
-                <Image
-                  key={img.id}
-                  source={{ uri: img.image }}
-                  style={{
-                    width: 96,
-                    height: 96,
-                    borderRadius: 12,
-                    marginRight: 10,
-                  }}
-                  resizeMode="cover"
-                />
-              ))}
-            </ScrollView>
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-[#111827] text-base font-bold">
+                Ảnh trước/sau khi làm
+              </Text>
+              {mineItem.status === "IN_PROGRESS" && (
+                <Pressable
+                  onPress={handleAddImage}
+                  disabled={isUploading}
+                  className="flex-row items-center"
+                >
+                  {isUploading ? (
+                    <ActivityIndicator size="small" color="#2563EB" />
+                  ) : (
+                    <>
+                      <Feather name="camera" size={15} color="#2563EB" />
+                      <Text className="text-[#2563EB] text-sm font-medium ml-1">
+                        Thêm ảnh
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+            </View>
+
+            {mineItem.images?.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {mineItem.images.map((img: any) => (
+                  <Image
+                    key={img.id}
+                    source={{ uri: img.image }}
+                    style={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: 12,
+                      marginRight: 10,
+                    }}
+                    resizeMode="cover"
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <Text className="text-[#9CA3AF] text-sm">Chưa có ảnh nào.</Text>
+            )}
           </View>
         )}
 
@@ -434,6 +561,28 @@ export default function JobDetailScreen() {
           </Pressable>
         )}
 
+        {isMine && mineItem?.status === "PENDING" && mineItem.assignment_id && (
+          <PrimaryButton
+            label="Bắt đầu công việc"
+            loading={isCheckingIn}
+            loadingLabel="Đang xử lý..."
+            icon="play"
+            onPress={handleCheckIn}
+            className="bg-[#2563EB] rounded-xl py-4 items-center mb-3"
+          />
+        )}
+
+        {isMine && mineItem?.status === "IN_PROGRESS" && (
+          <PrimaryButton
+            label="Hoàn thành công việc"
+            loading={isCheckingOut}
+            loadingLabel="Đang xử lý..."
+            icon="check-circle"
+            onPress={handleCheckOut}
+            className="bg-[#2563EB] rounded-xl py-4 items-center mb-3"
+          />
+        )}
+
         {isMine && mineItem?.assignment_id && (
           <Pressable
             onPress={handleOpenChat}
@@ -447,7 +596,7 @@ export default function JobDetailScreen() {
           </Pressable>
         )}
 
-        {isMine && mineItem && (
+        {isMine && mineItem && mineItem.status === "PENDING" && (
           <View>
             {mineItem.can_cancel ? (
               showCancelForm ? (
