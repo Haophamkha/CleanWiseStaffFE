@@ -1,28 +1,28 @@
 import { ImageUploadBox } from "@/components/profile-setup/ImageUploadBox";
 import { StepHeader } from "@/components/profile-setup/StepHeader";
 import {
-    useGetWorkerProfileQuery,
-    useSubmitWorkerProfileMutation,
-    useUpdateWorkerProfileMutation,
+  useGetWorkerProfileQuery,
+  useSubmitWorkerProfileMutation,
+  useUpdateWorkerProfileMutation,
 } from "@/services/authApi";
 import type { PickedFile } from "@/types/WorkerProfile";
 import { resolveMediaUrl } from "@/utils/media";
 import {
-    fieldRejectionNote,
-    getNextRejectedStep,
-    isFieldLocked,
-    stepRoute,
+  fieldRejectionNote,
+  getNextRejectedStep,
+  isFieldLocked,
+  stepRoute,
 } from "@/utils/rejectionFlow";
 import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -37,6 +37,10 @@ export default function ExperienceStep() {
   );
   const [error, setError] = useState("");
   const [prefilled, setPrefilled] = useState(false);
+
+  // Khóa đồng bộ chống gọi handleSubmit 2 lần (state isBusy cập nhật trễ
+  // một nhịp nên không chặn được bấm đúp / re-render giữa 2 request).
+  const busyRef = useRef(false);
 
   const { data: profile } = useGetWorkerProfileQuery();
   const [updateProfile, { isLoading: isSaving }] =
@@ -77,6 +81,14 @@ export default function ExperienceStep() {
   }, [profile, prefilled]);
 
   const handleSubmit = async () => {
+    if (busyRef.current) return;
+
+    // Hồ sơ đã gửi duyệt rồi (PENDING) -> không gửi lại nữa, sang thẳng success
+    if (profile?.status === "PENDING") {
+      router.replace("/(profile-setup)/success");
+      return;
+    }
+
     const trimmedBio = bio.trim();
     const years = Number(experienceYears);
 
@@ -105,6 +117,7 @@ export default function ExperienceStep() {
     }
 
     setError("");
+    busyRef.current = true;
     try {
       // Chỉ gửi những field đang mở
       await updateProfile({
@@ -115,13 +128,17 @@ export default function ExperienceStep() {
       }).unwrap();
 
       if (isRejectedFlow && nextRejectedStep) {
+        busyRef.current = false; // còn quay lại màn này được
         router.push(stepRoute(nextRejectedStep));
         return;
       }
 
       await submitProfile().unwrap();
+      // Không reset busyRef ở đây: giữ khóa cho tới khi rời màn hình
       router.replace("/(profile-setup)/success");
     } catch (e: any) {
+      busyRef.current = false;
+      console.log("PROFILE SUBMIT ERROR", e?.status, JSON.stringify(e?.data));
       const message =
         e?.data?.message || "Gửi hồ sơ thất bại, vui lòng thử lại.";
       setError(message);
@@ -214,7 +231,8 @@ export default function ExperienceStep() {
         <Text className="text-[#9CA3AF] text-xs mb-3">
           Ảnh chứng chỉ, giấy khen hoặc bằng cấp liên quan đến dịch vụ.
         </Text>
-        <View className="mb-1" style={{ width: 140 }}>
+        {/* Chiều cao cố định để ô upload (flex-1 + aspectRatio) không bị xẹp */}
+        <View className="mb-1" style={{ width: 140, height: 140 }}>
           <ImageUploadBox
             label="Tải chứng chỉ"
             value={certificateFile}

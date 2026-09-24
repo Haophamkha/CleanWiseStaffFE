@@ -2,8 +2,10 @@ import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
 import { useGetWorkerProfileQuery } from "@/services/authApi";
 import { clearAuth } from "@/store/authSlice";
+import { baseApi } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
 import { storage } from "@/utils/storage";
+import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
@@ -16,43 +18,81 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  DRAFT: { label: "Chưa hoàn tất hồ sơ", color: "#DC2626" },
-  PENDING: { label: "Đang chờ duyệt", color: "#D97706" },
-  ACTIVE: { label: "Đang làm việc", color: "#22C55E" },
-  REJECTED: { label: "Hồ sơ bị từ chối", color: "#DC2626" },
-  SUSPENDED: { label: "Tạm khóa", color: "#DC2626" },
+const STATUS_LABEL: Record<
+  string,
+  {
+    label: string;
+    color: string;
+  }
+> = {
+  DRAFT: {
+    label: "Chưa hoàn tất hồ sơ",
+    color: "#DC2626",
+  },
+
+  PENDING: {
+    label: "Đang chờ duyệt",
+    color: "#D97706",
+  },
+
+  ACTIVE: {
+    label: "Đang làm việc",
+    color: "#22C55E",
+  },
+
+  REJECTED: {
+    label: "Hồ sơ bị từ chối",
+    color: "#DC2626",
+  },
+
+  SUSPENDED: {
+    label: "Tạm khóa",
+    color: "#DC2626",
+  },
 };
 
 const MENU_ITEMS: {
   icon: React.ComponentProps<typeof Feather>["name"];
+
   label: string;
+
   onPress?: () => void;
 }[] = [
   {
     icon: "user",
     label: "Thông tin cá nhân",
+
     onPress: () => router.push("/(profile-setup)/personal-info"),
   },
+
   {
     icon: "map-pin",
     label: "Khu vực hoạt động",
+
     onPress: () => router.push("/(profile-setup)/working-areas"),
   },
+
   {
     icon: "credit-card",
     label: "Tài khoản ngân hàng",
+
     onPress: () => router.push("/payment-methods" as any),
   },
+
   {
     icon: "dollar-sign",
     label: "Thu nhập",
+
+    onPress: () => router.push("/earnings" as any),
   },
+
   {
     icon: "folder",
     label: "Hồ sơ của tôi",
+
     onPress: () => router.push("/(profile-setup)/my-profile"),
   },
+
   {
     icon: "settings",
     label: "Cài đặt",
@@ -61,14 +101,51 @@ const MENU_ITEMS: {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+
   const dispatch = useAppDispatch();
+
   const { data: profile, isLoading, isError } = useGetWorkerProfileQuery();
 
+  /**
+   * =========================
+   * LOGOUT
+   * =========================
+   *
+   * Thứ tự quan trọng: dọn Redux + cache RTK Query TRƯỚC, xóa token
+   * trong storage SAU.
+   *
+   * Lý do đổi thứ tự so với trước: nếu để storage.deleteItem() chạy
+   * trước mà nó ném lỗi (vd AsyncStorage lỗi tạm thời), try/catch sẽ
+   * chặn luôn 2 dòng dispatch phía dưới không bao giờ chạy tới -> Redux
+   * vẫn giữ user cũ, cache vẫn còn -> lần đăng nhập kế tiếp thấy nhầm
+   * dữ liệu tài khoản cũ. Dọn Redux/cache trước thì dù storage có lỗi,
+   * state trong app vẫn sạch; token cũ tối đa chỉ còn sót lại trong
+   * storage, không gây hiển thị sai dữ liệu.
+   */
   const handleLogout = async () => {
-    await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
-    await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+    // 1. Xóa Redux auth
     dispatch(clearAuth());
-    // useAuthGuard ở root layout sẽ tự phát hiện và điều hướng về login.
+
+    // 2. Xóa toàn bộ RTK Query cache (profile, schedules, wallet...)
+    dispatch(baseApi.util.resetApiState());
+
+    // 3. Xóa token trong storage — không im lặng nuốt lỗi nữa
+    try {
+      await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
+      await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+    } catch (error) {
+      console.error("[LOGOUT ERROR]", error);
+      showErrorToast("Lỗi", "Đăng xuất chưa hoàn tất, vui lòng thử lại.");
+    }
+
+    /**
+     * Không cần router.replace ở đây.
+     * useAuthGuard sẽ thấy:
+     *
+     * status = unauthenticated
+     *
+     * và tự chuyển về login.
+     */
   };
 
   const fullName = profile
@@ -83,6 +160,7 @@ export default function ProfileScreen() {
     : null;
 
   const rating = profile?.average_rating ? Number(profile.average_rating) : 0;
+
   const statusInfo = profile
     ? (STATUS_LABEL[profile.status] ?? {
         label: profile.status,
@@ -91,142 +169,157 @@ export default function ProfileScreen() {
     : null;
 
   return (
-    <ScrollView
+    <View
       className="flex-1 bg-[#F8F9FC]"
-      showsVerticalScrollIndicator={false}
+      style={{
+        paddingTop: insets.top,
+      }}
     >
-      <View
-        style={{ paddingTop: insets.top + 12 }}
-        className="flex-row items-center justify-between px-5 pb-4 bg-white border-b border-[#F3F4F6]"
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 32,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        <View className="flex-row items-center">
-          <View className="w-8 h-8 rounded-full bg-[#EEF2FF] items-center justify-center mr-2">
-            <Feather name="briefcase" size={14} color="#2563EB" />
-          </View>
-          <Text className="text-[#2563EB] text-lg font-bold">
-            CleanCare Staff
+        {/* Header */}
+        <View className="px-5 pt-5 pb-4">
+          <Text className="text-[#111827] text-2xl font-bold">Hồ sơ</Text>
+
+          <Text className="text-[#6B7280] text-sm mt-1">
+            Quản lý thông tin tài khoản
           </Text>
         </View>
-        <TouchableOpacity>
-          <Feather name="bell" size={22} color="#111827" />
-        </TouchableOpacity>
-      </View>
 
-      {isLoading ? (
-        <View className="items-center justify-center py-24">
-          <ActivityIndicator color="#2563EB" />
-        </View>
-      ) : isError || !profile ? (
-        <View className="items-center justify-center py-24 px-5">
-          <Feather name="alert-circle" size={28} color="#DC2626" />
-          <Text className="text-[#6B7280] text-sm mt-3 text-center">
-            Không tải được thông tin hồ sơ. Vui lòng thử lại sau.
-          </Text>
-        </View>
-      ) : (
-        <View className="px-5 pt-5">
-          <View className="bg-white rounded-3xl border border-[#E5E7EB] overflow-hidden mb-5">
-            <View className="bg-[#EEF2FF] items-center pt-8 pb-6">
-              <View className="w-24 h-24 rounded-full overflow-hidden border-4 border-white mb-3 bg-[#E5E7EB] items-center justify-center">
-                {avatarUri ? (
-                  <Image
-                    source={{ uri: avatarUri }}
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                ) : (
-                  <Feather name="user" size={32} color="#9CA3AF" />
-                )}
-              </View>
+        {/* Profile card */}
+        <View className="mx-5 bg-white rounded-3xl p-5 border border-[#E5E7EB]">
+          {isLoading ? (
+            <View className="items-center py-8">
+              <ActivityIndicator size="small" color="#2563EB" />
 
-              {statusInfo && (
-                <View className="flex-row items-center bg-white rounded-full px-3 py-1.5">
-                  <View
-                    className="w-2 h-2 rounded-full mr-1.5"
-                    style={{ backgroundColor: statusInfo.color }}
-                  />
-                  <Text
-                    className="text-xs font-semibold"
-                    style={{ color: statusInfo.color }}
-                  >
-                    {statusInfo.label}
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            <View className="items-center px-6 py-6">
-              <Text className="text-[#111827] text-xl font-bold mb-1">
-                {fullName}
+              <Text className="text-[#6B7280] text-sm mt-3">
+                Đang tải hồ sơ...
               </Text>
-              <View className="flex-row items-center mb-5">
-                <Feather name="star" size={14} color="#F59E0B" />
-                <Text className="text-[#111827] text-sm font-medium ml-1 mr-2">
-                  {rating > 0 ? rating.toFixed(1) : "Chưa có đánh giá"}
-                </Text>
-                <Text className="text-[#9CA3AF] text-sm">•</Text>
-                <Text className="text-[#6B7280] text-sm ml-2">
-                  {profile.total_completed_jobs} đơn hoàn thành
-                </Text>
+            </View>
+          ) : isError ? (
+            <View className="items-center py-8">
+              <Feather name="alert-circle" size={32} color="#DC2626" />
+
+              <Text className="text-[#DC2626] text-sm mt-3">
+                Không thể tải hồ sơ
+              </Text>
+            </View>
+          ) : (
+            <>
+              <View className="flex-row items-center">
+                {/* Avatar */}
+                <View className="w-20 h-20 rounded-full bg-[#EEF2FF] overflow-hidden items-center justify-center">
+                  {avatarUri ? (
+                    <Image
+                      source={{
+                        uri: avatarUri,
+                      }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Feather name="user" size={32} color="#2563EB" />
+                  )}
+                </View>
+
+                {/* Info */}
+                <View className="flex-1 ml-4">
+                  <Text
+                    className="text-[#111827] text-lg font-bold"
+                    numberOfLines={1}
+                  >
+                    {fullName || "Nhân viên"}
+                  </Text>
+
+                  <Text
+                    className="text-[#6B7280] text-sm mt-1"
+                    numberOfLines={1}
+                  >
+                    {profile?.phone_number ?? ""}
+                  </Text>
+
+                  {statusInfo && (
+                    <View className="flex-row items-center mt-2">
+                      <View
+                        className="w-2 h-2 rounded-full mr-2"
+                        style={{
+                          backgroundColor: statusInfo.color,
+                        }}
+                      />
+
+                      <Text
+                        className="text-xs font-medium"
+                        style={{
+                          color: statusInfo.color,
+                        }}
+                      >
+                        {statusInfo.label}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
 
-              <TouchableOpacity
-                className="flex-row items-center bg-[#2563EB] rounded-full px-6 py-3"
-                onPress={() => router.push("/(profile-setup)/portrait")}
-              >
-                <Feather
-                  name="edit-2"
-                  size={15}
-                  color="#fff"
-                  style={{ marginRight: 8 }}
-                />
-                <Text className="text-white font-semibold text-[14px]">
-                  Chỉnh sửa hồ sơ
+              {/* Rating */}
+              <View className="flex-row items-center mt-5 pt-4 border-t border-[#F3F4F6]">
+                <Feather name="star" size={16} color="#F59E0B" />
+
+                <Text className="text-[#111827] text-sm font-semibold ml-2">
+                  {rating.toFixed(1)}
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
 
-          <View className="bg-white rounded-3xl border border-[#E5E7EB] overflow-hidden mb-5">
-            {MENU_ITEMS.map((item, idx) => (
-              <TouchableOpacity
-                key={item.label}
-                className={`flex-row items-center justify-between px-5 py-4 ${
-                  idx !== MENU_ITEMS.length - 1
-                    ? "border-b border-[#F3F4F6]"
-                    : ""
-                }`}
-                onPress={item.onPress}
-              >
-                <View className="flex-row items-center">
-                  <View className="w-9 h-9 rounded-full bg-[#EEF2FF] items-center justify-center mr-3">
-                    <Feather name={item.icon} size={16} color="#2563EB" />
-                  </View>
-                  <Text className="text-[#111827] text-[15px]">
-                    {item.label}
-                  </Text>
-                </View>
-                <Feather name="chevron-right" size={18} color="#D1D5DB" />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            className="flex-row items-center bg-white rounded-3xl border border-[#E5E7EB] px-5 py-4 mb-6"
-            onPress={handleLogout}
-          >
-            <View className="w-9 h-9 rounded-full bg-[#FEE2E2] items-center justify-center mr-3">
-              <Feather name="log-out" size={16} color="#DC2626" />
-            </View>
-            <Text className="text-[#DC2626] font-semibold text-[15px]">
-              Đăng xuất
-            </Text>
-          </TouchableOpacity>
-
-          <Text className="text-center text-[#9CA3AF] text-xs mb-8">
-            Phiên bản 2.4.1
-          </Text>
+                <Text className="text-[#9CA3AF] text-sm ml-1">đánh giá</Text>
+              </View>
+            </>
+          )}
         </View>
-      )}
-    </ScrollView>
+
+        {/* Menu */}
+        <View className="mx-5 mt-5 bg-white rounded-3xl border border-[#E5E7EB] overflow-hidden">
+          {MENU_ITEMS.map((item, index) => (
+            <TouchableOpacity
+              key={item.label}
+              activeOpacity={0.7}
+              onPress={item.onPress}
+              className={`flex-row items-center px-5 py-4 ${
+                index !== MENU_ITEMS.length - 1
+                  ? "border-b border-[#F3F4F6]"
+                  : ""
+              }`}
+            >
+              <View className="w-10 h-10 rounded-xl bg-[#F3F4F6] items-center justify-center">
+                <Feather name={item.icon} size={18} color="#374151" />
+              </View>
+
+              <Text className="flex-1 text-[#111827] text-sm font-medium ml-3">
+                {item.label}
+              </Text>
+
+              {item.onPress && (
+                <Feather name="chevron-right" size={18} color="#9CA3AF" />
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Logout */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={handleLogout}
+          className="mx-5 mt-5 bg-white border border-[#FECACA] rounded-2xl py-4 flex-row items-center justify-center"
+        >
+          <Feather name="log-out" size={18} color="#DC2626" />
+
+          <Text className="text-[#DC2626] text-sm font-semibold ml-2">
+            Đăng xuất
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }

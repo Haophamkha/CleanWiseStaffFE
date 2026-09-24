@@ -21,6 +21,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+// Tên hiển thị tuỳ chỉnh cho từng nhóm dịch vụ (section_code) khi 1 nhóm
+// gồm nhiều service cụ thể mà worker được làm tất cả (vd HOME_CLEANING
+// gồm cả ca lẻ + gói tháng). Section nào không có ở đây thì dùng tên của
+// service đại diện (id nhỏ nhất trong nhóm).
+const SECTION_DISPLAY_NAME: Record<string, string> = {
+  HOME_CLEANING: "Dọn dẹp nhà (ca lẻ & định kỳ)",
+};
+
 export default function ServiceStep() {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
@@ -42,19 +50,52 @@ export default function ServiceStep() {
     ? getNextRejectedStep(profile?.rejected_fields, "service")
     : null;
 
-  // Prefill dịch vụ đã đăng ký (chỉ khi người dùng chưa tự chọn)
-  useEffect(() => {
-    if (profile?.registered_service && selectedId === null) {
-      setSelectedId(profile.registered_service.id);
-    }
-  }, [profile?.registered_service, selectedId]);
-
-  const filteredServices = useMemo(() => {
+  // Gộp các service cùng section_code thành 1 lựa chọn duy nhất, để worker
+  // đăng ký 1 lần nhưng được làm tất cả service trong cùng nhóm (vd dọn
+  // dẹp nhà ca lẻ + gói tháng là cùng 1 nghề, chỉ khác hình thức đặt).
+  const groupedServices = useMemo(() => {
     if (!services) return [];
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return services;
-    return services.filter((s) => s.name.toLowerCase().includes(keyword));
+    const filtered = keyword
+      ? services.filter((s) => s.name.toLowerCase().includes(keyword))
+      : services;
+
+    const bySection = new Map<string, typeof services>();
+    for (const s of filtered) {
+      const key = s.section_code;
+      if (!bySection.has(key)) bySection.set(key, []);
+      bySection.get(key)!.push(s);
+    }
+
+    return Array.from(bySection.entries()).map(([sectionCode, list]) => {
+      const sorted = [...list].sort((a, b) => a.id - b.id);
+      const representative = sorted[0];
+      return {
+        sectionCode,
+        representativeId: representative.id,
+        memberIds: sorted.map((s) => s.id),
+        name: SECTION_DISPLAY_NAME[sectionCode] ?? representative.name,
+        description: representative.description,
+        primary_image: representative.primary_image,
+      };
+    });
   }, [services, search]);
+
+  // Prefill dịch vụ đã đăng ký (chỉ khi người dùng chưa tự chọn).
+  // So theo section (memberIds) thay vì id cụ thể, vì service đã lưu
+  // trước đó có thể không phải là id đại diện của nhóm.
+  useEffect(() => {
+    if (
+      profile?.registered_service &&
+      selectedId === null &&
+      groupedServices.length > 0
+    ) {
+      const group = groupedServices.find((g) =>
+        g.memberIds.includes(profile.registered_service.id),
+      );
+      if (group) setSelectedId(group.representativeId);
+    }
+  }, [profile?.registered_service, groupedServices, selectedId]);
 
   const isLoading = loadingServices || loadingProfile;
   const isBusy = isSaving || isSubmitting;
@@ -127,13 +168,13 @@ export default function ServiceStep() {
           contentContainerStyle={{ paddingBottom: 12 }}
           keyboardShouldPersistTaps="handled"
         >
-          {filteredServices.map((service) => {
-            const isSelected = selectedId === service.id;
+          {groupedServices.map((group) => {
+            const isSelected = group.memberIds.includes(selectedId ?? -1);
             return (
               <TouchableOpacity
-                key={service.id}
+                key={group.sectionCode}
                 onPress={() => {
-                  setSelectedId(service.id);
+                  setSelectedId(group.representativeId);
                   if (error) setError("");
                 }}
                 activeOpacity={0.8}
@@ -144,9 +185,9 @@ export default function ServiceStep() {
                 }`}
               >
                 <View className="w-12 h-12 rounded-xl bg-[#F3F4F6] overflow-hidden mr-3 items-center justify-center">
-                  {service.primary_image ? (
+                  {group.primary_image ? (
                     <Image
-                      source={{ uri: service.primary_image }}
+                      source={{ uri: group.primary_image }}
                       style={{ width: "100%", height: "100%" }}
                       resizeMode="cover"
                     />
@@ -161,14 +202,14 @@ export default function ServiceStep() {
                     }`}
                     numberOfLines={1}
                   >
-                    {service.name}
+                    {group.name}
                   </Text>
-                  {!!service.description && (
+                  {!!group.description && (
                     <Text
                       className="text-[#6B7280] text-xs mt-0.5"
                       numberOfLines={1}
                     >
-                      {service.description}
+                      {group.description}
                     </Text>
                   )}
                 </View>
@@ -184,7 +225,7 @@ export default function ServiceStep() {
             );
           })}
 
-          {filteredServices.length === 0 && (
+          {groupedServices.length === 0 && (
             <Text className="text-[#9CA3AF] text-center text-sm mt-6">
               Không tìm thấy dịch vụ phù hợp.
             </Text>

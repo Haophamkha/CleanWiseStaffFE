@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ActiveProfileGate } from "@/components/common/ActiveProfileGate";
 import { useGetMySchedulesQuery } from "@/services/jobsApi";
 import type { WorkerMySchedule } from "@/types/Schedule";
 
@@ -157,7 +158,7 @@ function formatTotalHours(minutes: number) {
   return `${hours}h${mins}`;
 }
 
-export default function ScheduleScreen() {
+function ScheduleContent() {
   const insets = useSafeAreaInsets();
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
@@ -605,5 +606,13 @@ export default function ScheduleScreen() {
         </ScrollView>
       )}
     </View>
+  );
+}
+
+export default function ScheduleScreen() {
+  return (
+    <ActiveProfileGate>
+      <ScheduleContent />
+    </ActiveProfileGate>
   );
 }
