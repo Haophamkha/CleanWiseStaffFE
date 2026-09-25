@@ -333,6 +333,15 @@ type AxiosBaseQueryArgs = {
 type AxiosBaseQueryError = {
   status?: number;
   data?: unknown;
+  /** true khi request KHÔNG nhận được response từ server (timeout, mất
+   * mạng, DNS lỗi...) — phân biệt tường minh với lỗi nghiệp vụ (400/403/
+   * 409...) mà BE trả về. Trước đây isNetworkError() phải đoán qua việc
+   * "status và data đều rỗng", nhưng khi timeout thì axios gán
+   * err.message (1 chuỗi non-empty) vào data -> đoán sai, luôn bị coi là
+   * lỗi nghiệp vụ thật, khiến bước verify-qua-refetch không bao giờ chạy. */
+  isNetworkError?: boolean;
+  /** Mã lỗi gốc của axios, vd "ECONNABORTED" (timeout), "ERR_NETWORK". */
+  code?: string;
 };
 
 const axiosBaseQuery = (): BaseQueryFn<
@@ -358,11 +367,14 @@ const axiosBaseQuery = (): BaseQueryFn<
     } catch (axiosError) {
       const err = axiosError as AxiosError;
 
+      const hasServerResponse = !!err.response;
+
       return {
         error: {
           status: err.response?.status,
-
-          data: err.response?.data ?? err.message,
+          data: hasServerResponse ? err.response?.data : undefined,
+          isNetworkError: !hasServerResponse,
+          code: err.code,
         },
       };
     }
