@@ -11,6 +11,8 @@ export type PaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
 
 export type ScheduleImageType = "BEFORE" | "AFTER" | "ISSUE" | "OTHER";
 
+export type ScheduleClaimState = "OPEN" | "MINE" | "TAKEN" | "CONFLICT";
+
 export interface ScheduleImage {
   id: number;
   image: string;
@@ -33,19 +35,19 @@ export interface WorkerSchedule {
   status: ScheduleStatus;
   address_city: string;
   address_ward: string | null;
-  // BE trả DecimalField dạng string qua JSON (DRF không tự convert sang
-  // number), nên để string | null thay vì number | null.
   address_latitude: string | null;
   address_longitude: string | null;
   customer_avatar: string | null;
   customer_name: string;
   payment_status: PaymentStatus;
-  // Giá của RIÊNG buổi này (booking.total_amount / total_sessions), không
-  // phải tổng giá cả gói. null nếu booking chưa có total_amount.
   price: string | null;
   service_data: Record<string, any>;
-  form_schema: { fields: FormField[] } | null;
+  form_schema?: {
+    fields: FormField[];
+    task_checklist?: string;
+  };
   assignment_id: number | null;
+  claim_state?: ScheduleClaimState;
 }
 
 export interface WorkerMySchedule extends WorkerSchedule {
@@ -85,3 +87,54 @@ export interface AvailableSchedulesParams {
 export interface MySchedulesParams {
   status?: ScheduleStatus;
 }
+
+export interface MySchedulesParams {
+  status?: ScheduleStatus;
+  booking_id?: number;
+}
+
+export interface SchedulePackageGroup {
+  booking_id: number;
+  booking_code: string;
+  service_name: string;
+  address_city: string;
+  address_ward: string | null;
+  payment_status: PaymentStatus;
+  total_sessions: number;
+  completed_sessions: number;
+  claimable_or_mine_sessions: number;
+  price_per_session: string | null;
+  earliest_start: string;
+  schedules: (WorkerSchedule | WorkerMySchedule)[];
+}
+
+export interface ClaimBookingPackageResult {
+  message: string;
+  data: {
+    claimed: { assignment_id: number; schedule_id: number }[];
+    skipped: { schedule_id: number; reason: string }[];
+  };
+}
+
+export type Paginated<T> = {
+  results: T[];
+  count: number;
+  page: number;
+  total_pages: number;
+  has_next: boolean;
+  has_previous: boolean;
+  page_size: number;
+};
+
+export type AvailableJobsPagedArgs = {
+  page: number;
+  page_size?: number;
+  date_from?: string;
+  date_to?: string;
+};
+
+export type MyJobsPagedArgs = {
+  page: number;
+  page_size?: number;
+  status?: string;
+};
