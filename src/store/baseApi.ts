@@ -405,6 +405,7 @@ export const baseApi = createApi({
     // Wallet
     "Wallet",
     "WalletTransactions",
+    "Notifications",
   ],
 
   endpoints: () => ({}),

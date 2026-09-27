@@ -9,6 +9,22 @@ export function getErrorMessage(err: any): string {
   if (!data) return "Có lỗi xảy ra, vui lòng thử lại.";
   if (typeof data === "string") return data;
 
+  // Ưu tiên đọc lỗi chi tiết theo từng field trước (vd: {amount: "Số dư
+  // ví không đủ."}) — đây mới là lý do thật sự, "message" chỉ là câu
+  // chung chung "Dữ liệu gửi lên không hợp lệ." không nói lên gì cả.
+  const fieldErrors = data.errors;
+  if (fieldErrors && typeof fieldErrors === "object") {
+    const messages = Object.values(fieldErrors)
+      .map((val) => (Array.isArray(val) ? val[0] : val))
+      .filter(
+        (val) => val !== undefined && val !== null && typeof val !== "boolean",
+      )
+      .map(String);
+    if (messages.length > 0) {
+      return messages.join("\n");
+    }
+  }
+
   const preferredKeys = ["message", "detail", "error", "non_field_errors"];
   for (const key of preferredKeys) {
     const val = data[key];

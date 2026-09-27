@@ -22,6 +22,10 @@ import { SuccessModal } from "@/components/ui/SuccessModal";
 import { useJobActions } from "@/hooks/useJobActions";
 import { useJobDetailData } from "@/hooks/useJobDetailData";
 
+// Tạm ẩn các buổi trong gói mà nhân viên khác đã nhận (claim_state === "TAKEN"),
+// chỉ hiện buổi của mình + buổi còn trống. Đổi thành false để hiện lại như cũ.
+const HIDE_TAKEN_SESSIONS = true;
+
 export default function JobDetailScreen() {
   const insets = useSafeAreaInsets();
   const {
@@ -57,6 +61,10 @@ export default function JobDetailScreen() {
     isSingleSessionView,
     paramBookingId,
   });
+
+  const visibleBookingSchedules = HIDE_TAKEN_SESSIONS
+    ? bookingSchedules.filter((s) => s.claim_state !== "TAKEN")
+    : bookingSchedules;
 
   const actions = useJobActions({
     scheduleId,
@@ -141,7 +149,7 @@ export default function JobDetailScreen() {
 
         {isPackage ? (
           <PackageSessionsCard
-            bookingSchedules={bookingSchedules}
+            bookingSchedules={visibleBookingSchedules}
             totalSessions={totalSessions}
             openSessions={openSessions}
             validSelected={actions.validSelected}
