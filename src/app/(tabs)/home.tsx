@@ -1,3 +1,4 @@
+import { NotificationBellButton } from "@/components/common/NotificationBellButton";
 import { ProfileStatusCard } from "@/components/common/ProfileStatusCard";
 import { ENV } from "@/config/env";
 import { useGetWorkerProfileQuery } from "@/services/authApi";
@@ -158,7 +159,7 @@ export default function HomeScreen() {
                 CleanCare Staff
               </Text>
             </View>
-            <Feather name="bell" size={22} color="#111827" />
+            <NotificationBellButton />
           </View>
           <ProfileStatusCard profile={profile} />
         </>
@@ -187,9 +188,7 @@ export default function HomeScreen() {
                 Xin chào, {workerName} 👋
               </Text>
             </View>
-            <Pressable hitSlop={10}>
-              <Feather name="bell" size={24} color="#111827" />
-            </Pressable>
+            <NotificationBellButton />
           </View>
 
           <View className="px-5 pt-5">

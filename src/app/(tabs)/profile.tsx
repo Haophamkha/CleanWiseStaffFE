@@ -101,35 +101,14 @@ const MENU_ITEMS: {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-
   const dispatch = useAppDispatch();
-
   const { data: profile, isLoading, isError } = useGetWorkerProfileQuery();
 
-  /**
-   * =========================
-   * LOGOUT
-   * =========================
-   *
-   * Thứ tự quan trọng: dọn Redux + cache RTK Query TRƯỚC, xóa token
-   * trong storage SAU.
-   *
-   * Lý do đổi thứ tự so với trước: nếu để storage.deleteItem() chạy
-   * trước mà nó ném lỗi (vd AsyncStorage lỗi tạm thời), try/catch sẽ
-   * chặn luôn 2 dòng dispatch phía dưới không bao giờ chạy tới -> Redux
-   * vẫn giữ user cũ, cache vẫn còn -> lần đăng nhập kế tiếp thấy nhầm
-   * dữ liệu tài khoản cũ. Dọn Redux/cache trước thì dù storage có lỗi,
-   * state trong app vẫn sạch; token cũ tối đa chỉ còn sót lại trong
-   * storage, không gây hiển thị sai dữ liệu.
-   */
   const handleLogout = async () => {
-    // 1. Xóa Redux auth
     dispatch(clearAuth());
 
-    // 2. Xóa toàn bộ RTK Query cache (profile, schedules, wallet...)
     dispatch(baseApi.util.resetApiState());
 
-    // 3. Xóa token trong storage — không im lặng nuốt lỗi nữa
     try {
       await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
       await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
@@ -137,15 +116,6 @@ export default function ProfileScreen() {
       console.error("[LOGOUT ERROR]", error);
       showErrorToast("Lỗi", "Đăng xuất chưa hoàn tất, vui lòng thử lại.");
     }
-
-    /**
-     * Không cần router.replace ở đây.
-     * useAuthGuard sẽ thấy:
-     *
-     * status = unauthenticated
-     *
-     * và tự chuyển về login.
-     */
   };
 
   const fullName = profile

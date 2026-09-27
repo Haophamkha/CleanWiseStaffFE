@@ -1,4 +1,5 @@
 import { ALLOWED_APP_ROLE, STORAGE_KEYS } from "@/config/constants";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { clearAuth, setAuthStatus } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { decodeJwtPayload } from "@/utils/jwt";
@@ -67,6 +68,8 @@ export function useAuthGuard() {
       router.replace("/(tabs)/home");
     }
   }, [status, segments, router]);
+
+  usePushNotifications(status === "authenticated");
 
   return { ready: status !== "idle" };
 }

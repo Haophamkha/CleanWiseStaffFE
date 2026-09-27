@@ -40,6 +40,19 @@ export type EarningItem = {
   worker_amount: string;
 };
 
+export type WalletWithdrawResult = {
+  id: number;
+  type: string;
+  type_display: string;
+  amount: string;
+  balance_after: string;
+  status: string;
+  status_display: string;
+  booking_code: string | null;
+  note: string | null;
+  created_at: string;
+};
+
 const unwrapResponse = (response: any) =>
   response?.data?.data ?? response?.data ?? response;
 
@@ -64,9 +77,23 @@ export const earningsApi = baseApi.injectEndpoints({
       transformResponse: unwrapResponse,
       providesTags: ["Wallet"],
     }),
+
+    // Rút tiền ký quỹ — BE chặn không cho rút xuống dưới mức tối thiểu 400.000đ
+    withdrawWallet: builder.mutation<WalletWithdrawResult, { amount: number }>({
+      query: (body) => ({
+        url: "/api/worker/wallet/withdraw/",
+        method: "POST",
+        data: body,
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: ["Wallet"],
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useGetEarningsSummaryQuery, useGetEarningsHistoryQuery } =
-  earningsApi;
+export const {
+  useGetEarningsSummaryQuery,
+  useGetEarningsHistoryQuery,
+  useWithdrawWalletMutation,
+} = earningsApi;

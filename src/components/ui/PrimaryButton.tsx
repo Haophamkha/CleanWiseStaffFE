@@ -62,14 +62,6 @@ export function PrimaryButton({
         </>
       ) : (
         <>
-          {icon && (
-            <View
-              className="w-9 h-9 rounded-full items-center justify-center mr-3"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-            >
-              <Feather name={icon} size={17} color="#fff" />
-            </View>
-          )}
           <View style={{ flex: subtitle ? 1 : undefined }}>
             <Text className="text-white font-semibold text-[15px]">
               {label}

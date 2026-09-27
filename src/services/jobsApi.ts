@@ -264,13 +264,22 @@ export const jobsApi = baseApi.injectEndpoints({
     }),
 
     // POST /api/worker/schedules/:id/check-out/
-    checkOut: builder.mutation<WorkerMySchedule, number>({
-      query: (scheduleId) => ({
+    checkOut: builder.mutation<
+      WorkerMySchedule,
+      {
+        scheduleId: number;
+        completion_note?: string | null;
+      }
+    >({
+      query: ({ scheduleId, completion_note }) => ({
         url: `/api/worker/schedules/${scheduleId}/check-out/`,
         method: "POST",
+        data: {
+          completion_note: completion_note?.trim() || null,
+        },
       }),
       transformResponse: unwrapResponse,
-      invalidatesTags: (result, error, scheduleId) => [
+      invalidatesTags: (_result, _error, { scheduleId }) => [
         { type: "MySchedules", id: scheduleId },
         { type: "MySchedules", id: "LIST" },
       ],

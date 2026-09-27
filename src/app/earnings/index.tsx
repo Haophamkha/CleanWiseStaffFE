@@ -1,28 +1,26 @@
 import {
-    useGetEarningsHistoryQuery,
-    useGetEarningsSummaryQuery,
-    type EarningItem,
-    type EarningPeriod,
+  useGetEarningsHistoryQuery,
+  useGetEarningsSummaryQuery,
+  type EarningItem,
+  type EarningPeriod,
 } from "@/services/earningsApi";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                            */
-/* ------------------------------------------------------------------ */
+import WithdrawModal from "@/components/earnings/WithdrawModal";
 
 const formatVnd = (value: string | number | undefined | null) => {
   const n = Math.round(Number(value ?? 0));
@@ -105,8 +103,8 @@ function StatRow({
 
 function HistoryRow({ item }: { item: EarningItem }) {
   const isCash = item.payment_method === "CASH";
-  // Tiền mặt: nhân viên đã cầm tiền, phải nộp lại hoa hồng (số âm).
-  // Chuyển khoản: app giữ tiền, sẽ chuyển phần của nhân viên (số dương).
+  // Tiền mặt: nhân viên đã cầm tiền, hoa hồng đã được trừ thẳng vào ví (số âm).
+  // Chuyển khoản: app giữ tiền, đã chuyển phần của nhân viên vào ví (số dương).
   const amountText = isCash
     ? `-${formatVnd(item.commission_amount)}`
     : `+${formatVnd(item.worker_amount)}`;
@@ -138,7 +136,7 @@ function HistoryRow({ item }: { item: EarningItem }) {
         </Text>
         <Text className="text-[#6B7280] text-xs mt-0.5">
           {isCash
-            ? "Tiền mặt · hoa hồng nộp app"
+            ? "Tiền mặt · hoa hồng đã trừ ví"
             : "Chuyển khoản · app chuyển bạn"}
           {" · đơn "}
           {formatVnd(item.gross_amount)}
@@ -159,6 +157,7 @@ function HistoryRow({ item }: { item: EarningItem }) {
 export default function EarningsScreen() {
   const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<EarningPeriod>("week");
+  const [showWithdraw, setShowWithdraw] = useState(false);
 
   const summaryQuery = useGetEarningsSummaryQuery(period);
   const historyQuery = useGetEarningsHistoryQuery(period);
@@ -179,10 +178,10 @@ export default function EarningsScreen() {
   const net = Number(p?.net_settlement ?? 0);
   const settlementText =
     net > 0
-      ? `App chuyển cho bạn ${formatVnd(net)}`
+      ? `App đã chuyển vào ví ${formatVnd(net)}`
       : net < 0
-        ? `Bạn chuyển lại app ${formatVnd(Math.abs(net))}`
-        : "Không phát sinh đối soát";
+        ? `Hệ thống đã tự trừ ví ${formatVnd(Math.abs(net))}`
+        : "Không phát sinh chênh lệch";
   const settlementColor = net > 0 ? "#16A34A" : net < 0 ? "#DC2626" : "#6B7280";
 
   return (
@@ -249,6 +248,18 @@ export default function EarningsScreen() {
             <Text className="text-white text-3xl font-bold mt-1">
               {formatVnd(summary.wallet_balance)}
             </Text>
+
+            <TouchableOpacity
+              onPress={() => setShowWithdraw(true)}
+              activeOpacity={0.85}
+              className="flex-row items-center justify-center bg-white/15 rounded-2xl py-3 mt-4"
+            >
+              <Feather name="arrow-down-circle" size={16} color="#fff" />
+              <Text className="text-white font-bold text-sm ml-2">
+                Rút tiền
+              </Text>
+            </TouchableOpacity>
+
             <View className="mt-4 pt-3 border-t border-white/20 flex-row items-center justify-between">
               <Text className="text-white/80 text-xs flex-1 pr-3">
                 Hoa hồng tiền mặt chưa nộp
@@ -323,7 +334,7 @@ export default function EarningsScreen() {
               valueColor="#16A34A"
             />
             <StatRow
-              label="Đơn tiền mặt (bạn đã thu, nộp hoa hồng)"
+              label="Đơn tiền mặt (bạn đã thu, hoa hồng đã trừ ví)"
               value={`-${formatVnd(p.cash_commission)}`}
               valueColor="#DC2626"
             />
@@ -360,6 +371,13 @@ export default function EarningsScreen() {
           </View>
         </ScrollView>
       )}
+
+      <WithdrawModal
+        visible={showWithdraw}
+        onClose={() => setShowWithdraw(false)}
+        walletBalance={Number(summary?.wallet_balance ?? 0)}
+        onSuccess={onRefresh}
+      />
     </SafeAreaView>
   );
 }

@@ -370,51 +370,38 @@ export function useJobActions({
   };
 
   /* ----- Hoàn thành công việc: gửi hết ảnh đang chờ RỒI mới check-out ----- */
-  const handleCheckOut = () => {
-    Alert.alert(
-      "Xác nhận hoàn thành",
-      "Bạn chắc chắn đã hoàn thành công việc này?",
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Xác nhận",
-          onPress: async () => {
-            // 1) Gửi hết ảnh đang chờ trước — không chặn nếu lỗi (BE
-            // chưa bắt buộc), chỉ ghi nhận loại nào lỗi để báo sau.
-            const failedTypes = await uploadAllStagedImages();
+  const handleCheckOut = async (completionNote?: string) => {
+    try {
+      const failedUploadTypes = await uploadAllStagedImages();
 
-            // 2) Check-out như cũ.
-            try {
-              await checkOut(scheduleId).unwrap();
-              refetchBookingSchedules();
-              refetchMineSchedules();
+      await checkOut({
+        scheduleId,
+        completion_note: completionNote?.trim() || null,
+      }).unwrap();
 
-              const failedNote =
-                failedTypes.length > 0
-                  ? `\n\nLưu ý: ${failedTypes.map((t) => IMAGE_TYPE_LABEL[t]).join(", ")} chưa gửi được, bạn có thể thử gửi lại.`
-                  : "";
+      await refetchBookingSchedules();
+      await refetchMineSchedules();
 
-              Alert.alert(
-                "Hoàn thành",
-                `Bạn đã hoàn thành buổi làm việc.${failedNote}`,
-                [{ text: "OK", onPress: () => router.back() }],
-              );
-            } catch (err) {
-              await verifyScheduleMutation({
-                err,
-                scheduleId,
-                refetch: refetchBookingSchedules,
-                isNowSuccess: (s) => s.status === "COMPLETED",
-                successTitle: "Hoàn thành",
-                successMessage: "Bạn đã hoàn thành buổi làm việc.",
-                errorTitle: "Không thể hoàn thành",
-                onSuccess: () => router.back(),
-              });
-            }
-          },
-        },
-      ],
-    );
+      if (failedUploadTypes.length > 0) {
+        Alert.alert(
+          "Đã hoàn thành",
+          "Buổi làm đã được hoàn thành nhưng một số ảnh chưa tải lên được.",
+        );
+      } else {
+        Alert.alert("Đã hoàn thành", "Bạn đã hoàn thành buổi làm việc.");
+      }
+    } catch (err) {
+      await verifyScheduleMutation({
+        err,
+        scheduleId,
+        refetch: refetchBookingSchedules,
+        isNowSuccess: (s) => s.status === "COMPLETED",
+        successTitle: "Đã hoàn thành",
+        successMessage: "Bạn đã hoàn thành buổi làm việc.",
+        errorTitle: "Không thể hoàn thành",
+        onSuccess: () => refetchMineSchedules(),
+      });
+    }
   };
 
   /* ----- Ảnh minh chứng: chọn -> chờ -> xóa (X) ----- */
