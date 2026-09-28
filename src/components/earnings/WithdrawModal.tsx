@@ -1,16 +1,17 @@
+import { useIdempotencyKey } from "@/hooks/useIdempotencyKey";
 import { useWithdrawWalletMutation } from "@/services/earningsApi";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 const MIN_ESCROW_BALANCE = 400_000;
@@ -44,6 +45,7 @@ export default function WithdrawModal({
   const [rawInput, setRawInput] = useState("");
   const [withdrawWallet, { isLoading }] = useWithdrawWalletMutation();
   const [errorText, setErrorText] = useState<string | null>(null);
+  const { getKey, resetKey } = useIdempotencyKey();
 
   const amount = parseAmountInput(rawInput);
   const maxWithdrawable = Math.max(walletBalance - MIN_ESCROW_BALANCE, 0);
@@ -60,6 +62,7 @@ export default function WithdrawModal({
   const canSubmit = amount > 0 && !validationError && !isLoading;
 
   const handleClose = () => {
+    resetKey(); // đóng modal mà chưa submit thành công -> hủy ý định rút hiện tại
     setRawInput("");
     setErrorText(null);
     onClose();
@@ -69,12 +72,16 @@ export default function WithdrawModal({
     if (!canSubmit) return;
     setErrorText(null);
     try {
-      await withdrawWallet({ amount }).unwrap();
+      await withdrawWallet({ amount, idempotencyKey: getKey() }).unwrap();
+      resetKey(); // thành công -> lần rút tiếp theo là ý định mới
       setRawInput("");
       onSuccess?.();
       onClose();
     } catch (err: any) {
-      // BE trả lỗi validation dạng { amount: [...] } hoặc { message: "..." }
+      // Reset ngay cả khi lỗi: user có thể sửa lại số tiền và bấm lại
+      // trong cùng phiên modal, nên không giữ key cũ (tránh BE trả về
+      // cache của request với số tiền cũ nếu key trùng nhau).
+      resetKey();
       const backendMsg =
         err?.data?.amount?.[0] ??
         err?.data?.message ??

@@ -1,4 +1,6 @@
+import { STORAGE_KEYS } from "@/config/constants";
 import { useRegisterPushTokenMutation } from "@/services/notificationApi";
+import { storage } from "@/utils/storage";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
@@ -12,7 +14,11 @@ export function usePushNotifications(enabled: boolean) {
   const registeredRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled || registeredRef.current || isExpoGo) return;
+    if (!enabled) {
+      registeredRef.current = false;
+      return;
+    }
+    if (registeredRef.current || isExpoGo) return;
 
     const register = async () => {
       try {
@@ -48,6 +54,7 @@ export function usePushNotifications(enabled: boolean) {
         });
         const token = tokenResponse.data;
         setExpoPushToken(token);
+        await storage.setItem(STORAGE_KEYS.PUSH_TOKEN, token);
         registeredRef.current = true;
 
         registerToken({ token, platform: Platform.OS });

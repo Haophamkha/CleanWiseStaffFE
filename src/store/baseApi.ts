@@ -2,27 +2,12 @@ import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
 import { clearAuth } from "@/store/authSlice";
 import { storage } from "@/utils/storage";
-
-import type { BaseQueryFn } from "@reduxjs/toolkit/query";
-
-import { createApi } from "@reduxjs/toolkit/query/react";
-
 import type { Dispatch, UnknownAction } from "@reduxjs/toolkit";
-
+import type { BaseQueryFn } from "@reduxjs/toolkit/query";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-
 import { router } from "expo-router";
 
-/* =========================================================
- * AXIOS INSTANCE
- * ======================================================= */
-
-// Timeout mặc định cho các request bình thường (JSON, không kèm file).
-// Request có upload ảnh (multipart) cần timeout riêng cao hơn nhiều —
-// xem DEFAULT_UPLOAD_TIMEOUT_MS và cách truyền `timeout` qua args bên
-// dưới, vì 1-2 ảnh gửi qua mạng di động dễ mất hơn 10s, dẫn tới axios tự
-// hủy request (ECONNABORTED) dù BE vẫn lưu thành công phía sau, khiến
-// app báo "thất bại" trong khi dữ liệu thực ra đã lưu đúng.
 const DEFAULT_TIMEOUT_MS = 10000;
 export const UPLOAD_TIMEOUT_MS = 30000;
 
@@ -31,10 +16,6 @@ const axiosInstance = axios.create({
   timeout: DEFAULT_TIMEOUT_MS,
 });
 
-/* =========================================================
- * PUBLIC ENDPOINTS
- * ======================================================= */
-
 const PUBLIC_ENDPOINTS = [
   "/api/auth/login/",
   "/api/auth/register/",
@@ -42,10 +23,15 @@ const PUBLIC_ENDPOINTS = [
   "/api/auth/forgot-password/",
   "/api/auth/verify-reset-otp/",
   "/api/auth/reset-password/",
-  "/api/auth/refresh/",
+  "/api/auth/token/refresh/",
+  "/api/auth/logout/",
 ];
 
-const REFRESH_URL = "/api/auth/refresh/";
+const REFRESH_URL = "/api/auth/token/refresh/";
+const LOGOUT_URL = "/api/auth/logout/";
+
+const isValidToken = (t: string | null | undefined): t is string =>
+  !!t && t !== "undefined" && t !== "null";
 
 /* =========================================================
  * REDUX DISPATCH
@@ -61,15 +47,34 @@ export const registerAuthDispatch = (dispatch: Dispatch<UnknownAction>) => {
  * REQUEST INTERCEPTOR
  * ======================================================= */
 
+const SENSITIVE_KEYS = [
+  "account_number",
+  "password",
+  "password_confirm",
+  "new_password",
+  "new_password_confirm",
+  "refresh",
+  "access",
+];
+
+const redact = (body: unknown) => {
+  if (!body || typeof body !== "object") return body;
+  const copy: Record<string, unknown> = {
+    ...(body as Record<string, unknown>),
+  };
+  for (const key of SENSITIVE_KEYS) {
+    if (key in copy) copy[key] = "[REDACTED]";
+  }
+  return copy;
+};
+
 axiosInstance.interceptors.request.use(async (config) => {
   const isPublic = PUBLIC_ENDPOINTS.some((path) => config.url?.includes(path));
 
   if (!isPublic) {
     const token = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-
-    if (token && token !== "undefined" && token !== "null") {
+    if (isValidToken(token)) {
       config.headers = config.headers ?? {};
-
       config.headers.Authorization = `Bearer ${token}`;
     }
   }
@@ -83,32 +88,16 @@ axiosInstance.interceptors.request.use(async (config) => {
           ([key, value]: [string, any]) => [
             key,
             value && typeof value === "object" && "uri" in value
-              ? {
-                  uri: value.uri,
-                  type: value.type,
-                  name: value.name,
-                }
+              ? { uri: value.uri, type: value.type, name: value.name }
               : value,
           ],
         ),
       );
     }
 
-    const loggedBody =
-      rawLoggedBody &&
-      typeof rawLoggedBody === "object" &&
-      Object.prototype.hasOwnProperty.call(rawLoggedBody, "account_number")
-        ? {
-            ...(rawLoggedBody as Record<string, unknown>),
-            account_number: "[REDACTED]",
-          }
-        : rawLoggedBody;
-
     console.log("[REQUEST]", config.method?.toUpperCase(), config.url, {
       hasAuthHeader: !!config.headers?.Authorization,
-
-      body: loggedBody,
-
+      body: redact(rawLoggedBody),
       timeout: config.timeout,
     });
   }
@@ -117,205 +106,184 @@ axiosInstance.interceptors.request.use(async (config) => {
 });
 
 /* =========================================================
- * REFRESH TOKEN
+ * REFRESH TOKEN (1 promise dùng chung cho HTTP và WebSocket)
  * ======================================================= */
 
-let isRefreshing = false;
+const doRefresh = async (): Promise<string> => {
+  const refreshToken = await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+  if (!isValidToken(refreshToken)) throw new Error("NO_REFRESH_TOKEN");
 
-type PendingRequest = {
-  resolve: (token: string) => void;
-  reject: (error: unknown) => void;
+  // axios thường (không qua axiosInstance) để tránh interceptor chạy vòng lặp
+  const response = await axios.post(
+    `${ENV.API_URL}${REFRESH_URL}`,
+    { refresh: refreshToken },
+    { timeout: 10000 },
+  );
+
+  const data = response.data?.data ?? response.data;
+  if (typeof data?.access !== "string") throw new Error("BAD_REFRESH_RESPONSE");
+
+  await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
+  // BE bật ROTATE_REFRESH_TOKENS: BẮT BUỘC lưu refresh mới
+  if (typeof data.refresh === "string") {
+    await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
+  }
+  return data.access;
 };
 
-let pendingQueue: PendingRequest[] = [];
+let refreshPromise: Promise<string> | null = null;
 
-const processQueue = (error: unknown, token: string | null = null) => {
-  pendingQueue.forEach(({ resolve, reject }) => {
-    if (error) {
-      reject(error);
-    } else if (token) {
-      resolve(token);
-    }
-  });
+export const refreshAccessToken = (): Promise<string> =>
+  (refreshPromise ??= doRefresh().finally(() => {
+    refreshPromise = null;
+  }));
 
-  pendingQueue = [];
+// Chỉ logout khi BE TỪ CHỐI refresh token. Mất mạng / timeout / 5xx thì giữ phiên.
+const shouldLogout = async (e: unknown): Promise<boolean> => {
+  if (e instanceof Error && e.message === "NO_REFRESH_TOKEN") {
+    return isValidToken(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN));
+  }
+  if (axios.isAxiosError(e)) {
+    const status = e.response?.status;
+    return status === 400 || status === 401 || status === 403;
+  }
+  return true; // BAD_REFRESH_RESPONSE
 };
 
 /* =========================================================
- * LOGOUT
+ * LOGOUT (dùng chung cho tự động và nút Đăng xuất)
  * ======================================================= */
 
-const logoutAndRedirect = async (): Promise<void> => {
-  await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
+let isLoggingOut = false;
 
-  await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+export const performLogout = async (
+  redirectTo: string = "/(auth)/login",
+): Promise<void> => {
+  if (isLoggingOut) return;
+  isLoggingOut = true;
+  try {
+    const refresh = await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    const pushToken = await storage.getItem(STORAGE_KEYS.PUSH_TOKEN);
 
-  // Xóa Redux user
-  authDispatch?.(clearAuth());
+    // Báo BE thu hồi refresh token + xóa push token; lỗi mạng thì bỏ qua
+    if (isValidToken(refresh)) {
+      axios
+        .post(
+          `${ENV.API_URL}${LOGOUT_URL}`,
+          {
+            refresh,
+            ...(isValidToken(pushToken) && { push_token: pushToken }),
+          },
+          { timeout: 5000 },
+        )
+        .catch(() => {});
+    }
 
-  // Xóa toàn bộ RTK Query cache
-  authDispatch?.(baseApi.util.resetApiState());
-
-  router.replace("/(auth)/login");
+    await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
+    await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+    await storage.deleteItem(STORAGE_KEYS.PUSH_TOKEN);
+  } catch (error) {
+    console.error("[LOGOUT ERROR]", error);
+  } finally {
+    // clearAuth TRƯỚC khi điều hướng, để useAuthGuard không đẩy ngược về Home
+    authDispatch?.(clearAuth());
+    authDispatch?.(baseApi.util.resetApiState());
+    router.replace(redirectTo as any);
+    isLoggingOut = false;
+  }
 };
 
 /* =========================================================
  * RESPONSE INTERCEPTOR
  * ======================================================= */
 
+const setAuthHeader = (config: AxiosRequestConfig, token: string) => {
+  config.headers = config.headers ?? {};
+  (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+};
+
 axiosInstance.interceptors.response.use(
   (response) => {
-    if (__DEV__) {
+    if (__DEV__ && !response.config.url?.includes("/api/auth/")) {
       console.log("[RESPONSE OK]", response.config.url, response.data);
     }
-
     return response;
   },
-
   async (error: AxiosError) => {
     const originalRequest = error.config as
-      | (AxiosRequestConfig & {
-          _retry?: boolean;
-        })
+      | (AxiosRequestConfig & { _retry?: boolean })
       | undefined;
 
     if (__DEV__) {
-      // error.code === "ECONNABORTED" kèm response undefined thường là
-      // timeout (axios tự hủy request phía client), không phải lỗi BE
-      // trả về — log thêm error.code/message để phân biệt 2 trường hợp
-      // ngay trên terminal, không cần đoán.
+      // ECONNABORTED kèm response undefined thường là timeout phía client
       console.log("[RESPONSE ERROR]", originalRequest?.url, {
         status: error.response?.status,
-
         data: error.response?.data,
-
         code: error.code,
-
         message: error.message,
       });
     }
 
-    /* -----------------------------------------------------
-     * Không có request gốc
-     * --------------------------------------------------- */
+    if (!originalRequest) return Promise.reject(error);
+    if (error.response?.status !== 401) return Promise.reject(error);
 
-    if (!originalRequest) {
-      return Promise.reject(error);
-    }
-
-    const isAuthEndpoint = PUBLIC_ENDPOINTS.some((path) =>
-      originalRequest.url?.includes(path),
+    // Endpoint public: 401 là lỗi nghiệp vụ, không refresh, không logout
+    const isPublic = PUBLIC_ENDPOINTS.some((p) =>
+      originalRequest.url?.includes(p),
     );
-
-    /* -----------------------------------------------------
-     * Không phải 401
-     * --------------------------------------------------- */
-
-    if (error.response?.status !== 401) {
-      return Promise.reject(error);
-    }
-
-    /* -----------------------------------------------------
-     * Auth endpoint bị 401
-     * --------------------------------------------------- */
-
-    if (isAuthEndpoint) {
-      await logoutAndRedirect();
-
-      return Promise.reject(error);
-    }
-
-    /* -----------------------------------------------------
-     * Request đã retry rồi
-     * --------------------------------------------------- */
-
-    if (originalRequest._retry) {
-      return Promise.reject(error);
-    }
-
-    /* -----------------------------------------------------
-     * Đang refresh token
-     * --------------------------------------------------- */
-
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        pendingQueue.push({
-          resolve: (token: string) => {
-            originalRequest.headers = originalRequest.headers ?? {};
-
-            (originalRequest.headers as Record<string, string>).Authorization =
-              `Bearer ${token}`;
-
-            resolve(axiosInstance(originalRequest));
-          },
-
-          reject,
-        });
-      });
-    }
-
-    /* -----------------------------------------------------
-     * Bắt đầu refresh
-     * --------------------------------------------------- */
+    if (isPublic || originalRequest._retry) return Promise.reject(error);
 
     originalRequest._retry = true;
 
-    isRefreshing = true;
+    // Request dùng token cũ nhưng storage đã có token mới (request khác vừa
+    // refresh xong): gửi lại bằng token mới, không refresh thêm
+    const sentAuth = (
+      originalRequest.headers as Record<string, string> | undefined
+    )?.Authorization;
+    const current = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    if (isValidToken(current) && sentAuth !== `Bearer ${current}`) {
+      setAuthHeader(originalRequest, current);
+      return axiosInstance(originalRequest);
+    }
 
     try {
-      const refreshToken = await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-
-      if (
-        !refreshToken ||
-        refreshToken === "undefined" ||
-        refreshToken === "null"
-      ) {
-        throw new Error("Không có refresh token");
-      }
-
-      /**
-       * Dùng axios thường thay vì
-       * axiosInstance để tránh interceptor
-       * refresh token chạy vòng lặp.
-       */
-      const response = await axios.post(`${ENV.API_URL}${REFRESH_URL}`, {
-        refresh: refreshToken,
-      });
-
-      const newAccessToken =
-        response.data?.data?.access ?? response.data?.access;
-
-      if (!newAccessToken || typeof newAccessToken !== "string") {
-        throw new Error("Refresh không trả về access token");
-      }
-
-      /* Lưu access token mới */
-
-      await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newAccessToken);
-
-      /* Xử lý các request đang chờ */
-
-      processQueue(null, newAccessToken);
-
-      /* Retry request ban đầu */
-
-      originalRequest.headers = originalRequest.headers ?? {};
-
-      (originalRequest.headers as Record<string, string>).Authorization =
-        `Bearer ${newAccessToken}`;
-
+      const token = await refreshAccessToken();
+      setAuthHeader(originalRequest, token);
+      // Không await: lỗi của request retry không được rơi vào catch bên dưới
       return axiosInstance(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError, null);
-
-      await logoutAndRedirect();
-
-      return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
+      if (await shouldLogout(refreshError)) await performLogout();
+      return Promise.reject(error);
     }
   },
 );
+
+/* =========================================================
+ * IDEMPOTENCY AUTO-RETRY
+ * =========================================================
+ * BE trả 409 kèm error_code "IDEMPOTENCY_PROCESSING" khi 1 request khác
+ * với CÙNG Idempotency-Key đang xử lý dở. Không phải lỗi nghiệp vụ nên an
+ * toàn để tự đợi rồi gọi lại. Chỉ retry khi request gốc có header
+ * Idempotency-Key.
+ */
+
+const IDEMPOTENCY_RETRY_DELAY_MS = 1500;
+const IDEMPOTENCY_MAX_RETRIES = 3;
+
+const isIdempotencyProcessing = (error: AxiosError): boolean => {
+  const data = error.response?.data as { error_code?: string } | undefined;
+  return (
+    error.response?.status === 409 &&
+    data?.error_code === "IDEMPOTENCY_PROCESSING"
+  );
+};
+
+const hasIdempotencyKey = (config: AxiosRequestConfig): boolean => {
+  const headers = config.headers as Record<string, string> | undefined;
+  return !!headers?.["Idempotency-Key"];
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /* =========================================================
  * AXIOS BASE QUERY
@@ -326,21 +294,18 @@ type AxiosBaseQueryArgs = {
   method: AxiosRequestConfig["method"];
   data?: unknown;
   params?: Record<string, unknown>;
-  /** Ghi đè timeout mặc định (10s) — dùng UPLOAD_TIMEOUT_MS cho request có file. */
+  /** Ghi đè timeout mặc định (10s), dùng UPLOAD_TIMEOUT_MS cho request có file. */
   timeout?: number;
+  /** Header tùy chỉnh, vd { "Idempotency-Key": "..." }. */
+  headers?: Record<string, string>;
 };
 
 type AxiosBaseQueryError = {
   status?: number;
   data?: unknown;
-  /** true khi request KHÔNG nhận được response từ server (timeout, mất
-   * mạng, DNS lỗi...) — phân biệt tường minh với lỗi nghiệp vụ (400/403/
-   * 409...) mà BE trả về. Trước đây isNetworkError() phải đoán qua việc
-   * "status và data đều rỗng", nhưng khi timeout thì axios gán
-   * err.message (1 chuỗi non-empty) vào data -> đoán sai, luôn bị coi là
-   * lỗi nghiệp vụ thật, khiến bước verify-qua-refetch không bao giờ chạy. */
+  /** true khi request KHÔNG nhận được response từ server (timeout, mất mạng...). */
   isNetworkError?: boolean;
-  /** Mã lỗi gốc của axios, vd "ECONNABORTED" (timeout), "ERR_NETWORK". */
+  /** Mã lỗi gốc của axios, vd "ECONNABORTED", "ERR_NETWORK". */
   code?: string;
 };
 
@@ -350,34 +315,55 @@ const axiosBaseQuery = (): BaseQueryFn<
   AxiosBaseQueryError
 > => {
   return async (args: AxiosBaseQueryArgs) => {
-    const { url, method, data, params, timeout } = args;
+    const { url, method, data, params, timeout, headers } = args;
 
-    try {
-      const result = await axiosInstance({
-        url,
-        method,
-        data,
-        params,
-        ...(timeout !== undefined && { timeout }),
-      });
+    const requestConfig: AxiosRequestConfig = {
+      url,
+      method,
+      data,
+      params,
+      ...(timeout !== undefined && { timeout }),
+      ...(headers !== undefined && { headers }),
+    };
 
-      return {
-        data: result.data,
-      };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError;
+    for (let attempt = 0; attempt <= IDEMPOTENCY_MAX_RETRIES; attempt++) {
+      try {
+        const result = await axiosInstance(requestConfig);
+        return { data: result.data };
+      } catch (axiosError) {
+        const err = axiosError as AxiosError;
 
-      const hasServerResponse = !!err.response;
+        const shouldRetry =
+          isIdempotencyProcessing(err) &&
+          hasIdempotencyKey(requestConfig) &&
+          attempt < IDEMPOTENCY_MAX_RETRIES;
 
-      return {
-        error: {
-          status: err.response?.status,
-          data: hasServerResponse ? err.response?.data : undefined,
-          isNetworkError: !hasServerResponse,
-          code: err.code,
-        },
-      };
+        if (shouldRetry) {
+          if (__DEV__) {
+            console.log(
+              "[IDEMPOTENCY RETRY]",
+              url,
+              `attempt ${attempt + 1}/${IDEMPOTENCY_MAX_RETRIES}`,
+            );
+          }
+          await sleep(IDEMPOTENCY_RETRY_DELAY_MS);
+          continue;
+        }
+
+        const hasServerResponse = !!err.response;
+
+        return {
+          error: {
+            status: err.response?.status,
+            data: hasServerResponse ? err.response?.data : undefined,
+            isNetworkError: !hasServerResponse,
+            code: err.code,
+          },
+        };
+      }
     }
+
+    return { error: { isNetworkError: true } };
   };
 };
 
@@ -387,7 +373,6 @@ const axiosBaseQuery = (): BaseQueryFn<
 
 export const baseApi = createApi({
   reducerPath: "api",
-
   baseQuery: axiosBaseQuery(),
 
   tagTypes: [
@@ -398,11 +383,7 @@ export const baseApi = createApi({
     "AvailableSchedules",
     "MySchedules",
     "ChatConversations",
-
-    // Booking
     "Bookings",
-
-    // Wallet
     "Wallet",
     "WalletTransactions",
     "Notifications",

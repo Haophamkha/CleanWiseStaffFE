@@ -1,8 +1,9 @@
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { ROUTES } from "@/config/constants";
-import { useRegisterWorkerMutation } from "@/services/authApi";
+import { saveTokens, useRegisterWorkerMutation } from "@/services/authApi";
 import { setUser } from "@/store/authSlice";
+import { baseApi } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { registerWorkerSchema } from "@/utils/validators";
@@ -82,8 +83,9 @@ export default function RegisterScreen() {
     try {
       const res = await registerWorker(validation.data).unwrap();
 
+      await saveTokens(res.access, res.refresh);
+      dispatch(baseApi.util.resetApiState());
       dispatch(setUser(res.user));
-
       showSuccessToast(
         "Tạo tài khoản thành công",
         "Hồ sơ của bạn đang ở trạng thái chờ hoàn thiện.",
