@@ -1,11 +1,7 @@
-import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
 import { useGetWorkerProfileQuery } from "@/services/authApi";
-import { clearAuth } from "@/store/authSlice";
-import { baseApi } from "@/store/baseApi";
+import { performLogout } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
-import { storage } from "@/utils/storage";
-import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
@@ -104,18 +100,8 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { data: profile, isLoading, isError } = useGetWorkerProfileQuery();
 
-  const handleLogout = async () => {
-    dispatch(clearAuth());
-
-    dispatch(baseApi.util.resetApiState());
-
-    try {
-      await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
-      await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
-    } catch (error) {
-      console.error("[LOGOUT ERROR]", error);
-      showErrorToast("Lỗi", "Đăng xuất chưa hoàn tất, vui lòng thử lại.");
-    }
+  const handleLogout = () => {
+    performLogout();
   };
 
   const fullName = profile

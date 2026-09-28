@@ -78,12 +78,17 @@ export const earningsApi = baseApi.injectEndpoints({
       providesTags: ["Wallet"],
     }),
 
-    // Rút tiền ký quỹ — BE chặn không cho rút xuống dưới mức tối thiểu 400.000đ
-    withdrawWallet: builder.mutation<WalletWithdrawResult, { amount: number }>({
-      query: (body) => ({
+    withdrawWallet: builder.mutation<
+      WalletWithdrawResult,
+      { amount: number; idempotencyKey: string }
+    >({
+      query: ({ amount, idempotencyKey }) => ({
         url: "/api/worker/wallet/withdraw/",
         method: "POST",
-        data: body,
+        data: { amount },
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
       }),
       transformResponse: unwrapResponse,
       invalidatesTags: ["Wallet"],

@@ -2,6 +2,7 @@
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: "access_token",
   REFRESH_TOKEN: "refresh_token",
+  PUSH_TOKEN: "push_token",
 };
 
 export const ROUTES = {

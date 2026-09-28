@@ -21,7 +21,7 @@ import type {
 import { storage } from "@/utils/storage";
 import { buildWorkerProfileFormData } from "@/utils/workerProfileFormData";
 
-const saveTokens = async (access: string, refresh: string) => {
+export const saveTokens = async (access: string, refresh: string) => {
   await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access);
   await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh);
 };
@@ -39,17 +39,6 @@ export const authApi = baseApi.injectEndpoints({
         data: body,
       }),
       transformResponse: unwrapResponse,
-      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-        try {
-          const { data } = await queryFulfilled;
-          await saveTokens(data.access, data.refresh);
-          // Xóa sạch cache RTK Query (profile, schedules, wallet...) của
-          // tài khoản trước đó — bắt buộc phải làm ở đây, không chỉ dựa
-          // vào bước logout, vì nếu logout lỡ lỗi giữa chừng (vd storage
-          // ném lỗi) thì cache cũ vẫn còn và user mới sẽ thấy data cũ.
-          dispatch(baseApi.util.resetApiState());
-        } catch {}
-      },
     }),
 
     registerWorker: builder.mutation<
@@ -62,15 +51,6 @@ export const authApi = baseApi.injectEndpoints({
         data: body,
       }),
       transformResponse: unwrapResponse,
-      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-        try {
-          const { data } = await queryFulfilled;
-          await saveTokens(data.access, data.refresh);
-          // Cùng lý do như login: đảm bảo tài khoản vừa đăng ký không
-          // dính cache của phiên trước đó.
-          dispatch(baseApi.util.resetApiState());
-        } catch {}
-      },
     }),
 
     forgotPassword: builder.mutation<MessageResponse, ForgotPasswordRequest>({

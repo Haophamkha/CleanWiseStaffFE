@@ -1,5 +1,6 @@
 import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
+import { refreshAccessToken } from "@/store/baseApi";
 import { storage } from "@/utils/storage";
 import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
@@ -24,15 +25,20 @@ export function useChatSocket(
   callback.current = onEvent;
   reconnectCallback.current = onReconnect;
 
-  const sendTyping = useCallback((conversationId: number, isTyping: boolean) => {
-    const socket = socketRef.current;
-    if (authenticatedRef.current && socket?.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({
-        type: isTyping ? "typing.start" : "typing.stop",
-        conversation_id: conversationId,
-      }));
-    }
-  }, []);
+  const sendTyping = useCallback(
+    (conversationId: number, isTyping: boolean) => {
+      const socket = socketRef.current;
+      if (authenticatedRef.current && socket?.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: isTyping ? "typing.start" : "typing.stop",
+            conversation_id: conversationId,
+          }),
+        );
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!enabled) return;
@@ -47,8 +53,12 @@ export function useChatSocket(
       if (connecting || socket?.readyState === WebSocket.OPEN) return;
       connecting = true;
       const token = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      if (stopped || !token) { connecting = false; return; }
-      const url = ENV.API_URL.replace(/^http/, "ws").replace(/\/$/, "") + "/ws/chat/";
+      if (stopped || !token) {
+        connecting = false;
+        return;
+      }
+      const url =
+        ENV.API_URL.replace(/^http/, "ws").replace(/\/$/, "") + "/ws/chat/";
       const connection = new WebSocket(url);
       socket = connection;
       socketRef.current = connection;
@@ -72,18 +82,34 @@ export function useChatSocket(
           // Ignore malformed server frames.
         }
       };
-      connection.onclose = () => {
+      connection.onclose = (e) => {
         authenticatedRef.current = false;
         if (socketRef.current === connection) socketRef.current = null;
         connecting = false;
         if (stopped) return;
-        retry = setTimeout(connect, Math.min(1000 * 2 ** attempts++, 15000));
+        retry = setTimeout(
+          async () => {
+            if (e.code === 4401) {
+              try {
+                await refreshAccessToken();
+              } catch {
+                return;
+              }
+            }
+            connect();
+          },
+          Math.min(1000 * 2 ** attempts++, 15000),
+        );
       };
       connection.onerror = () => connection.close();
     };
 
     const appState = AppState.addEventListener("change", (state) => {
-      if (state === "active" && !connecting && (!socket || socket.readyState === WebSocket.CLOSED)) {
+      if (
+        state === "active" &&
+        !connecting &&
+        (!socket || socket.readyState === WebSocket.CLOSED)
+      ) {
         if (retry) clearTimeout(retry);
         connect();
       }

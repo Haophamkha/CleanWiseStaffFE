@@ -1,10 +1,10 @@
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { ROUTES, STORAGE_KEYS } from "@/config/constants";
-import { useLoginMutation } from "@/services/authApi";
+import { ROUTES } from "@/config/constants";
+import { saveTokens, useLoginMutation } from "@/services/authApi";
 import { setUser } from "@/store/authSlice";
+import { baseApi } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
-import { storage } from "@/utils/storage";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { loginSchema } from "@/utils/validators";
 import { Feather } from "@expo/vector-icons";
@@ -35,11 +35,8 @@ export default function LoginScreen() {
     try {
       const res = await login({ phone, password }).unwrap();
 
+      // Check role TRƯỚC khi lưu token, nên không có gì phải xóa
       if (res.user?.role !== "WORKER") {
-        // Token vừa được lưu bởi onQueryStarted trong authApi phải xoá lại,
-        // vì tài khoản này không thuộc app dành cho nhân viên.
-        await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
-        await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
         const message =
           "Tài khoản này không phải tài khoản nhân viên. Vui lòng dùng đúng ứng dụng dành cho vai trò của bạn.";
         setError(message);
@@ -47,6 +44,8 @@ export default function LoginScreen() {
         return;
       }
 
+      await saveTokens(res.access, res.refresh); // đợi ghi xong rồi mới đi tiếp
+      dispatch(baseApi.util.resetApiState()); // xóa cache của phiên trước
       dispatch(setUser(res.user));
       showSuccessToast(
         "Đăng nhập thành công",
@@ -56,7 +55,9 @@ export default function LoginScreen() {
     } catch (e: any) {
       const errors = e?.data?.errors;
       let message = "Đăng nhập thất bại, vui lòng thử lại";
-      if (errors && typeof errors === "object") {
+      if (e?.status === 429) {
+        message = "Bạn thử quá nhiều lần, vui lòng đợi một phút rồi thử lại";
+      } else if (errors && typeof errors === "object") {
         const firstField = Object.keys(errors)[0];
         const firstMessage = Array.isArray(errors[firstField])
           ? errors[firstField][0]
