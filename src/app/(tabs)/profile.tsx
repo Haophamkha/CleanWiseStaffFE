@@ -1,281 +1,64 @@
-import { ENV } from "@/config/env";
-import { useGetWorkerProfileQuery } from "@/services/authApi";
-import { performLogout } from "@/store/baseApi";
-import { useAppDispatch } from "@/store/hooks";
-import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const STATUS_LABEL: Record<
-  string,
-  {
-    label: string;
-    color: string;
-  }
-> = {
-  DRAFT: {
-    label: "Chưa hoàn tất hồ sơ",
-    color: "#DC2626",
-  },
-
-  PENDING: {
-    label: "Đang chờ duyệt",
-    color: "#D97706",
-  },
-
-  ACTIVE: {
-    label: "Đang làm việc",
-    color: "#22C55E",
-  },
-
-  REJECTED: {
-    label: "Hồ sơ bị từ chối",
-    color: "#DC2626",
-  },
-
-  SUSPENDED: {
-    label: "Tạm khóa",
-    color: "#DC2626",
-  },
-};
-
-const MENU_ITEMS: {
-  icon: React.ComponentProps<typeof Feather>["name"];
-
-  label: string;
-
-  onPress?: () => void;
-}[] = [
-  {
-    icon: "user",
-    label: "Thông tin cá nhân",
-
-    onPress: () => router.push("/(profile-setup)/personal-info"),
-  },
-
-  {
-    icon: "map-pin",
-    label: "Khu vực hoạt động",
-
-    onPress: () => router.push("/(profile-setup)/working-areas"),
-  },
-
-  {
-    icon: "credit-card",
-    label: "Tài khoản ngân hàng",
-
-    onPress: () => router.push("/payment-methods" as any),
-  },
-
-  {
-    icon: "dollar-sign",
-    label: "Thu nhập",
-
-    onPress: () => router.push("/earnings" as any),
-  },
-
-  {
-    icon: "folder",
-    label: "Hồ sơ của tôi",
-
-    onPress: () => router.push("/(profile-setup)/my-profile"),
-  },
-
-  {
-    icon: "settings",
-    label: "Cài đặt",
-  },
-];
+import { TabHeader } from "@/components/common/TabHeader";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { ProfileHero } from "@/features/profile/components/ProfileHero";
+import { ProfileMenu } from "@/features/profile/components/ProfileMenu";
+import { SettingsSheet } from "@/features/profile/components/SettingsSheet";
+import { useProfile } from "@/features/profile/hooks/useProfile";
+import { ScrollView, View } from "react-native";
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets();
-  const dispatch = useAppDispatch();
-  const { data: profile, isLoading, isError } = useGetWorkerProfileQuery();
-
-  const handleLogout = () => {
-    performLogout();
-  };
-
-  const fullName = profile
-    ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
-      profile.username
-    : "";
-
-  const avatarUri = profile?.portrait
-    ? profile.portrait.startsWith("http")
-      ? profile.portrait
-      : `${ENV.API_URL}${profile.portrait}`
-    : null;
-
-  const rating = profile?.average_rating ? Number(profile.average_rating) : 0;
-
-  const statusInfo = profile
-    ? (STATUS_LABEL[profile.status] ?? {
-        label: profile.status,
-        color: "#6B7280",
-      })
-    : null;
+  const p = useProfile();
 
   return (
-    <View
-      className="flex-1 bg-[#F8F9FC]"
-      style={{
-        paddingTop: insets.top,
-      }}
-    >
+    <View className="flex-1 bg-surface">
+      <TabHeader title="Hồ sơ" />
+
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{
-          paddingBottom: insets.bottom + 32,
-        }}
+        contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="px-5 pt-5 pb-4">
-          <Text className="text-[#111827] text-2xl font-bold">Hồ sơ</Text>
+        <ProfileHero
+          isLoading={p.isLoading}
+          isError={p.isError}
+          fullName={p.fullName}
+          phone={p.phone}
+          avatarUri={p.avatarUri}
+          ratingText={p.ratingText}
+          totalJobs={p.totalJobs}
+          statusInfo={p.statusInfo}
+        />
 
-          <Text className="text-[#6B7280] text-sm mt-1">
-            Quản lý thông tin tài khoản
-          </Text>
+        <ProfileMenu groups={p.menuGroups} />
+
+        <View className="mx-5 mt-5">
+          <PrimaryButton
+            label="Đăng xuất"
+            variant="outline"
+            icon="log-out"
+            onPress={p.requestLogout}
+          />
         </View>
-
-        {/* Profile card */}
-        <View className="mx-5 bg-white rounded-3xl p-5 border border-[#E5E7EB]">
-          {isLoading ? (
-            <View className="items-center py-8">
-              <ActivityIndicator size="small" color="#2563EB" />
-
-              <Text className="text-[#6B7280] text-sm mt-3">
-                Đang tải hồ sơ...
-              </Text>
-            </View>
-          ) : isError ? (
-            <View className="items-center py-8">
-              <Feather name="alert-circle" size={32} color="#DC2626" />
-
-              <Text className="text-[#DC2626] text-sm mt-3">
-                Không thể tải hồ sơ
-              </Text>
-            </View>
-          ) : (
-            <>
-              <View className="flex-row items-center">
-                {/* Avatar */}
-                <View className="w-20 h-20 rounded-full bg-[#EEF2FF] overflow-hidden items-center justify-center">
-                  {avatarUri ? (
-                    <Image
-                      source={{
-                        uri: avatarUri,
-                      }}
-                      className="w-full h-full"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Feather name="user" size={32} color="#2563EB" />
-                  )}
-                </View>
-
-                {/* Info */}
-                <View className="flex-1 ml-4">
-                  <Text
-                    className="text-[#111827] text-lg font-bold"
-                    numberOfLines={1}
-                  >
-                    {fullName || "Nhân viên"}
-                  </Text>
-
-                  <Text
-                    className="text-[#6B7280] text-sm mt-1"
-                    numberOfLines={1}
-                  >
-                    {profile?.phone_number ?? ""}
-                  </Text>
-
-                  {statusInfo && (
-                    <View className="flex-row items-center mt-2">
-                      <View
-                        className="w-2 h-2 rounded-full mr-2"
-                        style={{
-                          backgroundColor: statusInfo.color,
-                        }}
-                      />
-
-                      <Text
-                        className="text-xs font-medium"
-                        style={{
-                          color: statusInfo.color,
-                        }}
-                      >
-                        {statusInfo.label}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              {/* Rating */}
-              <View className="flex-row items-center mt-5 pt-4 border-t border-[#F3F4F6]">
-                <Feather name="star" size={16} color="#F59E0B" />
-
-                <Text className="text-[#111827] text-sm font-semibold ml-2">
-                  {rating.toFixed(1)}
-                </Text>
-
-                <Text className="text-[#9CA3AF] text-sm ml-1">đánh giá</Text>
-              </View>
-            </>
-          )}
-        </View>
-
-        {/* Menu */}
-        <View className="mx-5 mt-5 bg-white rounded-3xl border border-[#E5E7EB] overflow-hidden">
-          {MENU_ITEMS.map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              activeOpacity={0.7}
-              onPress={item.onPress}
-              className={`flex-row items-center px-5 py-4 ${
-                index !== MENU_ITEMS.length - 1
-                  ? "border-b border-[#F3F4F6]"
-                  : ""
-              }`}
-            >
-              <View className="w-10 h-10 rounded-xl bg-[#F3F4F6] items-center justify-center">
-                <Feather name={item.icon} size={18} color="#374151" />
-              </View>
-
-              <Text className="flex-1 text-[#111827] text-sm font-medium ml-3">
-                {item.label}
-              </Text>
-
-              {item.onPress && (
-                <Feather name="chevron-right" size={18} color="#9CA3AF" />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Logout */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleLogout}
-          className="mx-5 mt-5 bg-white border border-[#FECACA] rounded-2xl py-4 flex-row items-center justify-center"
-        >
-          <Feather name="log-out" size={18} color="#DC2626" />
-
-          <Text className="text-[#DC2626] text-sm font-semibold ml-2">
-            Đăng xuất
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
+
+      <SettingsSheet
+        visible={p.settingsOpen}
+        onClose={p.closeSettings}
+        pushEnabled={p.pushEnabled}
+        pushDisabled={p.pushDisabled}
+        onTogglePush={p.handleTogglePush}
+      />
+
+      <ConfirmModal
+        visible={p.logoutConfirmVisible}
+        title="Đăng xuất?"
+        message="Bạn sẽ cần đăng nhập lại để tiếp tục nhận việc và xem lịch làm."
+        confirmLabel="Đăng xuất"
+        cancelLabel="Ở lại"
+        onConfirm={p.confirmLogout}
+        onCancel={p.cancelLogout}
+      />
     </View>
   );
 }

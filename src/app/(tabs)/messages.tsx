@@ -1,4 +1,4 @@
-import { ChatInbox } from "@/components/chat/ChatInbox";
+import { ChatInbox } from "@/features/chat/components/ChatInbox";
 
 export default function MessagesScreen() {
   return <ChatInbox staff />;

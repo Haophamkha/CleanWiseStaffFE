@@ -1,20 +1,20 @@
-import { StepHeader } from "@/components/profile-setup/StepHeader";
 import {
-  useGetActiveAreasQuery,
-  useGetWorkingAreasQuery,
-  useUpdateWorkingAreasMutation,
-} from "@/services/authApi";
+    useGetActiveAreasQuery,
+    useGetWorkingAreasQuery,
+    useUpdateWorkingAreasMutation,
+} from "@/features/auth/api/authApi";
+import { StepHeader } from "@/features/profile-setup/components/StepHeader";
 import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

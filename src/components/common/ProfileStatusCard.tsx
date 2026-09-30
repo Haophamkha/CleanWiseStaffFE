@@ -1,226 +1,141 @@
-import { useGetWorkingAreasQuery } from "@/services/authApi";
+import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { useProfileStatus } from "@/features/profile-setup/hooks/useProfileStatus";
 import type {
   ProfileStatus,
   WorkerProfileResponse,
-} from "@/types/WorkerProfile";
-import { getRejectedSteps, stepRoute } from "@/utils/rejectionFlow";
+} from "@/features/profile-setup/types/WorkerProfile";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import type { ComponentProps } from "react";
+import { Pressable, Text, View } from "react-native";
+
 type Props = {
   profile: WorkerProfileResponse;
 };
 
-type StatusRoute = "wizard" | "review" | null;
+type FeatherName = ComponentProps<typeof Feather>["name"];
 
-const STATUS_CONFIG: Record<
-  ProfileStatus,
-  {
-    title: string;
-    description: string;
-    badge: string;
-    badgeColor: string;
-    ctaLabel: string | null;
-    ctaRoute: StatusRoute;
-  }
-> = {
-  DRAFT: {
-    title: "Hoàn thiện hồ sơ để bắt đầu nhận việc",
-    description:
-      "Bạn cần cập nhật ảnh chân dung, CCCD, dịch vụ, khu vực hoạt động và kinh nghiệm.",
-    badge: "Chưa hoàn tất",
-    badgeColor: "#DC2626",
-    ctaLabel: "Cập nhật",
-    ctaRoute: "wizard",
-  },
-
-  REJECTED: {
-    title: "Hồ sơ bị từ chối, vui lòng cập nhật lại",
-    description:
-      "Vui lòng kiểm tra và chỉnh sửa thông tin theo phản hồi của quản trị viên.",
-    badge: "Bị từ chối",
-    badgeColor: "#DC2626",
-    ctaLabel: "Cập nhật",
-    ctaRoute: "wizard",
-  },
-
-  PENDING: {
-    title: "Hồ sơ đang chờ xét duyệt",
-    description: "Quản trị viên sẽ phản hồi trong vòng 24 - 48 giờ.",
-    badge: "Chờ duyệt",
-    badgeColor: "#D97706",
-    ctaLabel: "Xem lại hồ sơ",
-    ctaRoute: "review",
-  },
-
-  ACTIVE: {
-    title: "",
-    description: "",
-    badge: "",
-    badgeColor: "",
-    ctaLabel: null,
-    ctaRoute: null,
-  },
-
-  SUSPENDED: {
-    title: "Tài khoản đang bị tạm khóa",
-    description: "Vui lòng liên hệ quản trị viên để biết thêm chi tiết.",
-    badge: "Tạm khóa",
-    badgeColor: "#DC2626",
-    ctaLabel: null,
-    ctaRoute: null,
-  },
+const STATUS_ICON: Record<ProfileStatus, FeatherName> = {
+  DRAFT: "edit-3",
+  REJECTED: "x-circle",
+  PENDING: "clock",
+  ACTIVE: "check-circle",
+  SUSPENDED: "lock",
 };
 
-const TOTAL_STEPS = 5;
+const TONE = {
+  danger: {
+    color: COLORS.danger,
+    bg: COLORS.dangerLight,
+    text: COLORS.danger,
+  },
+  warning: {
+    color: COLORS.warning,
+    bg: COLORS.warningLight,
+    text: COLORS.warningDark,
+  },
+} as const;
 
 export function ProfileStatusCard({ profile }: Props) {
-  const { status } = profile;
+  const {
+    status,
+    isActive,
+    config,
+    stepsDone,
+    totalSteps,
+    completionPercent,
+    handlePressCta,
+  } = useProfileStatus(profile);
 
-  // Chỉ fetch khu vực khi hồ sơ chưa ACTIVE
-  const { data: workingAreas } = useGetWorkingAreasQuery(undefined, {
-    skip: status === "ACTIVE",
-  });
+  if (isActive) return null;
 
-  if (status === "ACTIVE") {
-    return null;
-  }
-
-  const config = STATUS_CONFIG[status];
-
-  const stepsDone = [
-    // Step 1: Ảnh chân dung
-    !!profile.portrait,
-
-    // Step 2: CCCD
-    !!profile.identity_number &&
-      !!profile.identity_front &&
-      !!profile.identity_back,
-
-    // Step 3: Dịch vụ
-    !!profile.registered_service,
-
-    // Step 4: Khu vực hoạt động
-    !!workingAreas && workingAreas.length > 0,
-
-    // Step 5: Kinh nghiệm
-    !!profile.bio &&
-      profile.experience_years !== null &&
-      profile.experience_years !== undefined &&
-      !!profile.certificate_file,
-  ].filter(Boolean).length;
-
-  const completionPercent = Math.round((stepsDone / TOTAL_STEPS) * 100);
-
-  const handlePressCta = () => {
-    if (config.ctaRoute === "wizard") {
-      if (status === "REJECTED") {
-        const steps = getRejectedSteps(profile.rejected_fields);
-        if (steps.length > 0) {
-          router.push(stepRoute(steps[0]));
-          return;
-        }
-      }
-      router.push("/(profile-setup)/portrait");
-    } else if (config.ctaRoute === "review") {
-      router.push("/(profile-setup)/my-profile");
-    }
-  };
+  const tone = TONE[config.tone];
+  const isPending = status === "PENDING";
 
   return (
-    <View className="mx-5 mt-5 bg-white rounded-3xl border border-[#E5E7EB] p-5">
-      <View className="flex-row items-center justify-between mb-3">
+    <View
+      className="mx-5 mt-5 bg-surface border border-line p-5"
+      style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
+    >
+      <View className="flex-row items-center justify-between mb-4">
         <View
-          className="flex-row items-center px-3 py-1 rounded-full"
-          style={{
-            backgroundColor: `${config.badgeColor}1A`,
-          }}
+          className="w-12 h-12 rounded-2xl items-center justify-center"
+          style={{ backgroundColor: tone.bg }}
+        >
+          <Feather name={STATUS_ICON[status]} size={22} color={tone.color} />
+        </View>
+
+        <View
+          className="flex-row items-center px-3 py-1.5 rounded-full"
+          style={{ backgroundColor: tone.bg }}
         >
           <View
             className="w-1.5 h-1.5 rounded-full mr-1.5"
-            style={{
-              backgroundColor: config.badgeColor,
-            }}
+            style={{ backgroundColor: tone.color }}
           />
-
-          <Text
-            className="text-xs font-semibold"
-            style={{
-              color: config.badgeColor,
-            }}
-          >
+          <Text className="text-xs" style={[TYPE.label, { color: tone.text }]}>
             {config.badge}
           </Text>
         </View>
-
-        <Feather name="alert-circle" size={18} color={config.badgeColor} />
       </View>
 
-      <Text className="text-[#111827] font-bold text-base mb-1">
+      <Text className="text-ink font-extrabold text-lg mb-1">
         {config.title}
       </Text>
-
-      <Text className="text-[#6B7280] text-sm leading-5 mb-4">
+      <Text className="text-ink-soft text-sm leading-5 mb-4">
         {config.description}
       </Text>
 
       {status === "REJECTED" && !!profile.rejection_reason && (
-        <View className="bg-[#FEF2F2] rounded-xl p-3 mb-4">
-          <Text className="text-[#DC2626] text-xs font-semibold mb-1">
+        <View className="bg-danger-light rounded-2xl p-3.5 mb-4">
+          <Text className="text-danger text-xs mb-1" style={TYPE.label}>
             Lý do từ chối
           </Text>
-
-          <Text className="text-[#DC2626] text-sm">
+          <Text className="text-danger text-sm leading-5">
             {profile.rejection_reason}
           </Text>
         </View>
       )}
 
-      {status !== "PENDING" && (
-        <>
-          <View className="flex-row items-center justify-between mb-1.5">
-            <Text className="text-[#111827] text-sm">
+      {!isPending && (
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-ink text-sm">
               Hoàn thành{" "}
-              <Text
-                className="font-bold"
-                style={{
-                  color: config.badgeColor,
-                }}
-              >
+              <Text className="font-extrabold" style={{ color: tone.text }}>
                 {completionPercent}%
               </Text>
             </Text>
-
-            <Text className="text-[#6B7280] text-sm">
-              {stepsDone}/{TOTAL_STEPS}
+            <Text className="text-ink-soft text-sm">
+              {stepsDone}/{totalSteps}
             </Text>
           </View>
-
-          <View className="h-2 bg-[#F3F4F6] rounded-full overflow-hidden mb-4">
+          <View className="h-2 bg-accent-light rounded-full overflow-hidden">
             <View
-              className="h-full rounded-full"
-              style={{
-                width: `${completionPercent}%`,
-                backgroundColor: config.badgeColor,
-              }}
+              className="h-full rounded-full bg-ink"
+              style={{ width: `${completionPercent}%` }}
             />
           </View>
-        </>
+        </View>
       )}
 
       {config.ctaLabel && (
-        <TouchableOpacity
-          className="rounded-2xl py-3.5 items-center"
-          style={{
-            backgroundColor:
-              config.badgeColor === "#D97706" ? "#2563EB" : "#EF4444",
-          }}
+        <Pressable
           onPress={handlePressCta}
+          className={`flex-row items-center justify-center rounded-full ${
+            isPending ? "bg-ink" : "bg-primary"
+          }`}
+          style={{ height: 48 }}
         >
-          <Text className="text-white font-semibold text-[15px]">
-            {config.ctaLabel}
+          <Text className="text-white text-[13px]" style={TYPE.button}>
+            {config.ctaLabel.toUpperCase()}
           </Text>
-        </TouchableOpacity>
+          <Feather
+            name="arrow-right"
+            size={15}
+            color={COLORS.white}
+            style={{ marginLeft: 6 }}
+          />
+        </Pressable>
       )}
     </View>
   );

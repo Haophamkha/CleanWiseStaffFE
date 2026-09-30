@@ -1,11 +1,14 @@
-import { StepHeader } from "@/components/profile-setup/StepHeader";
 import {
   useGetActiveServicesQuery,
   useGetWorkerProfileQuery,
   useSubmitWorkerProfileMutation,
   useUpdateWorkerProfileMutation,
-} from "@/services/authApi";
-import { getNextRejectedStep, stepRoute } from "@/utils/rejectionFlow";
+} from "@/features/auth/api/authApi";
+import { StepHeader } from "@/features/profile-setup/components/StepHeader";
+import {
+  getNextRejectedStep,
+  stepRoute,
+} from "@/features/profile-setup/utils/rejectionFlow";
 import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -81,17 +84,11 @@ export default function ServiceStep() {
     });
   }, [services, search]);
 
-  // Prefill dịch vụ đã đăng ký (chỉ khi người dùng chưa tự chọn).
-  // So theo section (memberIds) thay vì id cụ thể, vì service đã lưu
-  // trước đó có thể không phải là id đại diện của nhóm.
   useEffect(() => {
-    if (
-      profile?.registered_service &&
-      selectedId === null &&
-      groupedServices.length > 0
-    ) {
+    const registered = profile?.registered_service;
+    if (registered && selectedId === null && groupedServices.length > 0) {
       const group = groupedServices.find((g) =>
-        g.memberIds.includes(profile.registered_service.id),
+        g.memberIds.includes(registered.id),
       );
       if (group) setSelectedId(group.representativeId);
     }

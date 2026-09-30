@@ -1,28 +1,28 @@
-import { ImageUploadBox } from "@/components/profile-setup/ImageUploadBox";
-import { StepHeader } from "@/components/profile-setup/StepHeader";
 import {
-  useGetWorkerProfileQuery,
-  useSubmitWorkerProfileMutation,
-  useUpdateWorkerProfileMutation,
-} from "@/services/authApi";
-import type { PickedFile } from "@/types/WorkerProfile";
+    useGetWorkerProfileQuery,
+    useSubmitWorkerProfileMutation,
+    useUpdateWorkerProfileMutation,
+} from "@/features/auth/api/authApi";
+import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
+import { StepHeader } from "@/features/profile-setup/components/StepHeader";
+import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
+import {
+    fieldRejectionNote,
+    getNextRejectedStep,
+    isFieldLocked,
+    stepRoute,
+} from "@/features/profile-setup/utils/rejectionFlow";
 import { resolveMediaUrl } from "@/utils/media";
-import {
-  fieldRejectionNote,
-  getNextRejectedStep,
-  isFieldLocked,
-  stepRoute,
-} from "@/utils/rejectionFlow";
 import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

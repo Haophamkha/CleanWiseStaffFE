@@ -34,8 +34,8 @@ export default function ProfileSetupSuccess() {
           />
           <Text className="text-[#374151] text-[13px] leading-5 flex-1">
             Kết quả duyệt hồ sơ sẽ được thông báo trực tiếp ngay trong ứng dụng
-            này. Bạn không cần kiểm tra email hay tin nhắn — chỉ cần vào lại mục
-            "Hồ sơ của tôi" để xem trạng thái mới nhất.
+            này. Bạn không cần kiểm tra email hay tin nhắn — Bạn sẽ nhận thông
+            báo ngay khi hồ sơ được duyệt
           </Text>
         </View>
 

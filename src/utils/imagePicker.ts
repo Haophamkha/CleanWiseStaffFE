@@ -1,4 +1,4 @@
-import type { PickedFile } from "@/types/WorkerProfile";
+import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
 import * as ImagePicker from "expo-image-picker";
 
 export async function pickImage(): Promise<PickedFile | null> {

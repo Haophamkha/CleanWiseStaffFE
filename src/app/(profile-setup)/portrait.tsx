@@ -1,17 +1,17 @@
-import { ImageUploadBox } from "@/components/profile-setup/ImageUploadBox";
-import { StepHeader } from "@/components/profile-setup/StepHeader";
 import {
-  useGetWorkerProfileQuery,
-  useSubmitWorkerProfileMutation,
-  useUpdateWorkerProfileMutation,
-} from "@/services/authApi";
-import type { PickedFile } from "@/types/WorkerProfile";
+    useGetWorkerProfileQuery,
+    useSubmitWorkerProfileMutation,
+    useUpdateWorkerProfileMutation,
+} from "@/features/auth/api/authApi";
+import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
+import { StepHeader } from "@/features/profile-setup/components/StepHeader";
+import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
+import {
+    fieldRejectionNote,
+    getNextRejectedStep,
+    stepRoute,
+} from "@/features/profile-setup/utils/rejectionFlow";
 import { resolveMediaUrl } from "@/utils/media";
-import {
-  fieldRejectionNote,
-  getNextRejectedStep,
-  stepRoute,
-} from "@/utils/rejectionFlow";
 import { showErrorToast } from "@/utils/toast";
 import { router } from "expo-router";
 import { useState } from "react";

@@ -1,5 +1,8 @@
-import { useGetWorkerProfileQuery } from "@/services/authApi";
-import { getRejectedSteps, stepRoute } from "@/utils/rejectionFlow";
+import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
+import {
+    getRejectedSteps,
+    stepRoute,
+} from "@/features/profile-setup/utils/rejectionFlow";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import type { ComponentProps, ReactNode } from "react";
