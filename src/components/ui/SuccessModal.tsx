@@ -1,5 +1,7 @@
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { COLORS, OVERLAY, RADIUS, SHADOWS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, ScrollView, Text, View } from "react-native";
 
 interface SuccessModalProps {
   visible: boolean;
@@ -26,29 +28,30 @@ export function SuccessModal({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/45 items-center justify-center px-8">
+      <View
+        className="flex-1 items-center justify-center px-8"
+        style={{ backgroundColor: OVERLAY }}
+      >
         <View
-          className="bg-white rounded-3xl p-6 w-full items-center"
-          style={{ maxWidth: 360 }}
+          className="bg-surface p-6 w-full items-center"
+          style={[{ maxWidth: 360, borderRadius: RADIUS.hero }, SHADOWS.card]}
         >
-          <View className="w-16 h-16 rounded-full bg-[#DCFCE7] items-center justify-center mb-4">
-            <Feather name="check" size={30} color="#15803D" />
+          <View className="w-16 h-16 rounded-full bg-success-light items-center justify-center mb-4">
+            <Feather name="check" size={30} color={COLORS.success} />
           </View>
 
-          <Text className="text-[#111827] text-lg font-bold text-center mb-1">
+          <Text className="text-ink text-xl font-extrabold text-center mb-1">
             {title}
           </Text>
 
           {message ? (
-            <Text className="text-[#6B7280] text-sm text-center">
-              {message}
-            </Text>
+            <Text className="text-ink-soft text-sm text-center">{message}</Text>
           ) : null}
 
           {details && details.length > 0 ? (
             <ScrollView
               style={{ maxHeight: 140, width: "100%" }}
-              className="bg-[#FEF3C7] rounded-xl mt-3"
+              className="bg-warning-light rounded-xl mt-3"
               contentContainerStyle={{ padding: 12 }}
             >
               {details.map((line, i) => (
@@ -61,10 +64,10 @@ export function SuccessModal({
                   <Feather
                     name="alert-triangle"
                     size={12}
-                    color="#B45309"
+                    color={COLORS.warningDark}
                     style={{ marginTop: 2 }}
                   />
-                  <Text className="text-[#92400E] text-xs ml-1.5 flex-1">
+                  <Text className="text-warning-dark text-xs ml-1.5 flex-1">
                     {line}
                   </Text>
                 </View>
@@ -72,14 +75,12 @@ export function SuccessModal({
             </ScrollView>
           ) : null}
 
-          <Pressable
+          <PrimaryButton
+            label={confirmLabel}
+            variant="dark"
             onPress={onClose}
-            className="bg-[#2563EB] rounded-xl py-3.5 px-8 w-full items-center mt-5"
-          >
-            <Text className="text-white font-semibold text-base">
-              {confirmLabel}
-            </Text>
-          </Pressable>
+            style={{ width: "100%", marginTop: 20 }}
+          />
         </View>
       </View>
     </Modal>

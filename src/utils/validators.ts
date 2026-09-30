@@ -4,6 +4,16 @@ const phoneRegex = /^(0[35789])[0-9]{8}$/;
 
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
+const calcAge = (year: number, month: number, day: number) => {
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const hadBirthday =
+    today.getMonth() + 1 > month ||
+    (today.getMonth() + 1 === month && today.getDate() >= day);
+  if (!hadBirthday) age--;
+  return age;
+};
+
 export const loginSchema = z.object({
   phone: z
     .string()
@@ -32,9 +42,10 @@ export const registerWorkerSchema = z
       .min(1, "Vui lòng nhập email")
       .email("Email không hợp lệ"),
 
-    first_name: z.string().trim().min(1, "Vui lòng nhập họ"),
+    // first_name = Tên, last_name = Họ và tên đệm (khớp BE)
+    first_name: z.string().trim().min(1, "Vui lòng nhập tên"),
 
-    last_name: z.string().trim().min(1, "Vui lòng nhập tên"),
+    last_name: z.string().trim().min(1, "Vui lòng nhập họ và tên đệm"),
 
     phone_number: z
       .string()
@@ -62,9 +73,14 @@ export const registerWorkerSchema = z
             date.getDate() === day
           );
         },
-        {
-          message: "Ngày sinh không hợp lệ",
+        { message: "Ngày sinh không hợp lệ" },
+      )
+      .refine(
+        (value) => {
+          const [year, month, day] = value.split("-").map(Number);
+          return calcAge(year, month, day) >= 18;
         },
+        { message: "Nhân viên phải đủ 18 tuổi" },
       ),
 
     password: z

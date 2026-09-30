@@ -1,167 +1,72 @@
-import { Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { CancelSection } from "@/components/job/CancelSection";
-import { CheckInSection } from "@/components/job/CheckInSection";
-import { CheckOutSection } from "@/components/job/CheckOutSection";
-import { CustomerHeader } from "@/components/job/CustomerHeader";
-import { JobSummaryCard } from "@/components/job/JobSummaryCard";
-import { PackageClaimBar } from "@/components/job/PackageClaimBar";
-import { PackageSessionsCard } from "@/components/job/PackageSessionsCard";
-import { ProofImagesSection } from "@/components/job/ProofImagesSection";
-import { ServiceDetailReadOnly } from "@/components/job/ServiceDetailReadOnly";
+import { DetailHeader } from "@/components/common/DetailHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SuccessModal } from "@/components/ui/SuccessModal";
-import { useJobActions } from "@/hooks/useJobActions";
-import { useJobDetailData } from "@/hooks/useJobDetailData";
-
-// Tạm ẩn các buổi trong gói mà nhân viên khác đã nhận (claim_state === "TAKEN"),
-// chỉ hiện buổi của mình + buổi còn trống. Đổi thành false để hiện lại như cũ.
-const HIDE_TAKEN_SESSIONS = true;
+import { COLORS } from "@/constants/theme";
+import { JobActions } from "@/features/job/components/JobActions";
+import { JobInfoCard } from "@/features/job/components/JobInfoCard";
+import {
+  PackageClaimBar,
+  PackageSessionsCard,
+} from "@/features/job/components/PackageSessions";
+import { ProofImagesSection } from "@/features/job/components/ProofImagesSection";
+import { ServiceDetailReadOnly } from "@/features/job/components/ServiceDetailReadOnly";
+import { useJobDetail } from "@/features/job/hooks/useJobDetail";
+import { ActivityIndicator, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function JobDetailScreen() {
   const insets = useSafeAreaInsets();
-  const {
-    id,
-    source,
-    bookingId: bookingIdParam,
-    view,
-  } = useLocalSearchParams<{
-    id: string;
-    source?: string;
-    bookingId?: string;
-    view?: string;
-  }>();
-  const scheduleId = Number(id);
-  const isMine = source === "mine";
-  const isSingleSessionView = view === "session";
-  const paramBookingId = Number(bookingIdParam) || undefined;
+  const job = useJobDetail();
+  const { item, mineItem, summary, actions } = job;
 
-  const {
-    item,
-    mineItem,
-    bookingSchedules,
-    openSessions,
-    isLoading,
-    isPackage,
-    totalSessions,
-    bookingId,
-    refetchBookingSchedules,
-    refetchMineSchedules,
-  } = useJobDetailData({
-    scheduleId,
-    isMine,
-    isSingleSessionView,
-    paramBookingId,
-  });
-
-  const visibleBookingSchedules = HIDE_TAKEN_SESSIONS
-    ? bookingSchedules.filter((s) => s.claim_state !== "TAKEN")
-    : bookingSchedules;
-
-  const actions = useJobActions({
-    scheduleId,
-    isMine,
-    item,
-    mineItem,
-    bookingId,
-    bookingSchedules,
-    openSessions,
-    refetchBookingSchedules,
-    refetchMineSchedules,
-  });
-
-  /* ----- Trạng thái tải / không có dữ liệu ----- */
-
-  if (isLoading) {
+  if (job.isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F8F9FC]">
-        <ActivityIndicator color="#2563EB" />
+      <View className="flex-1 items-center justify-center bg-canvas">
+        <ActivityIndicator color={COLORS.primary} />
       </View>
     );
   }
 
-  if (!item) {
+  if (!item || !summary) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F8F9FC] px-6">
-        <Text className="text-[#111827] font-semibold text-base mb-1">
-          {isMine ? "Không tìm thấy buổi làm" : "Đơn này không còn buổi trống"}
-        </Text>
-        {!isMine ? (
-          <Text className="text-[#9CA3AF] text-sm text-center">
-            Có thể các buổi đã được nhân viên khác nhận.
-          </Text>
-        ) : null}
-        <Pressable onPress={() => router.back()} className="mt-4">
-          <Text className="text-[#2563EB] font-medium">Quay lại</Text>
-        </Pressable>
+      <View className="flex-1 items-center justify-center bg-canvas px-5">
+        <EmptyState
+          icon="alert-circle"
+          title={job.missingTitle}
+          message={job.missingMessage}
+          actionLabel="Quay lại"
+          onAction={job.goBack}
+        />
       </View>
     );
   }
-
-  const showImagesSection =
-    isMine &&
-    mineItem &&
-    !["PENDING", "CANCELLED", "MISSED"].includes(mineItem.status);
-  const canEditImages = mineItem?.status === "IN_PROGRESS";
 
   return (
-    <View className="flex-1 bg-[#F8F9FC]">
-      <View
-        style={{ paddingTop: insets.top + 12 }}
-        className="flex-row items-center px-5 pb-4 bg-white border-b border-[#F3F4F6]"
-      >
-        <Pressable onPress={() => router.back()} className="mr-3">
-          <Feather name="arrow-left" size={22} color="#111827" />
-        </Pressable>
-        <Text className="text-[#111827] text-base font-bold">Chi tiết đơn</Text>
-      </View>
+    <View className="flex-1 bg-canvas">
+      <DetailHeader title="Chi tiết đơn" onBack={job.goBack} />
 
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: 20,
           paddingHorizontal: 20,
-          paddingBottom:
-            (isPackage && openSessions.length > 0 ? 120 : 40) + insets.bottom,
+          paddingBottom: (job.hasOpenSessions ? 120 : 40) + insets.bottom,
         }}
       >
-        <JobSummaryCard
-          item={item}
-          mineItem={mineItem}
-          isPackage={isPackage}
-          totalSessions={totalSessions}
-          openSessionsCount={openSessions.length}
+        <JobInfoCard
+          summary={summary}
+          isPackage={job.isPackage}
+          customerName={item.customer_name}
+          customerAvatar={item.customer_avatar}
+          onDirections={job.openDirections}
         />
 
-        <View className="bg-white rounded-2xl p-4 mb-4 border border-[#F3F4F6]">
-          <CustomerHeader
-            avatar={item.customer_avatar}
-            name={item.customer_name}
-          />
-        </View>
-
-        {isPackage ? (
+        {job.isPackage ? (
           <PackageSessionsCard
-            bookingSchedules={visibleBookingSchedules}
-            totalSessions={totalSessions}
-            openSessions={openSessions}
-            validSelected={actions.validSelected}
-            allSelected={actions.allSelected}
-            selectedIncome={actions.selectedIncome}
-            expandedSessionId={actions.expandedSessionId}
-            sessionCancelReason={actions.sessionCancelReason}
-            isCancelling={actions.isCancelling}
-            onToggleAll={actions.toggleAll}
-            onSessionPress={actions.handleSessionPress}
-            onChangeCancelReason={actions.setSessionCancelReason}
-            onConfirmCancel={actions.handleCancelSession}
+            sessions={job.visibleSessions}
+            totalSessions={job.totalSessions}
+            openSessions={job.openSessions}
+            actions={actions}
           />
         ) : null}
 
@@ -171,96 +76,27 @@ export default function JobDetailScreen() {
           taskChecklist={item.form_schema?.task_checklist}
         />
 
-        {!isPackage && showImagesSection && mineItem && (
+        {!job.isPackage && job.showImages && mineItem ? (
           <ProofImagesSection
             images={mineItem.images}
-            canEdit={canEditImages}
+            canEdit={job.canEditImages}
             localImages={actions.localImages}
             isUploadingImages={actions.isCheckingOut}
             onPickImage={actions.handlePickImage}
             onRemoveImage={actions.handleRemoveStagedImage}
           />
-        )}
+        ) : null}
 
-        {!isMine &&
-          !isPackage &&
-          (item.claim_state === "OPEN" ? (
-            <Pressable
-              onPress={actions.handleClaim}
-              disabled={actions.isClaiming}
-              className="bg-[#2563EB] rounded-xl py-4 items-center"
-            >
-              <Text className="text-white font-semibold text-base">
-                {actions.isClaiming ? "Đang xử lý..." : "Nhận việc"}
-              </Text>
-            </Pressable>
-          ) : (
-            <View className="bg-[#F3F4F6] rounded-xl py-4 items-center">
-              <Text className="text-[#6B7280] font-semibold text-sm">
-                {item.claim_state === "MINE"
-                  ? "Bạn đã nhận buổi này."
-                  : "Đã có nhân viên khác nhận buổi này."}
-              </Text>
-            </View>
-          ))}
-
-        {!isPackage &&
-          isMine &&
-          mineItem?.status === "PENDING" &&
-          mineItem.assignment_id && (
-            <CheckInSection
-              scheduledStart={item.scheduled_start}
-              addressHint={item.address_ward}
-              loading={actions.isCheckingIn}
-              onCheckIn={actions.handleCheckIn}
-            />
-          )}
-
-        {!isPackage && isMine && mineItem?.status === "IN_PROGRESS" && (
-          <CheckOutSection
-            loading={actions.isCheckingOut}
-            onCheckOut={actions.handleCheckOut}
-          />
-        )}
-
-        {!isPackage && isMine && mineItem?.assignment_id && (
-          <Pressable
-            onPress={actions.handleOpenChat}
-            disabled={actions.openingChat}
-            className="border border-[#2563EB] bg-white rounded-xl py-3.5 items-center flex-row justify-center mb-3"
-          >
-            {actions.openingChat ? (
-              <ActivityIndicator size="small" color="#2563EB" />
-            ) : (
-              <Feather name="message-circle" size={18} color="#2563EB" />
-            )}
-            <Text className="text-[#2563EB] font-semibold text-base ml-2">
-              {actions.openingChat ? "Đang mở..." : "Liên hệ khách hàng"}
-            </Text>
-          </Pressable>
-        )}
-
-        {!isPackage && isMine && mineItem && mineItem.status === "PENDING" && (
-          <CancelSection
-            canCancel={mineItem.can_cancel}
-            showForm={actions.showCancelForm}
-            reason={actions.reason}
-            isCancelling={actions.isCancelling}
-            onChangeReason={actions.setReason}
-            onToggleForm={actions.setShowCancelForm}
-            onConfirmCancel={actions.handleCancel}
-          />
-        )}
+        <JobActions
+          isMine={job.isMine}
+          isPackage={job.isPackage}
+          item={item}
+          mineItem={mineItem}
+          actions={actions}
+        />
       </ScrollView>
 
-      {isPackage && openSessions.length > 0 ? (
-        <PackageClaimBar
-          selectedCount={actions.validSelected.length}
-          selectedIncome={actions.selectedIncome}
-          isClaiming={actions.isClaimingPackage}
-          onClaim={actions.handleClaimSelected}
-        />
-      ) : null}
+      {job.hasOpenSessions ? <PackageClaimBar actions={actions} /> : null}
 
       <SuccessModal
         visible={actions.successModal.visible}
