@@ -1,5 +1,5 @@
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { COLORS, ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
 import type { WorkerMySchedule } from "@/features/schedule/types/Schedule";
 import { formatDuration } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
@@ -16,16 +16,12 @@ function formatTime(iso: string) {
 type TodayScheduleCardProps = {
   schedule: WorkerMySchedule;
   onPress: () => void;
-  onDirections: () => void;
 };
 
 export function TodayScheduleCard({
   schedule: s,
   onPress,
-  onDirections,
 }: TodayScheduleCardProps) {
-  const hasCoordinates = !!s.address_latitude && !!s.address_longitude;
-
   return (
     <Pressable
       onPress={onPress}
@@ -84,18 +80,7 @@ export function TodayScheduleCard({
           {s.address_ward ? `${s.address_ward}, ` : ""}
           {s.address_city}
         </Text>
-        {hasCoordinates && (
-          <Pressable
-            onPress={onDirections}
-            className="flex-row items-center justify-center bg-ink rounded-full px-4 ml-3"
-            style={{ height: 44 }}
-          >
-            <Feather name="navigation" size={14} color={COLORS.white} />
-            <Text className="text-white text-xs ml-1.5" style={TYPE.button}>
-              CHỈ ĐƯỜNG
-            </Text>
-          </Pressable>
-        )}
+        <Feather name="chevron-right" size={18} color={COLORS.inkMuted} />
       </View>
     </Pressable>
   );

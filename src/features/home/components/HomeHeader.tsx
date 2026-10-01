@@ -114,7 +114,7 @@ export function HomeHeader(props: HomeHeaderProps) {
             className="text-white text-lg font-extrabold"
             style={{ letterSpacing: 0.3 }}
           >
-            CleanCare Staff
+            CleanWise Staff
           </Text>
         </View>
       )}

@@ -1,6 +1,9 @@
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { COLORS, ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
 import { Text, View } from "react-native";
+
+type FeatherName = ComponentProps<typeof Feather>["name"];
 
 type DaySummaryProps = {
   title: string;
@@ -14,25 +17,49 @@ function Stat({
   icon,
   label,
   value,
-  spaced,
+  highlight,
+  flex = 1,
 }: {
-  icon: React.ComponentProps<typeof Feather>["name"];
+  icon: FeatherName;
   label: string;
   value: string;
-  spaced?: boolean;
+  highlight?: boolean;
+  flex?: number;
 }) {
   return (
     <View
-      className={`flex-1 bg-surface border border-line p-4 ${spaced ? "ml-3" : ""}`}
-      style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
+      className={`p-3.5 ${
+        highlight ? "bg-primary" : "bg-surface border border-line"
+      }`}
+      style={[{ flex, borderRadius: RADIUS.card }, SHADOWS.card]}
     >
-      <View className="flex-row items-center mb-2">
-        <View className="w-8 h-8 rounded-full bg-accent-light items-center justify-center mr-2">
-          <Feather name={icon} size={15} color={COLORS.accentDark} />
-        </View>
-        <Text className="text-ink-muted text-xs">{label}</Text>
+      <View
+        className={`w-8 h-8 rounded-full items-center justify-center ${
+          highlight ? "" : "bg-accent-light"
+        }`}
+        style={highlight ? { backgroundColor: ON_DARK.surface } : undefined}
+      >
+        <Feather
+          name={icon}
+          size={15}
+          color={highlight ? ON_DARK.text : COLORS.ink}
+        />
       </View>
-      <Text className="text-ink text-xl font-extrabold">{value}</Text>
+      <Text
+        className={`font-extrabold mt-3 ${highlight ? "text-xl" : "text-2xl"}`}
+        style={{ color: highlight ? ON_DARK.text : COLORS.ink }}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
+        {value}
+      </Text>
+      <Text
+        className="text-xs mt-0.5"
+        style={{ color: highlight ? ON_DARK.textSoft : COLORS.inkSoft }}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -45,26 +72,23 @@ export function DaySummary({
   incomeLabel,
 }: DaySummaryProps) {
   return (
-    <View className="mb-5">
-      <View className="flex-row items-end justify-between mb-4">
-        <View>
-          <Text className="text-ink text-xl font-extrabold">{title}</Text>
-          <Text className="text-ink-muted text-sm mt-0.5">{dateLabel}</Text>
-        </View>
-        {count > 0 && (
-          <View className="items-end">
-            <Text className="text-ink-muted text-xs">Thu nhập ngày</Text>
-            <Text className="text-ink text-base font-extrabold">
-              {incomeLabel}
-            </Text>
-          </View>
-        )}
+    <View className="mb-6">
+      <View className={count > 0 ? "mb-4" : ""}>
+        <Text className="text-ink text-2xl font-extrabold">{title}</Text>
+        <Text className="text-ink-muted text-sm mt-0.5">{dateLabel}</Text>
       </View>
 
       {count > 0 && (
-        <View className="flex-row">
-          <Stat icon="briefcase" label="Số ca" value={String(count)} />
-          <Stat icon="clock" label="Thời gian" value={hoursLabel} spaced />
+        <View className="flex-row" style={{ gap: 10 }}>
+          <Stat icon="briefcase" label="ca làm" value={String(count)} />
+          <Stat icon="clock" label="thời gian" value={hoursLabel} />
+          <Stat
+            icon="trending-up"
+            label="thu nhập ngày"
+            value={incomeLabel}
+            highlight
+            flex={1.6}
+          />
         </View>
       )}
     </View>

@@ -1,7 +1,3 @@
-import { router } from "expo-router";
-import { useMemo, useState } from "react";
-import { Alert } from "react-native";
-
 import { useLazyGetAssignmentConversationQuery } from "@/features/chat/api/chatApi";
 import {
   useCancelAssignmentMutation,
@@ -22,6 +18,14 @@ import { verifyScheduleMutation } from "@/features/schedule/utils/verifyMutation
 import { useIdempotencyKey } from "@/hooks/useIdempotencyKey";
 import { getErrorMessage, isNetworkError } from "@/utils/apiError";
 import { formatDayLabel, formatTime } from "@/utils/format";
+import {
+  showErrorToast,
+  showSuccessToast,
+  showWarningToast,
+} from "@/utils/toast";
+import * as Location from "expo-location";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
 
 type Args = {
   scheduleId: number;
@@ -36,6 +40,11 @@ type Args = {
   }>;
   refetchMineSchedules: () => Promise<unknown>;
 };
+
+type PendingCancel =
+  | { type: "session"; session: WorkerSchedule }
+  | { type: "job" }
+  | null;
 
 export function useJobActions({
   scheduleId,
@@ -76,11 +85,12 @@ export function useJobActions({
   const [expandedSessionId, setExpandedSessionId] = useState<number | null>(
     null,
   );
-
   const [sessionCancelReason, setSessionCancelReason] = useState("");
 
   const [reason, setReason] = useState("");
   const [showCancelForm, setShowCancelForm] = useState(false);
+
+  const [pendingCancel, setPendingCancel] = useState<PendingCancel>(null);
 
   const [successModal, setSuccessModal] = useState<{
     visible: boolean;
@@ -135,6 +145,7 @@ export function useJobActions({
     useLazyGetAssignmentConversationQuery();
 
   const [checkIn, { isLoading: isCheckingIn }] = useCheckInMutation();
+  const [isLocating, setIsLocating] = useState(false);
 
   const [checkOut, { isLoading: isCheckingOut }] = useCheckOutMutation();
 
@@ -173,7 +184,7 @@ export function useJobActions({
     if (!session.assignment_id) return;
 
     if (sessionCancelReason.trim().length === 0) {
-      Alert.alert("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
       return;
     }
 
@@ -188,6 +199,10 @@ export function useJobActions({
 
       setExpandedSessionId(null);
       setSessionCancelReason("");
+      showSuccessToast(
+        "Đã hủy nhận buổi",
+        "Buổi làm đã được mở lại cho người khác.",
+      );
     } catch (err) {
       await verifyScheduleMutation({
         err,
@@ -207,7 +222,7 @@ export function useJobActions({
     }
   };
 
-  const handleClaim = async () => {
+  const performClaim = async () => {
     const successMessage = item
       ? `${item.service_name} · ${formatDayLabel(
           item.scheduled_start,
@@ -249,7 +264,7 @@ export function useJobActions({
     }
   };
 
-  const handleClaimSelected = async () => {
+  const performClaimSelected = async () => {
     if (!bookingId || validSelected.length === 0) {
       return;
     }
@@ -326,15 +341,55 @@ export function useJobActions({
         }
       }
 
-      Alert.alert("Không thể nhận việc", getErrorMessage(err));
+      showErrorToast("Không thể nhận việc", getErrorMessage(err));
     }
+  };
+
+  // Nhận việc: hiện hộp xác nhận → mới gọi API
+  const [pendingClaim, setPendingClaim] = useState<"single" | "package" | null>(
+    null,
+  );
+
+  const handleClaim = () => setPendingClaim("single");
+
+  const handleClaimSelected = () => {
+    if (!bookingId || validSelected.length === 0) return;
+    setPendingClaim("package");
+  };
+
+  const confirmClaim = async () => {
+    const kind = pendingClaim;
+    if (!kind) return;
+    setPendingClaim(null);
+    if (kind === "single") await performClaim();
+    else await performClaimSelected();
+  };
+
+  const dismissClaimConfirm = () => setPendingClaim(null);
+
+  const claimConfirm = {
+    visible: pendingClaim !== null,
+    title:
+      pendingClaim === "package"
+        ? `Nhận ${validSelected.length} buổi đã chọn?`
+        : "Nhận việc này?",
+    message:
+      pendingClaim === "package"
+        ? "Các buổi đã chọn sẽ được xếp vào lịch của bạn."
+        : item
+          ? `${item.service_name} · ${formatDayLabel(
+              item.scheduled_start,
+            )}, ${formatTime(item.scheduled_start)} - ${formatTime(
+              item.scheduled_end,
+            )}`
+          : "Buổi làm này sẽ được xếp vào lịch của bạn.",
   };
 
   const handleCancel = async () => {
     if (!mineItem?.assignment_id) return;
 
     if (reason.trim().length === 0) {
-      Alert.alert("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
       return;
     }
 
@@ -347,12 +402,8 @@ export function useJobActions({
 
       cancelKey.resetKey();
 
-      Alert.alert("Đã hủy", "Bạn đã hủy nhận buổi làm này.", [
-        {
-          text: "OK",
-          onPress: () => router.back(),
-        },
-      ]);
+      showSuccessToast("Đã hủy nhận việc", "Bạn đã hủy nhận buổi làm này.");
+      router.back();
     } catch (err) {
       await verifyScheduleMutation({
         err,
@@ -370,6 +421,57 @@ export function useJobActions({
     }
   };
 
+  // Hủy: kiểm tra lý do → hiện hộp xác nhận → mới gọi API
+  const requestCancelSession = (session: WorkerSchedule) => {
+    if (!session.assignment_id) return;
+    if (sessionCancelReason.trim().length === 0) {
+      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      return;
+    }
+    setPendingCancel({ type: "session", session });
+  };
+
+  const requestCancel = () => {
+    if (!mineItem?.assignment_id) return;
+    if (reason.trim().length === 0) {
+      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      return;
+    }
+    setPendingCancel({ type: "job" });
+  };
+
+  const confirmCancel = async () => {
+    const pending = pendingCancel;
+    if (!pending) return;
+    if (pending.type === "session") {
+      await handleCancelSession(pending.session);
+    } else {
+      await handleCancel();
+    }
+    setPendingCancel(null);
+  };
+
+  const dismissCancelConfirm = () => {
+    if (isCancelling) return;
+    setPendingCancel(null);
+  };
+
+  const cancelConfirm = {
+    visible: pendingCancel !== null,
+    title:
+      pendingCancel?.type === "session"
+        ? "Hủy nhận buổi này?"
+        : "Hủy nhận việc này?",
+    message:
+      pendingCancel?.type === "session"
+        ? `Buổi ${formatDayLabel(
+            pendingCancel.session.scheduled_start,
+          )}, ${formatTime(
+            pendingCancel.session.scheduled_start,
+          )} sẽ được mở lại cho nhân viên khác nhận.`
+        : "Bạn sẽ không còn được xếp vào buổi làm này và việc sẽ được mở lại cho nhân viên khác.",
+  };
+
   const handleOpenChat = async () => {
     if (!mineItem?.assignment_id) return;
 
@@ -384,7 +486,7 @@ export function useJobActions({
         },
       });
     } catch {
-      Alert.alert(
+      showErrorToast(
         "Không mở được trò chuyện",
         "Vui lòng kiểm tra lịch phân công và thử lại.",
       );
@@ -392,13 +494,61 @@ export function useJobActions({
   };
 
   const handleCheckIn = async () => {
+    if (isLocating || isCheckingIn) return;
+
+    // 1. Quyền vị trí
+    let coords: {
+      latitude: number;
+      longitude: number;
+      accuracy: number | null;
+    };
+    setIsLocating(true);
     try {
-      await checkIn(scheduleId).unwrap();
+      let perm = await Location.getForegroundPermissionsAsync();
+      if (perm.status !== "granted" && perm.canAskAgain) {
+        perm = await Location.requestForegroundPermissionsAsync();
+      }
+      if (perm.status !== "granted") {
+        showWarningToast(
+          "Cần quyền vị trí",
+          "Hãy cho phép ứng dụng truy cập vị trí để check-in tại địa chỉ khách.",
+        );
+        return;
+      }
+
+      // 2. Lấy GPS độ chính xác cao
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      if (pos.mocked) {
+        showErrorToast(
+          "Vị trí không hợp lệ",
+          "Phát hiện vị trí giả lập. Vui lòng tắt ứng dụng giả lập GPS.",
+        );
+        return;
+      }
+
+      coords = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy ?? null,
+      };
+    } catch {
+      showErrorToast("Không xác định được vị trí", "Hãy bật GPS rồi thử lại.");
+      return;
+    } finally {
+      setIsLocating(false);
+    }
+
+    // 3. Gửi lên BE (BE kiểm tra bán kính 300m)
+    try {
+      await checkIn({ scheduleId, ...coords }).unwrap();
 
       await refetchBookingSchedules();
       await refetchMineSchedules();
 
-      Alert.alert("Đã bắt đầu", "Bạn đã bắt đầu buổi làm việc này.");
+      showSuccessToast("Đã bắt đầu", "Bạn đã bắt đầu buổi làm việc này.");
     } catch (err) {
       await verifyScheduleMutation({
         err,
@@ -458,13 +608,6 @@ export function useJobActions({
     return Array.from(failedTypes);
   };
 
-  const IMAGE_TYPE_LABEL: Record<ScheduleImageType, string> = {
-    BEFORE: "Trước khi làm",
-    AFTER: "Sau khi làm",
-    ISSUE: "Vấn đề phát sinh",
-    OTHER: "Khác",
-  };
-
   const handleCheckOut = async (completionNote?: string) => {
     try {
       const failedUploadTypes = await uploadAllStagedImages();
@@ -478,12 +621,12 @@ export function useJobActions({
       await refetchMineSchedules();
 
       if (failedUploadTypes.length > 0) {
-        Alert.alert(
+        showWarningToast(
           "Đã hoàn thành",
-          "Buổi làm đã được hoàn thành nhưng một số ảnh chưa tải lên được.",
+          "Buổi làm đã hoàn thành nhưng một số ảnh chưa tải lên được.",
         );
       } else {
-        Alert.alert("Đã hoàn thành", "Bạn đã hoàn thành buổi làm việc.");
+        showSuccessToast("Đã hoàn thành", "Bạn đã hoàn thành buổi làm việc.");
       }
     } catch (err) {
       await verifyScheduleMutation({
@@ -526,22 +669,29 @@ export function useJobActions({
     sessionCancelReason,
     setSessionCancelReason,
     handleSessionPress,
-    handleCancelSession,
+    requestCancelSession,
     isCancelling,
 
     reason,
     setReason,
     showCancelForm,
     setShowCancelForm,
-    handleCancel,
+    requestCancel,
+
+    cancelConfirm,
+    confirmCancel,
+    dismissCancelConfirm,
 
     handleClaim,
+    claimConfirm,
+    confirmClaim,
+    dismissClaimConfirm,
     isClaiming,
     handleClaimSelected,
     isClaimingPackage,
 
     handleCheckIn,
-    isCheckingIn,
+    isCheckingIn: isCheckingIn || isLocating,
     handleCheckOut,
     isCheckingOut: isCheckingOut || isUploadingImages,
 

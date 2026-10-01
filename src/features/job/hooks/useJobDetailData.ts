@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 
 import {
-    useGetAvailableSchedulesQuery,
-    useGetBookingSchedulesQuery,
-    useGetMySchedulesQuery,
+  useGetAvailableSchedulesQuery,
+  useGetBookingSchedulesQuery,
+  useGetMySchedulesQuery,
 } from "@/features/job/api/jobsApi";
 import type {
-    WorkerMySchedule,
-    WorkerSchedule,
+  WorkerMySchedule,
+  WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
 
 type Args = {
@@ -56,9 +56,7 @@ export function useJobDetailData({
         bookingSchedules.find((s) => s.id === scheduleId)
       );
     }
-    return (
-      bookingSchedules.find((s) => s.id === scheduleId) ?? bookingSchedules[0]
-    );
+    return bookingSchedules.find((s) => s.id === scheduleId);
   }, [isMine, mineQuery.data, bookingSchedules, scheduleId]);
 
   const mineItem = isMine ? (item as WorkerMySchedule | undefined) : undefined;

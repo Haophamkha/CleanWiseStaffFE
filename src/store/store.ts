@@ -3,13 +3,14 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { AppState, AppStateStatus } from "react-native";
 import authReducer from "../features/auth/stores/authSlice";
 import notificationReducer from "../features/notification/stores/notificationSlice";
+import profileDraftReducer from "../features/profile-setup/stores/profileDraftSlice";
 import { baseApi, registerAuthDispatch } from "./baseApi";
-
 export const store = configureStore({
   reducer: {
     [baseApi.reducerPath]: baseApi.reducer,
     auth: authReducer,
     notification: notificationReducer,
+    profileDraft: profileDraftReducer,
   },
   middleware: (getDefault) => getDefault().concat(baseApi.middleware),
 });

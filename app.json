@@ -35,6 +35,13 @@
         }
       ],
       "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "CleanWise Staff cần truy cập ảnh để bạn tải ảnh hồ sơ lên.",
+          "cameraPermission": "CleanWise Staff cần dùng camera để chụp ảnh chân dung và giấy tờ."
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-notifications",

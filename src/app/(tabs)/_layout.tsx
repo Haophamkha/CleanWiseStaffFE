@@ -18,8 +18,6 @@ export default function TabsLayout() {
         options={{ title: "Tin nhắn", tabBarBadge: unreadLabel }}
       />
       <Tabs.Screen name="profile" options={{ title: "Cá nhân" }} />
-      {/* Lịch: ẩn khỏi thanh tab, mở từ Home */}
-      {/* <Tabs.Screen name="schedule" options={{ title: "Lịch", href: null }} /> */}
     </Tabs>
   );
 }

@@ -1,19 +1,13 @@
 import { ProfileStatusCard } from "@/components/common/ProfileStatusCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FadeInView } from "@/components/ui/FadeInView";
 import { COLORS } from "@/constants/theme";
 import { HomeHeader } from "@/features/home/components/HomeHeader";
+import { ScheduleShortcut } from "@/features/home/components/ScheduleShortcut";
 import { TodayScheduleCard } from "@/features/home/components/TodayScheduleCard";
 import { TodaySummary } from "@/features/home/components/TodaySummary";
 import { useHomeData } from "@/features/home/hooks/useHomeData";
-import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const {
@@ -25,7 +19,9 @@ export default function HomeScreen() {
     stats,
     workerName,
     workerAvatar,
-    openDirections,
+    openSchedule,
+    openJob,
+    goAvailableJobs,
   } = useHomeData();
 
   return (
@@ -51,34 +47,22 @@ export default function HomeScreen() {
           />
           <TodaySummary {...stats} />
 
+          <FadeInView delay={120}>
+            <ScheduleShortcut onPress={openSchedule} />
+          </FadeInView>
+
           <View className="px-5 pt-7 pb-8">
-            <View className="flex-row items-center justify-between mb-4">
-              <View className="flex-row items-center">
-                <Text className="text-ink text-lg font-extrabold">
-                  Công việc hôm nay
-                </Text>
-                {todaySchedules.length > 0 && (
-                  <View className="bg-accent-light rounded-full px-2.5 py-0.5 ml-2">
-                    <Text className="text-ink text-xs font-bold">
-                      {todaySchedules.length}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Pressable
-                onPress={() => router.push("/schedule")}
-                className="flex-row items-center py-2"
-                hitSlop={8}
-              >
-                <Text className="text-primary text-sm font-bold">
-                  Xem tất cả
-                </Text>
-                <Feather
-                  name="chevron-right"
-                  size={16}
-                  color={COLORS.primary}
-                />
-              </Pressable>
+            <View className="flex-row items-center mb-4">
+              <Text className="text-ink text-lg font-extrabold">
+                Công việc hôm nay
+              </Text>
+              {todaySchedules.length > 0 && (
+                <View className="bg-accent-light rounded-full px-2.5 py-0.5 ml-2">
+                  <Text className="text-ink text-xs font-bold">
+                    {todaySchedules.length}
+                  </Text>
+                </View>
+              )}
             </View>
 
             {isLoadingSchedules ? (
@@ -91,21 +75,16 @@ export default function HomeScreen() {
                 title="Hôm nay bạn chưa có việc"
                 message='Sang tab "Công việc" để nhận thêm việc nhé'
                 actionLabel="Xem việc có thể nhận"
-                onAction={() => router.push("/(tabs)/jobs")}
+                onAction={goAvailableJobs}
               />
             ) : (
-              todaySchedules.map((s) => (
-                <TodayScheduleCard
-                  key={s.id}
-                  schedule={s}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/jobs/[id]",
-                      params: { id: String(s.id), source: "mine" },
-                    })
-                  }
-                  onDirections={() => openDirections(s)}
-                />
+              todaySchedules.map((s, index) => (
+                <FadeInView key={s.id} delay={200 + Math.min(index, 5) * 70}>
+                  <TodayScheduleCard
+                    schedule={s}
+                    onPress={() => openJob(s.id)}
+                  />
+                </FadeInView>
               ))
             )}
           </View>

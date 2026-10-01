@@ -25,10 +25,7 @@ export default function EarningsScreen() {
 
   return (
     <View className="flex-1 bg-canvas">
-      <SimpleHeader
-        title="Thu nhập"
-        subtitle="Thống kê và đối soát với CleanWise"
-      />
+      <SimpleHeader title="Thu nhập" />
 
       {e.isLoading ? (
         <View className="flex-1 items-center justify-center">

@@ -1,8 +1,9 @@
+import { PressableScale } from "@/components/ui/PressableScale";
 import { ON_DARK } from "@/constants/theme";
 import type { DayChip } from "@/utils/dayChips";
-import { Pressable, ScrollView, Text } from "react-native";
+import { ScrollView, Text } from "react-native";
 
-/** Thiết kế để đặt trong header đen (JobsHeader). */
+/** Thiết kế để đặt trong header tone da (JobsHeader). */
 export function DayFilterBar({
   chips,
   selected,
@@ -22,39 +23,33 @@ export function DayFilterBar({
       {chips.map((chip) => {
         const active = selected === chip.key;
         return (
-          <Pressable
+          <PressableScale
             key={chip.key ?? "all"}
             onPress={() => onSelect(chip.key)}
+            scaleTo={0.94}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             className={`min-w-[64px] px-3 py-2 rounded-2xl items-center justify-center border ${
-              active ? "bg-surface border-surface" : ""
+              active ? "bg-ink border-ink" : "bg-canvas border-line"
             }`}
-            style={[
-              { minHeight: 48 },
-              active
-                ? undefined
-                : {
-                    backgroundColor: ON_DARK.surface,
-                    borderColor: ON_DARK.border,
-                  },
-            ]}
+            style={{ minHeight: 48 }}
           >
             <Text
               className={`${
                 chip.bottom ? "text-xs" : "text-sm font-semibold"
-              } ${active ? "text-ink-soft" : ""}`}
-              style={active ? undefined : { color: ON_DARK.textSoft }}
+              } ${active ? "" : "text-ink-soft"}`}
+              style={active ? { color: ON_DARK.textSoft } : undefined}
             >
               {chip.top}
             </Text>
             {chip.bottom ? (
               <Text
-                className={`text-sm font-bold mt-0.5 ${active ? "text-ink" : ""}`}
-                style={active ? undefined : { color: ON_DARK.text }}
+                className={`text-sm font-bold mt-0.5 ${active ? "text-white" : "text-ink"}`}
               >
                 {chip.bottom}
               </Text>
             ) : null}
-          </Pressable>
+          </PressableScale>
         );
       })}
     </ScrollView>

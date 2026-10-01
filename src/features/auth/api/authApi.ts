@@ -11,7 +11,11 @@ import type {
   MessageResponse,
   RegisterWorkerResponse,
 } from "@/features/auth/types/authResponse";
-import type { Area, WorkingArea } from "@/features/profile-setup/types/Area";
+import type {
+  Area,
+  Province,
+  WorkingArea,
+} from "@/features/profile-setup/types/Area";
 import type { Service } from "@/features/profile-setup/types/Service";
 import type {
   UpdateWorkerProfileRequest,
@@ -138,10 +142,19 @@ export const authApi = baseApi.injectEndpoints({
       transformResponse: unwrapResponse,
     }),
 
-    getActiveAreas: builder.query<Area[], void>({
+    getActiveProvinces: builder.query<Province[], void>({
       query: () => ({
+        url: "/api/worker/provinces/",
+        method: "GET",
+      }),
+      transformResponse: unwrapResponse,
+    }),
+
+    getActiveAreas: builder.query<Area[], { province_code: string }>({
+      query: (params) => ({
         url: "/api/worker/areas/",
         method: "GET",
+        params,
       }),
       transformResponse: unwrapResponse,
     }),
@@ -162,28 +175,7 @@ export const authApi = baseApi.injectEndpoints({
         data: { area_ids: areaIds },
       }),
       transformResponse: unwrapResponse,
-      async onQueryStarted(areaIds, { dispatch, queryFulfilled, getState }) {
-        // Optimistic: set UI ngay bằng areaIds vừa chọn, dùng data area đã có sẵn trong cache getActiveAreas
-        const activeAreasEntry = authApi.endpoints.getActiveAreas.select()(
-          getState() as any,
-        );
-        const allAreas = activeAreasEntry.data ?? [];
-        const optimisticData = allAreas
-          .filter((a) => areaIds.includes(a.id))
-          .map((a) => ({
-            id: a.id,
-            area: a,
-            created_at: new Date().toISOString(),
-          }));
-
-        const patchResult = dispatch(
-          authApi.util.updateQueryData(
-            "getWorkingAreas",
-            undefined,
-            () => optimisticData as any,
-          ),
-        );
-
+      async onQueryStarted(_areaIds, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(
@@ -193,9 +185,7 @@ export const authApi = baseApi.injectEndpoints({
               () => data,
             ),
           );
-        } catch {
-          patchResult.undo();
-        }
+        } catch {}
       },
     }),
   }),
@@ -216,4 +206,5 @@ export const {
   useGetActiveAreasQuery,
   useGetWorkingAreasQuery,
   useUpdateWorkingAreasMutation,
+  useGetActiveProvincesQuery,
 } = authApi;

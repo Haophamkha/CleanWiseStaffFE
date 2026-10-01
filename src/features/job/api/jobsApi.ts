@@ -290,13 +290,22 @@ export const jobsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    checkIn: builder.mutation<WorkerMySchedule, number>({
-      query: (scheduleId) => ({
+    checkIn: builder.mutation<
+      WorkerMySchedule,
+      {
+        scheduleId: number;
+        latitude: number;
+        longitude: number;
+        accuracy?: number | null;
+      }
+    >({
+      query: ({ scheduleId, latitude, longitude, accuracy }) => ({
         url: `/api/worker/schedules/${scheduleId}/check-in/`,
         method: "POST",
+        data: { latitude, longitude, accuracy: accuracy ?? null },
       }),
       transformResponse: unwrapResponse,
-      invalidatesTags: (result, error, scheduleId) => [
+      invalidatesTags: (result, error, { scheduleId }) => [
         {
           type: "MySchedules",
           id: scheduleId,
@@ -307,7 +316,6 @@ export const jobsApi = baseApi.injectEndpoints({
         },
       ],
     }),
-
     checkOut: builder.mutation<
       WorkerMySchedule,
       {

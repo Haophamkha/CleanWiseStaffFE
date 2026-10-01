@@ -1,8 +1,9 @@
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
 import type {
-    ScheduleStatus,
-    WorkerMySchedule,
+  ScheduleStatus,
+  WorkerMySchedule,
 } from "@/features/schedule/types/Schedule";
+import { useSingleNavigate } from "@/hooks/useSingleNavigate";
 import { formatCurrency, formatTime, pad2 } from "@/utils/format";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
@@ -86,6 +87,7 @@ function formatTotalHours(minutes: number) {
 }
 
 export function useSchedule() {
+  const navigateOnce = useSingleNavigate();
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => new Date());
 
@@ -193,10 +195,12 @@ export function useSchedule() {
     goBack: () =>
       router.canGoBack() ? router.back() : router.replace("/(tabs)/home"),
     openSchedule: (id: number) =>
-      router.push({
-        pathname: "/jobs/[id]",
-        params: { id: String(id), source: "mine" },
-      }),
+      navigateOnce(() =>
+        router.push({
+          pathname: "/jobs/[id]",
+          params: { id: String(id), source: "mine" },
+        }),
+      ),
     goAvailableJobs: () =>
       router.push({
         pathname: "/(tabs)/jobs",

@@ -1,17 +1,18 @@
 import {
-    useGetAvailableJobsPagedQuery,
-    useGetMyJobsPagedQuery,
+  useGetAvailableJobsPagedQuery,
+  useGetMyJobsPagedQuery,
 } from "@/features/job/api/jobsApi";
 import { usePagedJobs } from "@/features/job/hooks/usePagedJobs";
 import type { OpenJob, Tab } from "@/features/job/types/jobNav";
 import type {
-    AvailableJobsPagedArgs,
-    MyJobsPagedArgs,
-    WorkerMySchedule,
-    WorkerSchedule,
+  AvailableJobsPagedArgs,
+  MyJobsPagedArgs,
+  WorkerMySchedule,
+  WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
 import type { MyDisplayItem } from "@/features/schedule/utils/myScheduleGrouping";
 import { groupMySchedules } from "@/features/schedule/utils/myScheduleGrouping";
+import { useSingleNavigate } from "@/hooks/useSingleNavigate";
 import { useAppSelector } from "@/store/hooks";
 import { buildDayChips, DAY_CHIP_COUNT } from "@/utils/dayChips";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -92,16 +93,23 @@ export function useJobs() {
     (next === "available" ? available : mine).refresh();
   };
 
-  const openJob = useCallback<OpenJob>((id, source, bookingId) => {
-    router.push({
-      pathname: "/jobs/[id]",
-      params: {
-        id: String(id),
-        source,
-        ...(bookingId ? { bookingId: String(bookingId) } : {}),
-      },
-    });
-  }, []);
+  const navigateOnce = useSingleNavigate();
+
+  const openJob = useCallback<OpenJob>(
+    (id, source, bookingId) => {
+      navigateOnce(() =>
+        router.push({
+          pathname: "/jobs/[id]",
+          params: {
+            id: String(id),
+            source,
+            ...(bookingId ? { bookingId: String(bookingId) } : {}),
+          },
+        }),
+      );
+    },
+    [navigateOnce],
+  );
 
   const userScrolledRef = useRef(false);
   const markScrolled = () => {

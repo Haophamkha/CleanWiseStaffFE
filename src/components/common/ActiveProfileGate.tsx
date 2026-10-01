@@ -1,7 +1,7 @@
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import {
-    getRejectedSteps,
-    stepRoute,
+  getRejectedSteps,
+  stepRoute,
 } from "@/features/profile-setup/utils/rejectionFlow";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -77,7 +77,14 @@ const FALLBACK_NOTICE: Notice = {
  * khi ACTIVE nên các query bên trong (jobs, schedules...) cũng không chạy
  * khi hồ sơ chưa được duyệt.
  */
-export function ActiveProfileGate({ children }: { children: ReactNode }) {
+export function ActiveProfileGate({
+  children,
+  copy,
+}: {
+  children: ReactNode;
+  /** Ghi đè mô tả theo từng trang (mặc định dùng chữ về nhận việc / lịch làm). */
+  copy?: { draft?: string; pending?: string };
+}) {
   const insets = useSafeAreaInsets();
   const {
     data: profile,
@@ -122,7 +129,17 @@ export function ActiveProfileGate({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  const notice = NOTICES[profile.status] ?? FALLBACK_NOTICE;
+  const baseNotice = NOTICES[profile.status] ?? FALLBACK_NOTICE;
+  const override =
+    profile.status === "DRAFT"
+      ? copy?.draft
+      : profile.status === "PENDING"
+        ? copy?.pending
+        : undefined;
+  const notice = override
+    ? { ...baseNotice, description: override }
+    : baseNotice;
+
   // rejection_reason có trong response của BE; ép any để không phụ thuộc type
   const reason =
     profile.status === "REJECTED"
