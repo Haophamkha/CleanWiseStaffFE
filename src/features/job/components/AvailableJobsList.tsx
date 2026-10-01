@@ -7,11 +7,11 @@ import type { OpenJob } from "@/features/job/types/jobNav";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import { useCallback } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
 } from "react-native";
 
 type AvailableJobsListProps = {
@@ -32,8 +32,13 @@ export function AvailableJobsList({
   onEndReached,
 }: AvailableJobsListProps) {
   const renderItem = useCallback(
-    ({ item }: { item: WorkerSchedule }) => (
-      <AvailableJobCard item={item} onOpen={onOpen} dayFiltered={dayFiltered} />
+    ({ item, index }: { item: WorkerSchedule; index: number }) => (
+      <AvailableJobCard
+        item={item}
+        onOpen={onOpen}
+        dayFiltered={dayFiltered}
+        index={index}
+      />
     ),
     [onOpen, dayFiltered],
   );
@@ -71,11 +76,13 @@ export function AvailableJobsList({
       removeClippedSubviews
       ListHeaderComponent={
         state.total > 0 ? (
-          <Text className="text-ink-soft text-sm mb-3">
-            {dayFiltered
-              ? `${state.total} đơn có buổi trống trong ngày này`
-              : `${state.total} đơn đang chờ nhận`}
-          </Text>
+          <View className="self-start bg-accent-light rounded-full px-3 py-1.5 mb-3">
+            <Text className="text-ink-soft text-xs font-semibold">
+              {dayFiltered
+                ? `${state.total} đơn có buổi trống trong ngày này`
+                : `${state.total} đơn đang chờ nhận`}
+            </Text>
+          </View>
         ) : null
       }
       ListFooterComponent={

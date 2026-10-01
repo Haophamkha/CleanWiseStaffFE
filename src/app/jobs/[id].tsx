@@ -1,9 +1,12 @@
 import { DetailHeader } from "@/components/common/DetailHeader";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FadeInView } from "@/components/ui/FadeInView";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import { COLORS } from "@/constants/theme";
 import { JobActions } from "@/features/job/components/JobActions";
 import { JobInfoCard } from "@/features/job/components/JobInfoCard";
+import { JobRouteMap } from "@/features/job/components/JobRouteMap";
 import {
   PackageClaimBar,
   PackageSessionsCard,
@@ -43,48 +46,69 @@ export default function JobDetailScreen() {
 
   return (
     <View className="flex-1 bg-canvas">
-      <DetailHeader title="Chi tiết đơn" onBack={job.goBack} />
+      <DetailHeader
+        title="Chi tiết đơn"
+        subtitle={summary.codeLine}
+        onBack={job.goBack}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           paddingTop: 20,
           paddingHorizontal: 20,
           paddingBottom: (job.hasOpenSessions ? 120 : 40) + insets.bottom,
         }}
       >
-        <JobInfoCard
-          summary={summary}
-          isPackage={job.isPackage}
-          customerName={item.customer_name}
-          customerAvatar={item.customer_avatar}
-          onDirections={job.openDirections}
-        />
+        <FadeInView>
+          <JobInfoCard
+            summary={summary}
+            isPackage={job.isPackage}
+            customerName={item.customer_name}
+            customerAvatar={item.customer_avatar}
+            onDirections={job.openDirections}
+            map={
+              job.showRouteMap && job.destination ? (
+                <JobRouteMap
+                  destination={job.destination}
+                  onOpenMaps={job.openDirections}
+                />
+              ) : undefined
+            }
+          />
+        </FadeInView>
 
         {job.isPackage ? (
-          <PackageSessionsCard
-            sessions={job.visibleSessions}
-            totalSessions={job.totalSessions}
-            openSessions={job.openSessions}
-            actions={actions}
-          />
+          <FadeInView delay={90}>
+            <PackageSessionsCard
+              sessions={job.visibleSessions}
+              totalSessions={job.totalSessions}
+              openSessions={job.openSessions}
+              actions={actions}
+            />
+          </FadeInView>
         ) : null}
 
-        <ServiceDetailReadOnly
-          fields={item.form_schema?.fields}
-          values={item.service_data}
-          taskChecklist={item.form_schema?.task_checklist}
-        />
+        <FadeInView delay={150}>
+          <ServiceDetailReadOnly
+            fields={item.form_schema?.fields}
+            values={item.service_data}
+            taskChecklist={item.form_schema?.task_checklist}
+          />
+        </FadeInView>
 
         {!job.isPackage && job.showImages && mineItem ? (
-          <ProofImagesSection
-            images={mineItem.images}
-            canEdit={job.canEditImages}
-            localImages={actions.localImages}
-            isUploadingImages={actions.isCheckingOut}
-            onPickImage={actions.handlePickImage}
-            onRemoveImage={actions.handleRemoveStagedImage}
-          />
+          <FadeInView delay={200}>
+            <ProofImagesSection
+              images={mineItem.images}
+              canEdit={job.canEditImages}
+              localImages={actions.localImages}
+              isUploadingImages={actions.isCheckingOut}
+              onPickImage={actions.handlePickImage}
+              onRemoveImage={actions.handleRemoveStagedImage}
+            />
+          </FadeInView>
         ) : null}
 
         <JobActions
@@ -97,6 +121,30 @@ export default function JobDetailScreen() {
       </ScrollView>
 
       {job.hasOpenSessions ? <PackageClaimBar actions={actions} /> : null}
+      <ConfirmModal
+        visible={actions.claimConfirm.visible}
+        tone="dark"
+        icon="check-circle"
+        title={actions.claimConfirm.title}
+        message={actions.claimConfirm.message}
+        confirmLabel="Nhận việc"
+        cancelLabel="Để sau"
+        onConfirm={actions.confirmClaim}
+        onCancel={actions.dismissClaimConfirm}
+      />
+
+      <ConfirmModal
+        visible={actions.cancelConfirm.visible}
+        tone="danger"
+        icon="alert-triangle"
+        title={actions.cancelConfirm.title}
+        message={actions.cancelConfirm.message}
+        confirmLabel="Hủy nhận việc"
+        cancelLabel="Giữ lại"
+        loading={actions.isCancelling}
+        onConfirm={actions.confirmCancel}
+        onCancel={actions.dismissCancelConfirm}
+      />
 
       <SuccessModal
         visible={actions.successModal.visible}

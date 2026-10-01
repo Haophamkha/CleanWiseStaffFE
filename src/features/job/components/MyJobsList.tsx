@@ -8,10 +8,10 @@ import type { OpenJob } from "@/features/job/types/jobNav";
 import type { MyDisplayItem } from "@/features/schedule/utils/myScheduleGrouping";
 import { useCallback } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  View,
 } from "react-native";
 
 type MyJobsListProps = {
@@ -28,15 +28,16 @@ export function MyJobsList({
   onEndReached,
 }: MyJobsListProps) {
   const renderItem = useCallback(
-    ({ item }: { item: MyDisplayItem }) =>
+    ({ item, index }: { item: MyDisplayItem; index: number }) =>
       item.type === "package" ? (
         <MyPackageCard
           bookingId={item.bookingId}
           sessions={item.sessions}
           onOpen={onOpen}
+          index={index}
         />
       ) : (
-        <MyJobCard item={item.item} onOpen={onOpen} />
+        <MyJobCard item={item.item} onOpen={onOpen} index={index} />
       ),
     [onOpen],
   );

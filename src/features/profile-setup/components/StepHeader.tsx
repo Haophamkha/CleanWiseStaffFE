@@ -30,7 +30,7 @@ export function StepHeader({ step, totalSteps }: Props) {
           className="flex-1 text-center text-ink text-base font-extrabold"
           style={{ letterSpacing: 0.3 }}
         >
-          CleanCare Staff
+          CleanWise Staff
         </Text>
         <View style={{ width: 40 }} />
       </View>

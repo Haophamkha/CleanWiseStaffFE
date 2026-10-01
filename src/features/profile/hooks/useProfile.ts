@@ -1,8 +1,8 @@
 import { COLORS } from "@/constants/theme";
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import {
-    useGetNotificationPreferencesQuery,
-    useUpdateNotificationPreferencesMutation,
+  useGetNotificationPreferencesQuery,
+  useUpdateNotificationPreferencesMutation,
 } from "@/features/notification/api/notificationApi";
 import type { ProfileStatus } from "@/features/profile-setup/types/WorkerProfile";
 import { performLogout } from "@/store/baseApi";
@@ -103,7 +103,14 @@ function buildMenuGroups(openSettings: () => void): MenuGroup[] {
     },
     {
       title: "Khác",
-      items: [{ icon: "settings", label: "Cài đặt", onPress: openSettings }],
+      items: [
+        { icon: "settings", label: "Cài đặt", onPress: openSettings },
+        {
+          icon: "info",
+          label: "Về CleanWise",
+          onPress: () => router.push("/about" as any),
+        },
+      ],
     },
   ];
 }

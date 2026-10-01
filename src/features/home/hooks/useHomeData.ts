@@ -2,8 +2,9 @@ import { ENV } from "@/config/env";
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
 import type { WorkerMySchedule } from "@/features/schedule/types/Schedule";
+import { useSingleNavigate } from "@/hooks/useSingleNavigate";
+import { router } from "expo-router";
 import { useMemo } from "react";
-import { Linking } from "react-native";
 
 function isSameDay(a: Date, b: Date) {
   return (
@@ -67,11 +68,19 @@ export function useHomeData() {
     [todaySchedules],
   );
 
-  const openDirections = (s: WorkerMySchedule) => {
-    if (!s.address_latitude || !s.address_longitude) return;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${s.address_latitude},${s.address_longitude}`;
-    Linking.openURL(url).catch(() => {});
-  };
+  const navigateOnce = useSingleNavigate();
+
+  const openSchedule = () => navigateOnce(() => router.push("/schedule"));
+
+  const openJob = (id: number) =>
+    navigateOnce(() =>
+      router.push({
+        pathname: "/jobs/[id]",
+        params: { id: String(id), source: "mine" },
+      }),
+    );
+
+  const goAvailableJobs = () => router.push("/(tabs)/jobs");
 
   const workerName = profile
     ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
@@ -98,6 +107,8 @@ export function useHomeData() {
     },
     workerName,
     workerAvatar,
-    openDirections,
+    openSchedule,
+    openJob,
+    goAvailableJobs,
   };
 }

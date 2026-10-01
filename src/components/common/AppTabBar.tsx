@@ -25,7 +25,6 @@ const NOTCH_HALF_WIDTH = 52;
 const NOTCH_DEPTH = 36;
 
 const CENTER_ROUTE = "chatbot";
-const HIDDEN_ROUTES = ["schedule"];
 
 const ICONS: Record<string, { on: IoniconName; off: IoniconName }> = {
   home: { on: "home", off: "home-outline" },
@@ -304,9 +303,7 @@ export default function AppTabBar({
   const insets = useSafeAreaInsets();
   const { width: barWidth } = useWindowDimensions();
 
-  const visible = state.routes
-    .map((route, index) => ({ route, index }))
-    .filter(({ route }) => !HIDDEN_ROUTES.includes(route.name));
+  const visible = state.routes.map((route, index) => ({ route, index }));
 
   const slotWidth = barWidth / visible.length;
   const path = buildBarPath(barWidth);

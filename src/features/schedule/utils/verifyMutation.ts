@@ -1,7 +1,6 @@
-import { Alert } from "react-native";
-
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import { getErrorMessage, isNetworkError } from "@/utils/apiError";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 export async function verifyScheduleMutation({
   err,
@@ -27,9 +26,9 @@ export async function verifyScheduleMutation({
       const fresh = await refetch();
       const updated = fresh?.data?.find((s) => s.id === scheduleId);
       if (updated && isNowSuccess(updated)) {
-        Alert.alert(
+        showSuccessToast(
           successTitle,
-          `${successMessage} (Kết nối mạng bị gián đoạn lúc nhận phản hồi, nhưng hệ thống đã ghi nhận thao tác của bạn.)`,
+          `${successMessage} (Mạng chập chờn nhưng hệ thống đã ghi nhận.)`,
         );
         onSuccess?.();
         return;
@@ -37,5 +36,5 @@ export async function verifyScheduleMutation({
     } catch {}
   }
 
-  Alert.alert(errorTitle, getErrorMessage(err));
+  showErrorToast(errorTitle, getErrorMessage(err));
 }

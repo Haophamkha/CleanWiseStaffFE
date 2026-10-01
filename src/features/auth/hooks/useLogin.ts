@@ -1,18 +1,23 @@
 import { ROUTES } from "@/config/constants";
 import { saveTokens, useLoginMutation } from "@/features/auth/api/authApi";
 import { setUser } from "@/features/auth/stores/authSlice";
+import type { AuthResponse } from "@/features/auth/types/authResponse";
 import { baseApi } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
 import { getErrorMessage } from "@/utils/apiError";
-import { showErrorToast, showSuccessToast } from "@/utils/toast";
+import { showErrorToast } from "@/utils/toast";
 import { loginSchema } from "@/utils/validators";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function useLogin() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successUser, setSuccessUser] = useState<AuthResponse["user"] | null>(
+    null,
+  );
+  const finishedRef = useRef(false);
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
 
@@ -37,12 +42,11 @@ export function useLogin() {
 
       await saveTokens(res.access, res.refresh);
       dispatch(baseApi.util.resetApiState());
-      dispatch(setUser(res.user));
-      showSuccessToast(
-        "Đăng nhập thành công",
-        `Chào mừng trở lại, ${res.user.first_name || ""}`,
-      );
-      router.replace(ROUTES.HOME);
+
+      // Chưa setUser/điều hướng: chờ overlay chạy xong để layout redirect
+      // không đè lên animation.
+      finishedRef.current = false;
+      setSuccessUser(res.user);
     } catch (e: any) {
       // 429 đã được interceptor toast, ở đây chỉ hiện lỗi trong form
       const message =
@@ -54,6 +58,13 @@ export function useLogin() {
     }
   };
 
+  const finishLogin = () => {
+    if (finishedRef.current || !successUser) return;
+    finishedRef.current = true;
+    dispatch(setUser(successUser));
+    router.replace(ROUTES.HOME);
+  };
+
   return {
     phone,
     setPhone,
@@ -62,5 +73,8 @@ export function useLogin() {
     error,
     isLoading,
     handleLogin,
+    showSuccess: !!successUser,
+    successName: successUser?.first_name || "",
+    finishLogin,
   };
 }

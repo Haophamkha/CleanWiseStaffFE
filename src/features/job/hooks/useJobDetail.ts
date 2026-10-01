@@ -4,11 +4,9 @@ import type { PaymentStatus } from "@/features/schedule/types/Schedule";
 import { formatCurrency, formatDateTime } from "@/utils/format";
 import type { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import type { ComponentProps } from "react";
+import { useMemo, type ComponentProps } from "react";
 import { Alert, Linking } from "react-native";
 
-// Tạm ẩn các buổi trong gói mà nhân viên khác đã nhận (claim_state === "TAKEN"),
-// chỉ hiện buổi của mình + buổi còn trống. Đổi thành false để hiện lại như cũ.
 const HIDE_TAKEN_SESSIONS = true;
 
 export type InfoRowData = {
@@ -70,6 +68,20 @@ export function useJobDetail() {
   const visibleSessions = HIDE_TAKEN_SESSIONS
     ? bookingSchedules.filter((s) => s.claim_state !== "TAKEN")
     : bookingSchedules;
+
+  const destination = useMemo(() => {
+    const lat = Number(item?.address_latitude);
+    const lng = Number(item?.address_longitude);
+    if (
+      !item?.address_latitude ||
+      !item?.address_longitude ||
+      Number.isNaN(lat) ||
+      Number.isNaN(lng)
+    ) {
+      return null;
+    }
+    return { latitude: lat, longitude: lng };
+  }, [item?.address_latitude, item?.address_longitude]);
 
   const actions = useJobActions({
     scheduleId,
@@ -190,6 +202,8 @@ export function useJobDetail() {
       ? undefined
       : "Có thể các buổi đã được nhân viên khác nhận.",
     openDirections,
+    destination,
+    showRouteMap: destination !== null && !isSingleSessionView,
     goBack: () => router.back(),
   };
 }

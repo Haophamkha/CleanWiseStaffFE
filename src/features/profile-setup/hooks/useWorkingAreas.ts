@@ -1,73 +1,49 @@
 import {
-    useGetActiveAreasQuery,
-    useGetWorkingAreasQuery,
-    useUpdateWorkingAreasMutation,
+  useGetWorkingAreasQuery,
+  useUpdateWorkingAreasMutation,
 } from "@/features/auth/api/authApi";
+import { useAreaSelection } from "@/features/profile-setup/hooks/useAreaSelection";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-
-export type AreaOption = {
-  id: number;
-  name: string;
-  selected: boolean;
-};
+import { useEffect, useState } from "react";
 
 export function useWorkingAreas() {
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [search, setSearch] = useState("");
+  const [provinceCode, setProvinceCode] = useState<string | null>(null);
+  const [areaIds, setAreaIds] = useState<number[]>([]);
   const [error, setError] = useState("");
   const [initialized, setInitialized] = useState(false);
 
-  const { data: areas, isLoading: loadingAreas } = useGetActiveAreasQuery();
   const { data: myAreas, isLoading: loadingMyAreas } =
     useGetWorkingAreasQuery();
-
   const [updateWorkingAreas, { isLoading: isSaving }] =
     useUpdateWorkingAreasMutation();
 
-  // Prefill 1 lần từ dữ liệu hiện có, tránh đè lựa chọn người dùng đang
-  // thao tác nếu query refetch ngầm.
   useEffect(() => {
     if (myAreas && !initialized) {
-      setSelected(new Set(myAreas.map((wa) => wa.area.id)));
+      setAreaIds(myAreas.map((wa) => wa.area.id));
+      setProvinceCode(myAreas[0]?.area.province_code ?? null);
       setInitialized(true);
     }
   }, [myAreas, initialized]);
 
-  const filteredAreas: AreaOption[] = useMemo(() => {
-    if (!areas) return [];
-    const keyword = search.trim().toLowerCase();
-    const list = keyword
-      ? areas.filter((a) => a.name.toLowerCase().includes(keyword))
-      : areas;
-    return list.map((a) => ({
-      id: a.id,
-      name: a.name,
-      selected: selected.has(a.id),
-    }));
-  }, [areas, search, selected]);
-
-  const toggleArea = (id: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-    if (error) setError("");
-  };
-
-  const clearSearch = () => setSearch("");
+  const area = useAreaSelection({
+    provinceCode,
+    areaIds,
+    onChange: (next) => {
+      setProvinceCode(next.provinceCode);
+      setAreaIds(next.areaIds);
+      if (error) setError("");
+    },
+  });
 
   const handleSave = async () => {
-    if (selected.size === 0) {
+    if (areaIds.length === 0) {
       setError("Vui lòng chọn ít nhất một khu vực hoạt động.");
       return;
     }
     setError("");
     try {
-      await updateWorkingAreas(Array.from(selected)).unwrap();
+      await updateWorkingAreas(areaIds).unwrap();
       showSuccessToast("Thành công", "Đã cập nhật khu vực hoạt động.");
       router.back();
     } catch (e: any) {
@@ -79,16 +55,11 @@ export function useWorkingAreas() {
   };
 
   return {
-    isLoading: loadingAreas || loadingMyAreas,
+    isLoading: loadingMyAreas,
     isSaving,
     error,
-    search,
-    setSearch,
-    clearSearch,
-    areas: filteredAreas,
-    selectedCount: selected.size,
-    canSave: selected.size > 0,
-    toggleArea,
+    area,
+    canSave: areaIds.length > 0,
     handleSave,
   };
 }
