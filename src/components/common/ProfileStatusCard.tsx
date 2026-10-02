@@ -76,6 +76,7 @@ const TOTAL_STEPS = 5;
 
 export function ProfileStatusCard({ profile }: Props) {
   const { status } = profile;
+  const approvalWasRevoked = status === "DRAFT" && !!profile.rejection_reason;
 
   // Chỉ fetch khu vực khi hồ sơ chưa ACTIVE
   const { data: workingAreas } = useGetWorkingAreasQuery(undefined, {
@@ -157,17 +158,19 @@ export function ProfileStatusCard({ profile }: Props) {
       </View>
 
       <Text className="text-[#111827] font-bold text-base mb-1">
-        {config.title}
+        {approvalWasRevoked ? "Phê duyệt hồ sơ đã được thu hồi" : config.title}
       </Text>
 
       <Text className="text-[#6B7280] text-sm leading-5 mb-4">
-        {config.description}
+        {approvalWasRevoked
+          ? "Vui lòng cập nhật hồ sơ nếu cần và gửi lại để quản trị viên xét duyệt."
+          : config.description}
       </Text>
 
-      {status === "REJECTED" && !!profile.rejection_reason && (
+      {(status === "REJECTED" || approvalWasRevoked) && !!profile.rejection_reason && (
         <View className="bg-[#FEF2F2] rounded-xl p-3 mb-4">
           <Text className="text-[#DC2626] text-xs font-semibold mb-1">
-            Lý do từ chối
+            {approvalWasRevoked ? "Lý do thu hồi phê duyệt" : "Lý do từ chối"}
           </Text>
 
           <Text className="text-[#DC2626] text-sm">
@@ -218,7 +221,7 @@ export function ProfileStatusCard({ profile }: Props) {
           onPress={handlePressCta}
         >
           <Text className="text-white font-semibold text-[15px]">
-            {config.ctaLabel}
+            {approvalWasRevoked ? "Cập nhật và gửi lại" : config.ctaLabel}
           </Text>
         </TouchableOpacity>
       )}

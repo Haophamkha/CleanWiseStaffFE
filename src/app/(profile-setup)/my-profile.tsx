@@ -128,10 +128,10 @@ export default function MyProfileScreen() {
             />
           </View>
 
-          {profile.status === "REJECTED" && !!profile.rejection_reason && (
+          {(profile.status === "REJECTED" || profile.status === "DRAFT") && !!profile.rejection_reason && (
             <View className="mt-3 bg-[#FEF2F2] rounded-xl p-3">
               <Text className="text-[#DC2626] text-xs font-semibold mb-1">
-                Lý do từ chối
+                {profile.status === "DRAFT" ? "Lý do thu hồi phê duyệt" : "Lý do từ chối"}
               </Text>
               <Text className="text-[#DC2626] text-sm mb-2">
                 {profile.rejection_reason}
@@ -328,7 +328,9 @@ export default function MyProfileScreen() {
             onPress={() => router.push(getUpdateRoute())}
           >
             <Text className="text-white font-semibold text-[15px]">
-              Cập nhật hồ sơ
+              {profile.status === "DRAFT" && profile.rejection_reason
+                ? "Cập nhật và gửi lại"
+                : "Cập nhật hồ sơ"}
             </Text>
           </TouchableOpacity>
         )}
