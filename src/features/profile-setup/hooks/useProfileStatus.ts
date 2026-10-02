@@ -76,7 +76,17 @@ export function useProfileStatus(profile: WorkerProfileResponse) {
     skip: status === "ACTIVE",
   });
 
-  const config = STATUS_CONFIG[status];
+  const approvalWasRevoked = status === "DRAFT" && !!profile.rejection_reason;
+  const config: StatusConfig = approvalWasRevoked
+    ? {
+        ...STATUS_CONFIG.DRAFT,
+        title: "Phê duyệt hồ sơ đã được thu hồi",
+        description:
+          "Vui lòng cập nhật hồ sơ nếu cần và gửi lại để quản trị viên xét duyệt.",
+        badge: "Đã thu hồi phê duyệt",
+        ctaLabel: "Cập nhật và gửi lại",
+      }
+    : STATUS_CONFIG[status];
 
   const stepsDone = [
     // Step 1: Ảnh chân dung
@@ -119,6 +129,7 @@ export function useProfileStatus(profile: WorkerProfileResponse) {
 
   return {
     status,
+    approvalWasRevoked,
     isActive: status === "ACTIVE",
     config,
     stepsDone,

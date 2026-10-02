@@ -75,7 +75,11 @@ export function useChatInbox() {
   useChatSocket(
     !!user,
     (event) => {
-      if (event.type === "message.created" || event.type === "messages.read") {
+      if (
+        event.type === "message.created" ||
+        event.type === "messages.read" ||
+        event.type === "conversation.updated"
+      ) {
         setPage(1);
         refetch();
       }

@@ -39,6 +39,7 @@ const TONE = {
 export function ProfileStatusCard({ profile }: Props) {
   const {
     status,
+    approvalWasRevoked,
     isActive,
     config,
     stepsDone,
@@ -99,14 +100,15 @@ export function ProfileStatusCard({ profile }: Props) {
           {config.description}
         </Text>
 
-        {status === "REJECTED" && !!profile.rejection_reason && (
+        {(status === "REJECTED" || approvalWasRevoked) &&
+          !!profile.rejection_reason && (
           <View className="flex-row bg-danger-light rounded-2xl mt-4 overflow-hidden">
             <View style={{ width: 4, backgroundColor: COLORS.danger }} />
             <View className="flex-1 p-3.5">
               <View className="flex-row items-center mb-1">
                 <Feather name="alert-circle" size={14} color={COLORS.danger} />
                 <Text className="text-danger text-xs ml-1.5" style={TYPE.label}>
-                  Lý do từ chối
+                  {approvalWasRevoked ? "Lý do thu hồi phê duyệt" : "Lý do từ chối"}
                 </Text>
               </View>
               <Text className="text-danger text-sm leading-5">
@@ -114,7 +116,7 @@ export function ProfileStatusCard({ profile }: Props) {
               </Text>
             </View>
           </View>
-        )}
+          )}
 
         {!isPending && (
           <View className="mt-5">

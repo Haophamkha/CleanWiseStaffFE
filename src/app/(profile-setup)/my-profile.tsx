@@ -70,7 +70,7 @@ export default function MyProfileScreen() {
         {v.canUpdate && (
           <View className="mt-6">
             <PrimaryButton
-              label="Cập nhật hồ sơ"
+              label={v.updateLabel}
               variant="primary"
               icon="edit-3"
               onPress={p.handleUpdate}

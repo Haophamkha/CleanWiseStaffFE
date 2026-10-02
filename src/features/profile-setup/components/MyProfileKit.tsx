@@ -97,7 +97,7 @@ export function ProfileStatusPanel({
       {rejection && (
         <View className="mt-4 bg-danger-light rounded-2xl p-3.5">
           <Text className="text-danger text-xs mb-1" style={TYPE.label}>
-            Lý do từ chối
+            {rejection.label}
           </Text>
           <Text className="text-danger text-sm leading-5">
             {rejection.reason}

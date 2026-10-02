@@ -71,6 +71,8 @@ function getUpdateRoute(profile: WorkerProfileResponse) {
 }
 
 function buildView(profile: WorkerProfileResponse) {
+  const approvalWasRevoked =
+    profile.status === "DRAFT" && !!profile.rejection_reason;
   const isFieldRejected = (field: string) =>
     profile.status === "REJECTED" && field in (profile.rejected_fields ?? {});
 
@@ -90,16 +92,23 @@ function buildView(profile: WorkerProfileResponse) {
     };
   };
 
-  const statusInfo: ProfileStatusInfo = STATUS_INFO[profile.status] ?? {
+  const baseStatusInfo: ProfileStatusInfo = STATUS_INFO[profile.status] ?? {
     label: profile.status,
     color: COLORS.inkSoft,
     bg: COLORS.accentLight,
     text: COLORS.inkSoft,
   };
+  const statusInfo = approvalWasRevoked
+    ? { ...baseStatusInfo, label: "Đã thu hồi phê duyệt" }
+    : baseStatusInfo;
 
   const rejection =
-    profile.status === "REJECTED" && !!profile.rejection_reason
+    (profile.status === "REJECTED" || approvalWasRevoked) &&
+    !!profile.rejection_reason
       ? {
+          label: approvalWasRevoked
+            ? "Lý do thu hồi phê duyệt"
+            : "Lý do từ chối",
           reason: profile.rejection_reason,
           fields: Object.entries(profile.rejected_fields ?? {}).map(
             ([key, note]) => ({
@@ -174,6 +183,7 @@ function buildView(profile: WorkerProfileResponse) {
     certificate: buildImage(profile.certificate_file, "certificate_file"),
     approvalRows,
     canUpdate: profile.status === "DRAFT" || profile.status === "REJECTED",
+    updateLabel: approvalWasRevoked ? "Cập nhật và gửi lại" : "Cập nhật hồ sơ",
   };
 }
 

@@ -20,7 +20,11 @@ export function useTabsRealtime() {
   useChatSocket(
     !!user,
     (event) => {
-      if (event.type === "message.created" || event.type === "messages.read") {
+      if (
+        event.type === "message.created" ||
+        event.type === "messages.read" ||
+        event.type === "conversation.updated"
+      ) {
         refetch();
       } else if (event.type === "notification.unread") {
         if (typeof event.unread_count === "number") {

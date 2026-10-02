@@ -129,9 +129,19 @@ export function ActiveProfileGate({
     return <>{children}</>;
   }
 
-  const baseNotice = NOTICES[profile.status] ?? FALLBACK_NOTICE;
+  const approvalWasRevoked =
+    profile.status === "DRAFT" && !!profile.rejection_reason;
+  const baseNotice: Notice = approvalWasRevoked
+    ? {
+        ...NOTICES.DRAFT,
+        title: "Phê duyệt hồ sơ đã được thu hồi",
+        description:
+          "Vui lòng kiểm tra hồ sơ, cập nhật nếu cần và gửi lại để quản trị viên xét duyệt.",
+        actionLabel: "Cập nhật và gửi lại",
+      }
+    : (NOTICES[profile.status] ?? FALLBACK_NOTICE);
   const override =
-    profile.status === "DRAFT"
+    profile.status === "DRAFT" && !approvalWasRevoked
       ? copy?.draft
       : profile.status === "PENDING"
         ? copy?.pending
@@ -140,10 +150,9 @@ export function ActiveProfileGate({
     ? { ...baseNotice, description: override }
     : baseNotice;
 
-  // rejection_reason có trong response của BE; ép any để không phụ thuộc type
   const reason =
-    profile.status === "REJECTED"
-      ? ((profile as any).rejection_reason as string | null | undefined)
+    profile.status === "REJECTED" || approvalWasRevoked
+      ? profile.rejection_reason
       : null;
 
   const handleAction = () => {
@@ -181,7 +190,9 @@ export function ActiveProfileGate({
 
       {!!reason && (
         <View className="mt-4 bg-white border border-[#FECACA] rounded-2xl px-4 py-3 self-stretch">
-          <Text className="text-[#9CA3AF] text-xs mb-1">Lý do từ chối</Text>
+          <Text className="text-[#9CA3AF] text-xs mb-1">
+            {approvalWasRevoked ? "Lý do thu hồi phê duyệt" : "Lý do từ chối"}
+          </Text>
           <Text className="text-[#DC2626] text-sm">{reason}</Text>
         </View>
       )}
