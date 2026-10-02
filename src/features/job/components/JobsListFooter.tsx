@@ -1,0 +1,44 @@
+import { COLORS } from "@/constants/theme";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+
+export function JobsListFooter({
+  isLoadingMore,
+  isError,
+  hasNext,
+  hasItems,
+  onRetry,
+}: {
+  isLoadingMore: boolean;
+  isError: boolean;
+  hasNext: boolean;
+  hasItems: boolean;
+  onRetry: () => void;
+}) {
+  if (isLoadingMore) {
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="small" color={COLORS.primary} />
+      </View>
+    );
+  }
+  if (isError && hasItems) {
+    return (
+      <Pressable
+        onPress={onRetry}
+        className="py-4 items-center"
+        style={{ minHeight: 44 }}
+      >
+        <Text className="text-ink-soft text-sm">Không tải thêm được.</Text>
+        <Text className="text-primary text-sm font-bold mt-0.5">Thử lại</Text>
+      </Pressable>
+    );
+  }
+  if (!hasNext && hasItems) {
+    return (
+      <Text className="text-ink-muted text-xs text-center py-4">
+        Đã hiển thị tất cả
+      </Text>
+    );
+  }
+  return null;
+}

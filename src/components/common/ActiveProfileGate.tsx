@@ -1,5 +1,8 @@
-import { useGetWorkerProfileQuery } from "@/services/authApi";
-import { getRejectedSteps, stepRoute } from "@/utils/rejectionFlow";
+import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
+import {
+  getRejectedSteps,
+  stepRoute,
+} from "@/features/profile-setup/utils/rejectionFlow";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import type { ComponentProps, ReactNode } from "react";
@@ -74,7 +77,14 @@ const FALLBACK_NOTICE: Notice = {
  * khi ACTIVE nên các query bên trong (jobs, schedules...) cũng không chạy
  * khi hồ sơ chưa được duyệt.
  */
-export function ActiveProfileGate({ children }: { children: ReactNode }) {
+export function ActiveProfileGate({
+  children,
+  copy,
+}: {
+  children: ReactNode;
+  /** Ghi đè mô tả theo từng trang (mặc định dùng chữ về nhận việc / lịch làm). */
+  copy?: { draft?: string; pending?: string };
+}) {
   const insets = useSafeAreaInsets();
   const {
     data: profile,
@@ -121,7 +131,7 @@ export function ActiveProfileGate({ children }: { children: ReactNode }) {
 
   const approvalWasRevoked =
     profile.status === "DRAFT" && !!profile.rejection_reason;
-  const notice = approvalWasRevoked
+  const baseNotice: Notice = approvalWasRevoked
     ? {
         ...NOTICES.DRAFT,
         title: "Phê duyệt hồ sơ đã được thu hồi",
@@ -130,6 +140,16 @@ export function ActiveProfileGate({ children }: { children: ReactNode }) {
         actionLabel: "Cập nhật và gửi lại",
       }
     : (NOTICES[profile.status] ?? FALLBACK_NOTICE);
+  const override =
+    profile.status === "DRAFT" && !approvalWasRevoked
+      ? copy?.draft
+      : profile.status === "PENDING"
+        ? copy?.pending
+        : undefined;
+  const notice = override
+    ? { ...baseNotice, description: override }
+    : baseNotice;
+
   const reason =
     profile.status === "REJECTED" || approvalWasRevoked
       ? profile.rejection_reason

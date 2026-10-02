@@ -1,182 +1,117 @@
-import PaymentMethodCard from "@/components/payment/PaymentMethodCard";
-import {
-  useDeletePaymentMethodMutation,
-  useGetPaymentMethodsQuery,
-  useSetDefaultPaymentMethodMutation,
-} from "@/services/paymentMethodApi";
-import type { PaymentMethod } from "@/types/PaymentMethod";
-import { showErrorToast, showSuccessToast } from "@/utils/toast";
-import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { COLORS, TYPE } from "@/constants/theme";
+import PaymentMethodCard from "@/features/payment/components/PaymentMethodCard";
+import { usePaymentMethods } from "@/features/payment/hooks/usePaymentMethods";
+import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function WorkerPaymentMethodsScreen() {
   const insets = useSafeAreaInsets();
-  const {
-    data: methods = [],
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useGetPaymentMethodsQuery();
-  const [setDefault, { isLoading: isSettingDefault }] =
-    useSetDefaultPaymentMethodMutation();
-  const [deleteMethod, { isLoading: isDeleting }] =
-    useDeletePaymentMethodMutation();
-  const isMutating = isSettingDefault || isDeleting;
-
-  const handleSetDefault = async (method: PaymentMethod) => {
-    try {
-      await setDefault(method.id).unwrap();
-      showSuccessToast("Đã đặt làm tài khoản mặc định");
-    } catch {
-      showErrorToast("Không thể cập nhật", "Vui lòng thử lại sau.");
-    }
-  };
-
-  const handleDelete = (method: PaymentMethod) => {
-    Alert.alert(
-      "Xóa tài khoản",
-      `Bạn có chắc muốn xóa ${method.bank_name} ${method.account_number_masked}?`,
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Xóa",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteMethod(method.id).unwrap();
-              showSuccessToast("Đã xóa tài khoản ngân hàng");
-            } catch {
-              showErrorToast("Không thể xóa", "Vui lòng thử lại sau.");
-            }
-          },
-        },
-      ],
-    );
-  };
+  const p = usePaymentMethods();
+  const isEmpty = p.methods.length === 0;
 
   return (
-    // Bỏ edge "bottom": phần đáy do footer tự xử lý bằng insets.bottom
-    <SafeAreaView
-      className="flex-1 bg-[#F8F9FC]"
-      edges={["top", "left", "right"]}
-    >
-      <View className="flex-row items-center px-5 py-4 bg-white border-b border-[#F3F4F6]">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <Feather name="arrow-left" size={22} color="#111827" />
-        </TouchableOpacity>
-        <View className="flex-1">
-          <Text className="text-[#111827] text-lg font-bold">
-            Tài khoản ngân hàng
-          </Text>
-          <Text className="text-[#6B7280] text-xs mt-0.5">
-            Quản lý tài khoản nhận thu nhập
-          </Text>
-        </View>
-      </View>
+    <View className="flex-1 bg-canvas">
+      <SimpleHeader
+        title="Tài khoản ngân hàng"
+        subtitle="Quản lý tài khoản nhận thu nhập"
+      />
 
-      {isLoading ? (
+      {p.isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#2563EB" size="large" />
-          <Text className="text-[#6B7280] mt-3">Đang tải tài khoản...</Text>
+          <ActivityIndicator color={COLORS.primary} size="large" />
+          <Text className="text-ink-soft mt-3">Đang tải tài khoản...</Text>
         </View>
-      ) : isError ? (
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center">
-            <Feather name="alert-circle" size={30} color="#DC2626" />
-          </View>
-          <Text className="text-[#111827] font-bold text-base mt-4">
-            Không tải được dữ liệu
-          </Text>
-          <Text className="text-[#6B7280] text-center mt-2">
-            Kiểm tra kết nối và thử lại.
-          </Text>
-          <TouchableOpacity
-            className="bg-[#2563EB] rounded-xl px-5 py-3 mt-5"
-            onPress={() => refetch()}
-          >
-            <Text className="text-white font-semibold">Thử lại</Text>
-          </TouchableOpacity>
+      ) : p.isError ? (
+        <View className="flex-1 justify-center px-5">
+          <EmptyState
+            icon="alert-circle"
+            title="Không tải được dữ liệu"
+            message="Kiểm tra kết nối và thử lại."
+            actionLabel="Thử lại"
+            onAction={() => p.refetch()}
+          />
         </View>
       ) : (
         <FlatList
           style={{ flex: 1 }}
-          data={methods}
+          data={p.methods}
           keyExtractor={(item) => String(item.id)}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingTop: 22,
+            paddingTop: 8,
             paddingBottom: 24,
-            flexGrow: methods.length === 0 ? 1 : undefined,
+            flexGrow: isEmpty ? 1 : undefined,
+            justifyContent: isEmpty ? "center" : undefined,
           }}
           refreshControl={
             <RefreshControl
-              refreshing={isFetching && !isLoading}
-              onRefresh={refetch}
-              tintColor="#2563EB"
+              refreshing={p.isRefreshing}
+              onRefresh={p.refetch}
+              tintColor={COLORS.primary}
             />
           }
           ListHeaderComponent={
-            methods.length ? (
-              <Text className="text-[#6B7280] font-semibold text-xs uppercase tracking-wide mb-3 ml-1">
-                Tài khoản đã lưu
+            isEmpty ? null : (
+              <Text
+                className="text-ink-muted text-xs mb-2.5 ml-1"
+                style={[TYPE.label, { letterSpacing: 1 }]}
+              >
+                TÀI KHOẢN ĐÃ LƯU
               </Text>
-            ) : null
+            )
           }
           renderItem={({ item }) => (
             <PaymentMethodCard
               method={item}
-              disabled={isMutating}
-              onSetDefault={handleSetDefault}
-              onDelete={handleDelete}
+              disabled={p.isMutating}
+              onSetDefault={p.handleSetDefault}
+              onDelete={p.requestDelete}
             />
           )}
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center px-8 pb-20">
-              <View className="w-20 h-20 rounded-full bg-[#EEF2FF] items-center justify-center">
-                <Feather name="credit-card" size={34} color="#2563EB" />
-              </View>
-              <Text className="text-[#111827] font-bold text-lg mt-5">
-                Chưa có tài khoản nào
-              </Text>
-              <Text className="text-[#6B7280] text-center mt-2 leading-5">
-                Thêm tài khoản ngân hàng để chuẩn bị nhận thu nhập từ CleanWise.
-              </Text>
-            </View>
+            <EmptyState
+              icon="credit-card"
+              title="Chưa có tài khoản nào"
+              message="Thêm tài khoản ngân hàng để chuẩn bị nhận thu nhập từ CleanWise."
+            />
           }
         />
       )}
 
-      {!isError && (
+      {!p.isError && (
         <View
-          className="px-5 pt-3 bg-white border-t border-[#F3F4F6]"
+          className="px-5 pt-3"
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
         >
-          <TouchableOpacity
-            className="flex-row bg-[#2563EB] rounded-2xl py-4 items-center justify-center"
-            onPress={() => router.push("/payment-methods/add")}
-            activeOpacity={0.8}
-          >
-            <Feather name="plus" size={18} color="#fff" />
-            <Text className="text-white font-bold text-base ml-2">
-              Thêm phương thức
-            </Text>
-          </TouchableOpacity>
+          <PrimaryButton
+            label="Thêm phương thức"
+            variant="primary"
+            icon="plus"
+            onPress={p.goAdd}
+          />
         </View>
       )}
-    </SafeAreaView>
+
+      <ConfirmModal
+        visible={p.deleteVisible}
+        title="Xóa tài khoản?"
+        message={p.deleteMessage}
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={p.confirmDelete}
+        onCancel={p.cancelDelete}
+      />
+    </View>
   );
 }
