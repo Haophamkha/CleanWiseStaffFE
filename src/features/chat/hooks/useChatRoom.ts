@@ -198,6 +198,10 @@ export function useChatRoom(id: number) {
   const { sendTyping } = useChatSocket(
     !!user && Number.isFinite(id),
     (event) => {
+      if (event.type === "conversation.updated" && event.conversation_id === id) {
+        refetch();
+        return;
+      }
       if (
         event.type === "message.created" &&
         event.message?.conversation_id === id
