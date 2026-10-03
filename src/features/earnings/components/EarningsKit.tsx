@@ -3,10 +3,11 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import type { EarningPeriod } from "@/features/earnings/api/earningsApi";
 import type {
-    EarningsData,
-    HistoryRowView,
-    PeriodTab,
-    SeriesPoint,
+  EarningsData,
+  HistoryRowView,
+  PeriodTab,
+  SeriesPoint,
+  WalletTxRowView,
 } from "@/features/earnings/hooks/useEarnings";
 import { Feather } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -18,7 +19,7 @@ export function WalletCard({
   onWithdraw,
 }: {
   wallet: EarningsData["wallet"];
-  onWithdraw: () => void;
+  onWithdraw?: () => void; // không truyền = ẩn nút "Rút tiền"
 }) {
   return (
     // View ngoài giữ bóng, View trong cắt vòng tròn trang trí
@@ -54,31 +55,60 @@ export function WalletCard({
           {wallet.balanceText}
         </Text>
 
-        <PrimaryButton
-          label="Rút tiền"
-          variant="soft"
-          color={COLORS.surface}
-          icon="arrow-down-circle"
-          onPress={onWithdraw}
-          style={{ marginTop: 16 }}
-        />
+        {onWithdraw && (
+          <PrimaryButton
+            label="Rút tiền"
+            variant="soft"
+            color={COLORS.surface}
+            icon="arrow-down-circle"
+            onPress={onWithdraw}
+            style={{ marginTop: 16 }}
+          />
+        )}
 
         <View
-          className="flex-row items-center justify-between mt-4 pt-3"
+          className="mt-4 pt-3"
           style={{ borderTopWidth: 1, borderTopColor: ON_DARK.border }}
         >
-          <Text
-            className="text-xs flex-1 pr-3"
-            style={{ color: ON_DARK.textSoft }}
-          >
-            Hoa hồng tiền mặt chưa nộp
-          </Text>
-          <Text
-            className="text-sm"
-            style={[TYPE.label, { color: ON_DARK.text }]}
-          >
-            {wallet.commissionOwedText}
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text
+              className="text-xs flex-1 pr-3"
+              style={{ color: ON_DARK.textSoft }}
+            >
+              Hoa hồng tiền mặt chưa nộp
+            </Text>
+            <Text
+              className="text-sm"
+              style={[TYPE.label, { color: ON_DARK.text }]}
+            >
+              {wallet.commissionOwedText}
+            </Text>
+          </View>
+
+          {wallet.hasPending && (
+            <View className="mt-3">
+              <View className="flex-row items-center justify-between">
+                <Text
+                  className="text-xs flex-1 pr-3"
+                  style={{ color: ON_DARK.textSoft }}
+                >
+                  Đang chờ giải ngân
+                </Text>
+                <Text
+                  className="text-sm"
+                  style={[TYPE.label, { color: ON_DARK.text }]}
+                >
+                  {wallet.pendingReleaseText}
+                </Text>
+              </View>
+              <Text
+                className="text-[11px] mt-1"
+                style={{ color: ON_DARK.textSoft }}
+              >
+                Tối đa 24 giờ sau khi hoàn thành
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </View>
@@ -220,8 +250,8 @@ export function SettlementCard({
         Đối soát với CleanWise
       </Text>
       <StatRow
-        label="Đơn chuyển khoản (app giữ tiền, chuyển bạn)"
-        value={settlement.bankText}
+        label="Đơn online (app giữ tiền, vào ví sau tối đa 24 giờ)"
+        value={settlement.onlineText}
         valueColor={COLORS.success}
       />
       <StatRow
@@ -229,15 +259,6 @@ export function SettlementCard({
         value={settlement.cashText}
         valueColor={COLORS.danger}
       />
-      <View className="mt-2 pt-3 border-t border-line">
-        <Text className="text-ink-soft text-xs">Kết quả kỳ này</Text>
-        <Text
-          className="text-base font-extrabold mt-1"
-          style={{ color: settlement.resultColor }}
-        >
-          {settlement.resultText}
-        </Text>
-      </View>
     </View>
   );
 }
@@ -271,6 +292,11 @@ function HistoryRow({ row, last }: { row: HistoryRowView; last: boolean }) {
           {row.metaText}
         </Text>
         <Text className="text-ink-soft text-xs mt-0.5">{row.methodText}</Text>
+        {row.pending && (
+          <Text className="text-warning-dark text-xs mt-0.5" style={TYPE.label}>
+            Đang chờ giải ngân
+          </Text>
+        )}
       </View>
 
       <Text
@@ -312,6 +338,91 @@ export function HistorySection({
         >
           {rows.map((row, i) => (
             <HistoryRow key={row.id} row={row} last={i === rows.length - 1} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/* ───────── Giao dịch ví ───────── */
+
+function WalletTxRow({ row, last }: { row: WalletTxRowView; last: boolean }) {
+  return (
+    <View
+      className={`flex-row items-center py-3.5 ${
+        last ? "" : "border-b border-line"
+      }`}
+    >
+      <View
+        className="w-10 h-10 rounded-xl items-center justify-center"
+        style={{
+          backgroundColor: row.isCredit
+            ? COLORS.successLight
+            : COLORS.dangerLight,
+        }}
+      >
+        <Feather
+          name={row.isCredit ? "arrow-down-left" : "arrow-up-right"}
+          size={17}
+          color={row.isCredit ? COLORS.success : COLORS.danger}
+        />
+      </View>
+
+      <View className="flex-1 ml-3">
+        <Text className="text-ink text-sm" style={TYPE.label} numberOfLines={1}>
+          {row.title}
+        </Text>
+        {!!row.subText && (
+          <Text className="text-ink-soft text-xs mt-0.5" numberOfLines={2}>
+            {row.subText}
+          </Text>
+        )}
+        <Text className="text-ink-muted text-xs mt-0.5">
+          {row.timeText}
+          {row.statusText ? ` · ${row.statusText}` : ""}
+        </Text>
+      </View>
+
+      <Text
+        className="text-sm ml-2"
+        style={[TYPE.label, { color: row.amountColor }]}
+      >
+        {row.amountText}
+      </Text>
+    </View>
+  );
+}
+
+export function WalletTransactionsSection({
+  loading,
+  rows,
+}: {
+  loading: boolean;
+  rows: WalletTxRowView[];
+}) {
+  return (
+    <View className="mt-6">
+      <Text
+        className="text-ink-muted text-xs mb-2.5 ml-1"
+        style={[TYPE.label, { letterSpacing: 1 }]}
+      >
+        GIAO DỊCH VÍ GẦN ĐÂY
+      </Text>
+
+      {loading ? (
+        <View className="py-8 items-center">
+          <ActivityIndicator color={COLORS.primary} />
+        </View>
+      ) : rows.length === 0 ? (
+        <EmptyState icon="inbox" title="Chưa có giao dịch ví nào" />
+      ) : (
+        <View
+          className="bg-surface border border-line px-4"
+          style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
+        >
+          {rows.map((row, i) => (
+            <WalletTxRow key={row.id} row={row} last={i === rows.length - 1} />
           ))}
         </View>
       )}

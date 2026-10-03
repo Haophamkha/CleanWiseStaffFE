@@ -1,8 +1,8 @@
 import {
-    useClearAllNotificationsMutation,
-    useGetNotificationsQuery,
-    useMarkAllNotificationsReadMutation,
-    useMarkNotificationReadMutation,
+  useClearAllNotificationsMutation,
+  useGetNotificationsQuery,
+  useMarkAllNotificationsReadMutation,
+  useMarkNotificationReadMutation,
 } from "@/features/notification/api/notificationApi";
 import type { AppNotification } from "@/features/notification/types/Notification";
 import { useAppSelector } from "@/store/hooks";
@@ -82,6 +82,21 @@ export function useNotifications() {
       setItems((prev) =>
         prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)),
       );
+    }
+    if (n.related_schedule && n.related_booking) {
+      router.push({
+        pathname: "/jobs/[id]",
+        params: {
+          id: String(n.related_schedule),
+          source: "mine",
+          bookingId: String(n.related_booking),
+          view: "session",
+        },
+      });
+    } else if (n.type === "SYSTEM") {
+      router.push("/(tabs)/profile" as any);
+    } else if (n.related_booking) {
+      router.push({ pathname: "/(tabs)/jobs", params: { tab: "mine" } });
     }
     if (n.type === "SYSTEM") {
       router.push("/(tabs)/profile" as any);
