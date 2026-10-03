@@ -1,4 +1,7 @@
-import { useMarkNotificationReadMutation, useRegisterPushTokenMutation } from "@/features/notification/api/notificationApi";
+import {
+  useMarkNotificationReadMutation,
+  useRegisterPushTokenMutation,
+} from "@/features/notification/api/notificationApi";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +30,19 @@ export function usePushNotifications(enabled: boolean) {
       }
       const data = response?.notification?.request?.content?.data;
       if (data?.notification_id) markRead(Number(data.notification_id));
-      router.push("/notifications" as any);
+      if (data?.schedule_id && data?.booking_id) {
+        router.push({
+          pathname: "/jobs/[id]",
+          params: {
+            id: String(data.schedule_id),
+            source: "mine",
+            bookingId: String(data.booking_id),
+            view: "session",
+          },
+        } as any);
+      } else {
+        router.push("/notifications" as any);
+      }
     };
 
     (async () => {

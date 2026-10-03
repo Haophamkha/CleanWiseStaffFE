@@ -5,27 +5,22 @@ export type EarningPeriod = "week" | "month";
 export type EarningPaymentMethod = "CASH" | "ONLINE";
 
 export type EarningsSummary = {
-  /** Số dư ví: tiền đơn chuyển khoản app đang giữ cho nhân viên */
   wallet_balance: string;
-  /** Tổng hoa hồng đơn tiền mặt nhân viên chưa nộp lại app (mọi kỳ) */
   commission_owed: string;
+  /** Online đang giữ, chưa vào ví (tối đa 24 giờ) */
+  pending_release: string;
   period: {
     type: EarningPeriod;
-    start: string; // YYYY-MM-DD
-    end: string; // YYYY-MM-DD
+    start: string;
+    end: string;
     completed_jobs: number;
-    /** Tổng giá trị các đơn đã hoàn thành */
     gross_amount: string;
-    /** Thu nhập của nhân viên sau khi trừ hoa hồng */
     income: string;
-    /** Đơn chuyển khoản: phần app phải chuyển cho nhân viên */
-    bank_earned: string;
-    /** Đơn tiền mặt: hoa hồng nhân viên phải nộp lại app */
+    /** Đơn online: phần nhân viên nhận (vào ví sau thời gian giữ) */
+    online_earned: string;
+    /** Đơn tiền mặt: hoa hồng đã giữ chỗ / trừ ví */
     cash_commission: string;
-    /** bank_earned - cash_commission (>0: app chuyển NV, <0: NV chuyển app) */
-    net_settlement: string;
   };
-  /** Thu nhập theo ngày (tuần) hoặc theo tuần (tháng) */
   series: { label: string; amount: string }[];
 };
 
@@ -38,6 +33,8 @@ export type EarningItem = {
   gross_amount: string;
   commission_amount: string;
   worker_amount: string;
+  /** null = đang chờ giải ngân (chỉ có ý nghĩa với ONLINE) */
+  wallet_credited_at: string | null;
 };
 
 export type WalletWithdrawResult = {
@@ -51,6 +48,20 @@ export type WalletWithdrawResult = {
   booking_code: string | null;
   note: string | null;
   created_at: string;
+};
+
+export type WalletTransaction = {
+  id: number;
+  type: "PAYMENT" | "REFUND" | "WITHDRAW" | "ADJUSTMENT" | "EARNING";
+  type_display: string;
+  amount: string;
+  balance_after: string;
+  status: string;
+  status_display: string;
+  booking_code: string | null;
+  note: string | null;
+  created_at: string;
+  direction: "CREDIT" | "DEBIT";
 };
 
 const unwrapResponse = (response: any) =>
@@ -78,6 +89,16 @@ export const earningsApi = baseApi.injectEndpoints({
       providesTags: ["Wallet"],
     }),
 
+    getWalletTransactions: builder.query<WalletTransaction[], void>({
+      query: () => ({
+        url: "/api/worker/wallet/transactions/",
+        method: "GET",
+        params: { page_size: 10 },
+      }),
+      transformResponse: (r: any) => unwrapResponse(r)?.results ?? [],
+      providesTags: ["Wallet"],
+    }),
+
     withdrawWallet: builder.mutation<
       WalletWithdrawResult,
       { amount: number; idempotencyKey: string }
@@ -100,5 +121,6 @@ export const earningsApi = baseApi.injectEndpoints({
 export const {
   useGetEarningsSummaryQuery,
   useGetEarningsHistoryQuery,
+  useGetWalletTransactionsQuery,
   useWithdrawWalletMutation,
 } = earningsApi;

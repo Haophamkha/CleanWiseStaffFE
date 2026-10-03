@@ -18,9 +18,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+const WITHDRAW_ENABLED = false;
 export default function EarningsScreen() {
   const insets = useSafeAreaInsets();
+
   const e = useEarnings();
 
   return (
@@ -59,7 +60,10 @@ export default function EarningsScreen() {
             />
           }
         >
-          <WalletCard wallet={e.data.wallet} onWithdraw={e.openWithdraw} />
+          <WalletCard
+            wallet={e.data.wallet}
+            onWithdraw={WITHDRAW_ENABLED ? e.openWithdraw : undefined}
+          />
 
           <PeriodTabs
             tabs={e.periodTabs}
@@ -74,12 +78,14 @@ export default function EarningsScreen() {
         </ScrollView>
       )}
 
-      <WithdrawModal
-        visible={e.showWithdraw}
-        onClose={e.closeWithdraw}
-        walletBalance={e.walletBalance}
-        onSuccess={e.onRefresh}
-      />
+      {WITHDRAW_ENABLED && (
+        <WithdrawModal
+          visible={e.showWithdraw}
+          onClose={e.closeWithdraw}
+          walletBalance={e.walletBalance}
+          onSuccess={e.onRefresh}
+        />
+      )}
     </View>
   );
 }

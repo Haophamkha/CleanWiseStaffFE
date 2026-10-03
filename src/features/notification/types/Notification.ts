@@ -14,6 +14,7 @@ export interface AppNotification {
   related_booking: number | null;
   is_read: boolean;
   read_at: string | null;
+  related_schedule: number | null;
   created_at: string;
 }
 

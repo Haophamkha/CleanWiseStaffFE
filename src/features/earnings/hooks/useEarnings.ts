@@ -1,14 +1,16 @@
 import { COLORS } from "@/constants/theme";
 import {
-    useGetEarningsHistoryQuery,
-    useGetEarningsSummaryQuery,
-    type EarningItem,
-    type EarningPeriod,
+  useGetEarningsHistoryQuery,
+  useGetEarningsSummaryQuery,
+  useGetWalletTransactionsQuery,
+  type EarningItem,
+  type EarningPeriod,
+  type WalletTransaction,
 } from "@/features/earnings/api/earningsApi";
 import {
-    formatDayMonth,
-    formatEarningDateTime,
-    formatVnd,
+  formatDayMonth,
+  formatEarningDateTime,
+  formatVnd,
 } from "@/features/earnings/utils/earningsFormat";
 import { useState } from "react";
 
@@ -19,11 +21,23 @@ export type SeriesPoint = { label: string; amount: string };
 export type HistoryRowView = {
   id: EarningItem["id"];
   isCash: boolean;
+  pending: boolean;
   serviceName: string;
   metaText: string;
   methodText: string;
   amountText: string;
   amountColor: string;
+};
+
+export type WalletTxRowView = {
+  id: number;
+  isCredit: boolean;
+  title: string;
+  subText: string;
+  timeText: string;
+  amountText: string;
+  amountColor: string;
+  statusText: string | null;
 };
 
 const PERIOD_TABS: PeriodTab[] = [
@@ -37,29 +51,23 @@ export function useEarnings() {
 
   const summaryQuery = useGetEarningsSummaryQuery(period);
   const historyQuery = useGetEarningsHistoryQuery(period);
+  const walletTxQuery = useGetWalletTransactionsQuery();
 
   const summary = summaryQuery.data;
   const history = historyQuery.data ?? [];
   const p = summary?.period;
 
   const isRefreshing =
-    (summaryQuery.isFetching || historyQuery.isFetching) &&
+    (summaryQuery.isFetching ||
+      historyQuery.isFetching ||
+      walletTxQuery.isFetching) &&
     !summaryQuery.isLoading;
 
   const onRefresh = () => {
     summaryQuery.refetch();
     historyQuery.refetch();
+    walletTxQuery.refetch();
   };
-
-  const net = Number(p?.net_settlement ?? 0);
-  const settlementText =
-    net > 0
-      ? `App đã chuyển vào ví ${formatVnd(net)}`
-      : net < 0
-        ? `Hệ thống đã tự trừ ví ${formatVnd(Math.abs(net))}`
-        : "Không phát sinh chênh lệch";
-  const settlementColor =
-    net > 0 ? COLORS.success : net < 0 ? COLORS.danger : COLORS.inkSoft;
 
   const data =
     summary && p
@@ -67,6 +75,8 @@ export function useEarnings() {
           wallet: {
             balanceText: formatVnd(summary.wallet_balance),
             commissionOwedText: formatVnd(summary.commission_owed),
+            pendingReleaseText: formatVnd(summary.pending_release),
+            hasPending: Number(summary.pending_release) > 0,
           },
           period: {
             rangeText: `${formatDayMonth(p.start)} - ${formatDayMonth(p.end)}`,
@@ -76,34 +86,57 @@ export function useEarnings() {
             series: summary.series as SeriesPoint[],
           },
           settlement: {
-            bankText: `+${formatVnd(p.bank_earned)}`,
+            onlineText: `+${formatVnd(p.online_earned)}`,
             cashText: `-${formatVnd(p.cash_commission)}`,
-            resultText: settlementText,
-            resultColor: settlementColor,
           },
         }
       : null;
 
-  // Tiền mặt: nhân viên đã cầm tiền, hoa hồng đã được trừ thẳng vào ví (số âm).
-  // Chuyển khoản: app giữ tiền, đã chuyển phần của nhân viên vào ví (số dương).
+  // Tiền mặt: hoa hồng đã trừ thẳng vào ví (số âm).
+  // Online: app giữ tiền, vào ví sau tối đa 24 giờ (wallet_credited_at rỗng = đang chờ).
   const historyRows: HistoryRowView[] = history.map((item) => {
     const isCash = item.payment_method === "CASH";
+    const pending = !isCash && !item.wallet_credited_at;
     return {
       id: item.id,
       isCash,
+      pending,
       serviceName: item.service_name,
       metaText: `${item.booking_code} · ${formatEarningDateTime(item.completed_at)}`,
       methodText: `${
-        isCash
-          ? "Tiền mặt · hoa hồng đã trừ ví"
-          : "Chuyển khoản · app chuyển bạn"
+        isCash ? "Tiền mặt · hoa hồng đã trừ ví" : "Online · app chuyển bạn"
       } · đơn ${formatVnd(item.gross_amount)}`,
       amountText: isCash
         ? `-${formatVnd(item.commission_amount)}`
         : `+${formatVnd(item.worker_amount)}`,
-      amountColor: isCash ? COLORS.danger : COLORS.success,
+      amountColor: isCash
+        ? COLORS.danger
+        : pending
+          ? COLORS.inkSoft
+          : COLORS.success,
     };
   });
+
+  const walletTxRows: WalletTxRowView[] = (walletTxQuery.data ?? []).map(
+    (tx: WalletTransaction) => {
+      const isCredit = tx.direction === "CREDIT";
+      const failed = tx.status === "FAILED";
+      return {
+        id: tx.id,
+        isCredit,
+        title: tx.type_display,
+        subText: tx.note || tx.booking_code || "",
+        timeText: formatEarningDateTime(tx.created_at),
+        amountText: `${isCredit ? "+" : "-"}${formatVnd(tx.amount)}`,
+        amountColor: failed
+          ? COLORS.inkMuted
+          : isCredit
+            ? COLORS.success
+            : COLORS.danger,
+        statusText: tx.status !== "SUCCESS" ? tx.status_display : null,
+      };
+    },
+  );
 
   return {
     period,
@@ -116,6 +149,8 @@ export function useEarnings() {
     data,
     historyLoading: historyQuery.isLoading,
     historyRows,
+    walletTxLoading: walletTxQuery.isLoading,
+    walletTxRows,
     walletBalance: Number(summary?.wallet_balance ?? 0),
     showWithdraw,
     openWithdraw: () => setShowWithdraw(true),
