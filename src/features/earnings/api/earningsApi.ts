@@ -16,9 +16,7 @@ export type EarningsSummary = {
     completed_jobs: number;
     gross_amount: string;
     income: string;
-    /** Đơn online: phần nhân viên nhận (vào ví sau thời gian giữ) */
     online_earned: string;
-    /** Đơn tiền mặt: hoa hồng đã giữ chỗ / trừ ví */
     cash_commission: string;
   };
   series: { label: string; amount: string }[];
@@ -33,26 +31,41 @@ export type EarningItem = {
   gross_amount: string;
   commission_amount: string;
   worker_amount: string;
-  /** null = đang chờ giải ngân (chỉ có ý nghĩa với ONLINE) */
   wallet_credited_at: string | null;
 };
 
-export type WalletWithdrawResult = {
+export type WithdrawStatus = "PROCESSING" | "SUCCESS" | "FAILED";
+
+export type WithdrawRecord = {
   id: number;
-  type: string;
-  type_display: string;
   amount: string;
-  balance_after: string;
-  status: string;
+  status: WithdrawStatus;
   status_display: string;
-  booking_code: string | null;
-  note: string | null;
+  bank_name: string;
+  account_holder_name: string;
+  account_number_masked: string;
+  failure_reason: string;
+  wallet_transaction_id: number | null;
+  created_at: string;
+  completed_at: string | null;
+};
+
+export type WalletTopup = {
+  id: number;
+  amount: string;
+  status: string; // PENDING | SUCCESS | EXPIRED | ...
+  status_display: string;
+  checkout_url: string | null;
+  qr_code: string | null;
+  payment_link_id: string | null;
+  link_expires_at: string | null;
+  paid_at: string | null;
   created_at: string;
 };
 
 export type WalletTransaction = {
   id: number;
-  type: "PAYMENT" | "REFUND" | "WITHDRAW" | "ADJUSTMENT" | "EARNING";
+  type: "PAYMENT" | "REFUND" | "WITHDRAW" | "TOPUP" | "ADJUSTMENT" | "EARNING";
   type_display: string;
   amount: string;
   balance_after: string;
@@ -66,6 +79,8 @@ export type WalletTransaction = {
 
 const unwrapResponse = (response: any) =>
   response?.data?.data ?? response?.data ?? response;
+
+const MONEY_TIMEOUT_MS = 30000; // gọi payOS có thể chậm hơn 10s mặc định
 
 export const earningsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -99,20 +114,65 @@ export const earningsApi = baseApi.injectEndpoints({
       providesTags: ["Wallet"],
     }),
 
-    withdrawWallet: builder.mutation<
-      WalletWithdrawResult,
-      { amount: number; idempotencyKey: string }
+    requestWithdraw: builder.mutation<
+      WithdrawRecord,
+      {
+        amount: number;
+        paymentMethodId?: number | null;
+        idempotencyKey: string;
+      }
     >({
-      query: ({ amount, idempotencyKey }) => ({
+      query: ({ amount, paymentMethodId, idempotencyKey }) => ({
         url: "/api/worker/wallet/withdraw/",
         method: "POST",
-        data: { amount },
-        headers: {
-          "Idempotency-Key": idempotencyKey,
+        data: {
+          amount,
+          ...(paymentMethodId ? { payment_method_id: paymentMethodId } : {}),
         },
+        headers: { "Idempotency-Key": idempotencyKey },
+        timeout: MONEY_TIMEOUT_MS,
       }),
       transformResponse: unwrapResponse,
       invalidatesTags: ["Wallet"],
+    }),
+
+    getWithdraw: builder.query<WithdrawRecord, number>({
+      query: (id) => ({
+        url: `/api/worker/wallet/withdraw/${id}/`,
+        method: "GET",
+      }),
+      transformResponse: unwrapResponse,
+    }),
+
+    createTopup: builder.mutation<
+      WalletTopup,
+      { amount: number; idempotencyKey: string }
+    >({
+      query: ({ amount, idempotencyKey }) => ({
+        url: "/api/worker/wallet/topup/",
+        method: "POST",
+        data: { amount },
+        headers: { "Idempotency-Key": idempotencyKey },
+        timeout: MONEY_TIMEOUT_MS,
+      }),
+      transformResponse: unwrapResponse,
+    }),
+
+    getTopup: builder.query<WalletTopup, number>({
+      query: (id) => ({
+        url: `/api/worker/wallet/topup/${id}/`,
+        method: "GET",
+      }),
+      transformResponse: unwrapResponse,
+    }),
+
+    // Chỉ dùng khi dev (BE mock). Production route này không tồn tại.
+    mockConfirmTopup: builder.mutation<WalletTopup, number>({
+      query: (id) => ({
+        url: `/api/worker/wallet/topup/${id}/mock-confirm/`,
+        method: "POST",
+      }),
+      transformResponse: unwrapResponse,
     }),
   }),
   overrideExisting: true,
@@ -122,5 +182,9 @@ export const {
   useGetEarningsSummaryQuery,
   useGetEarningsHistoryQuery,
   useGetWalletTransactionsQuery,
-  useWithdrawWalletMutation,
+  useRequestWithdrawMutation,
+  useGetWithdrawQuery,
+  useCreateTopupMutation,
+  useGetTopupQuery,
+  useMockConfirmTopupMutation,
 } = earningsApi;

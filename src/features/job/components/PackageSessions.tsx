@@ -426,5 +426,3 @@ export function PackageClaimBar({ actions }: PackageClaimBarProps) {
     </FadeInView>
   );
 }
-
-//

@@ -1,18 +1,16 @@
-import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, OVERLAY, RADIUS, TYPE } from "@/constants/theme";
-import { useWithdraw } from "@/features/earnings/hooks/useWithdraw";
-import { Feather } from "@expo/vector-icons";
+import { COLORS } from "@/constants/theme";
 import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+  AmountField,
+  ErrorBox,
+  QuickAmounts,
+  SheetButton,
+  WalletSheet,
+} from "@/features/earnings/components/WalletSheet";
+import { useWithdraw } from "@/features/earnings/hooks/useWithdraw";
+import { formatVnd } from "@/features/earnings/utils/earningsFormat";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
   visible: boolean;
@@ -27,126 +25,232 @@ export default function WithdrawModal({
   walletBalance,
   onSuccess,
 }: Props) {
-  const insets = useSafeAreaInsets();
   const w = useWithdraw({ walletBalance, onClose, onSuccess });
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={w.handleClose}
-    >
-      <TouchableWithoutFeedback onPress={w.handleClose}>
-        <View
-          className="flex-1 justify-end"
-          style={{ backgroundColor: OVERLAY }}
-        >
-          <TouchableWithoutFeedback>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
+  /* ---------- kết quả ---------- */
+  if (w.submitted) {
+    const processing = w.status === "PROCESSING";
+    const success = w.status === "SUCCESS";
+    return (
+      <WalletSheet visible={visible} onClose={w.handleClose}>
+        <View style={{ alignItems: "center", paddingBottom: 8 }}>
+          {processing ? (
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          ) : (
+            <View
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: success
+                  ? COLORS.successLight
+                  : COLORS.dangerLight,
+              }}
             >
-              <View
-                className="bg-surface px-5 pt-3"
+              <Feather
+                name={success ? "check" : "x"}
+                size={30}
+                color={success ? COLORS.success : COLORS.danger}
+              />
+            </View>
+          )}
+          <Text
+            style={{
+              marginTop: 16,
+              fontSize: 18,
+              fontWeight: "700",
+              color: COLORS.ink,
+            }}
+          >
+            {processing
+              ? "Đang xử lý yêu cầu rút"
+              : success
+                ? "Rút tiền thành công"
+                : "Rút tiền thất bại"}
+          </Text>
+          <Text
+            style={{
+              marginTop: 6,
+              fontSize: 22,
+              fontWeight: "800",
+              color: COLORS.primaryDark,
+            }}
+          >
+            {formatVnd(w.submittedAmount)}
+          </Text>
+          {!!w.record && (
+            <Text
+              style={{ marginTop: 6, fontSize: 13, color: COLORS.inkMuted }}
+            >
+              {w.record.bank_name} {w.record.account_number_masked}
+            </Text>
+          )}
+          <Text
+            style={{
+              marginTop: 12,
+              marginBottom: 20,
+              fontSize: 13,
+              lineHeight: 19,
+              textAlign: "center",
+              color: COLORS.inkSoft,
+            }}
+          >
+            {processing
+              ? "Tiền sẽ về tài khoản trong ít phút. Bạn có thể đóng cửa sổ này, trạng thái sẽ cập nhật trong lịch sử giao dịch."
+              : success
+                ? "Tiền đã được chuyển về tài khoản ngân hàng của bạn."
+                : w.record?.failure_reason ||
+                  "Giao dịch không thành công. Tiền đã được hoàn vào ví."}
+          </Text>
+        </View>
+        <SheetButton label="Đóng" onPress={w.handleClose} variant="soft" />
+      </WalletSheet>
+    );
+  }
+
+  /* ---------- form ---------- */
+  return (
+    <WalletSheet visible={visible} onClose={w.handleClose}>
+      <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.ink }}>
+        Rút tiền về tài khoản
+      </Text>
+      <Text style={{ fontSize: 13, marginTop: 4, color: COLORS.inkMuted }}>
+        Số dư ví ký quỹ {w.balanceText}
+      </Text>
+      <Text
+        style={{
+          fontSize: 12,
+          marginTop: 2,
+          marginBottom: 16,
+          color: COLORS.inkMuted,
+        }}
+      >
+        {w.hintText}
+      </Text>
+
+      <Text
+        style={{
+          fontSize: 13,
+          fontWeight: "600",
+          marginBottom: 8,
+          color: COLORS.inkSoft,
+        }}
+      >
+        Tài khoản nhận tiền
+      </Text>
+      {w.methodsLoading ? (
+        <ActivityIndicator
+          color={COLORS.primary}
+          style={{ marginBottom: 16 }}
+        />
+      ) : w.methods.length === 0 ? (
+        <TouchableOpacity
+          onPress={() => {
+            w.handleClose();
+            router.push("/payment-methods/add" as any);
+          }}
+          activeOpacity={0.8}
+          style={{
+            padding: 14,
+            marginBottom: 16,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderStyle: "dashed",
+            borderColor: COLORS.primaryBorder,
+            backgroundColor: COLORS.primarySoft,
+          }}
+        >
+          <Text style={{ fontWeight: "700", color: COLORS.primaryDark }}>
+            + Thêm tài khoản ngân hàng
+          </Text>
+          <Text style={{ fontSize: 12, marginTop: 2, color: COLORS.inkSoft }}>
+            Bạn cần có tài khoản ngân hàng để rút tiền.
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={{ marginBottom: 16, gap: 8 }}>
+          {w.methods.map((m) => {
+            const active = w.selected?.id === m.id;
+            return (
+              <TouchableOpacity
+                key={m.id}
+                disabled={w.uncertain}
+                onPress={() => w.selectMethod(m.id)}
+                activeOpacity={0.8}
                 style={{
-                  borderTopLeftRadius: RADIUS.sheet,
-                  borderTopRightRadius: RADIUS.sheet,
-                  paddingBottom: Math.max(insets.bottom, 16) + 16,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: 12,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: active ? COLORS.primary : COLORS.line,
+                  backgroundColor: active ? COLORS.primarySoft : COLORS.surface,
+                  opacity: w.uncertain && !active ? 0.5 : 1,
                 }}
               >
-                {/* Handle bar */}
-                <View className="items-center mb-3">
-                  <View className="w-10 h-1 rounded-full bg-line" />
-                </View>
-
-                <View className="flex-row items-center justify-between mb-5">
-                  <Text className="text-ink text-xl font-extrabold">
-                    Rút tiền ký quỹ
-                  </Text>
-                  <TouchableOpacity
-                    onPress={w.handleClose}
-                    hitSlop={12}
-                    accessibilityRole="button"
-                    accessibilityLabel="Đóng"
-                    className="items-center justify-center"
-                    style={{ width: 44, height: 44 }}
-                  >
-                    <Feather name="x" size={22} color={COLORS.inkSoft} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Số dư hiện tại */}
-                <View className="bg-accent-light rounded-2xl px-4 py-3.5 mb-4">
-                  <Text className="text-ink-soft text-xs">
-                    Số dư ví hiện tại
-                  </Text>
-                  <Text className="text-ink text-xl font-extrabold mt-0.5">
-                    {w.balanceText}
-                  </Text>
-                  <Text className="text-ink-muted text-xs mt-1 leading-4">
-                    {w.hintText}
-                  </Text>
-                </View>
-
-                {/* Input số tiền */}
-                <View
-                  className="flex-row items-center bg-surface border border-line rounded-2xl px-4"
-                  style={{ minHeight: 56, borderWidth: 1.5 }}
-                >
-                  <TextInput
-                    className="flex-1 text-ink text-xl font-extrabold py-3.5"
-                    placeholder="0"
-                    placeholderTextColor={COLORS.inkMuted}
-                    keyboardType="number-pad"
-                    value={w.amountDisplay}
-                    onChangeText={w.handleChangeAmount}
-                  />
-                  <Text className="text-ink-soft ml-2" style={TYPE.label}>
-                    đ
-                  </Text>
-                  <TouchableOpacity
-                    onPress={w.handleMaxPress}
-                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                    className="ml-3 bg-ink rounded-full px-3.5 py-2"
-                  >
-                    <Text className="text-white text-xs" style={TYPE.label}>
-                      Tối đa
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {!!w.message && (
-                  <View className="flex-row items-start bg-danger-light rounded-2xl p-3 mt-3">
-                    <Feather
-                      name="alert-circle"
-                      size={15}
-                      color={COLORS.danger}
-                      style={{ marginTop: 1 }}
-                    />
-                    <Text className="flex-1 text-danger text-xs leading-4 ml-2">
-                      {w.message}
-                    </Text>
-                  </View>
-                )}
-
-                <PrimaryButton
-                  label="Xác nhận rút tiền"
-                  variant="primary"
-                  loading={w.isLoading}
-                  disabled={!w.canSubmit}
-                  onPress={w.handleSubmit}
-                  style={{ marginTop: 20 }}
+                <Feather
+                  name="credit-card"
+                  size={18}
+                  color={COLORS.primaryDark}
                 />
-
-                <Text className="text-ink-muted text-xs text-center mt-3">
-                  Yêu cầu sẽ được admin xử lý, tiền sẽ về tài khoản ngân hàng
-                  bạn đã đăng ký
-                </Text>
-              </View>
-            </KeyboardAvoidingView>
-          </TouchableWithoutFeedback>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={{ fontWeight: "700", color: COLORS.ink }}>
+                    {m.bank_name} {m.account_number_masked}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 12, color: COLORS.inkMuted }}
+                    numberOfLines={1}
+                  >
+                    {m.account_holder_name}
+                    {m.is_default ? " · Mặc định" : ""}
+                  </Text>
+                </View>
+                {active && (
+                  <Feather
+                    name="check-circle"
+                    size={18}
+                    color={COLORS.primary}
+                  />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+      )}
+
+      <AmountField
+        value={w.amountDisplay}
+        onChange={w.handleChangeAmount}
+        editable={!w.uncertain}
+      />
+      <QuickAmounts
+        amounts={w.quickAmounts}
+        onPick={(v) => w.handleChangeAmount(String(v))}
+        format={formatVnd}
+        disabled={w.uncertain}
+      />
+      <TouchableOpacity
+        onPress={w.handleMaxPress}
+        disabled={w.uncertain}
+        style={{ marginTop: -8, marginBottom: 16 }}
+      >
+        <Text
+          style={{ fontSize: 13, fontWeight: "700", color: COLORS.primaryDark }}
+        >
+          Rút tối đa
+        </Text>
+      </TouchableOpacity>
+
+      <ErrorBox text={w.message} />
+
+      <SheetButton
+        label={w.uncertain ? "Gửi lại" : "Gửi yêu cầu"}
+        onPress={w.handleSubmit}
+        loading={w.isLoading}
+        disabled={!w.canSubmit && !w.uncertain}
+      />
+    </WalletSheet>
   );
 }

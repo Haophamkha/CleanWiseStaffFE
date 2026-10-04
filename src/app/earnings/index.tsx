@@ -7,21 +7,23 @@ import {
   SettlementCard,
   WalletCard,
 } from "@/features/earnings/components/EarningsKit";
+import TopupModal from "@/features/earnings/components/TopupModal";
 import WithdrawModal from "@/features/earnings/components/WithdrawModal";
 import { useEarnings } from "@/features/earnings/hooks/useEarnings";
 import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
+import { Feather } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-const WITHDRAW_ENABLED = false;
+
 export default function EarningsScreen() {
   const insets = useSafeAreaInsets();
-
   const e = useEarnings();
 
   return (
@@ -60,32 +62,53 @@ export default function EarningsScreen() {
             />
           }
         >
-          <WalletCard
-            wallet={e.data.wallet}
-            onWithdraw={WITHDRAW_ENABLED ? e.openWithdraw : undefined}
-          />
+          <WalletCard wallet={e.data.wallet} onWithdraw={e.openWithdraw} />
+
+          <TouchableOpacity
+            onPress={e.openTopup}
+            activeOpacity={0.85}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 14,
+              marginBottom: 16,
+              borderRadius: 16,
+              backgroundColor: COLORS.primaryLight,
+              borderWidth: 1,
+              borderColor: COLORS.primaryBorder,
+            }}
+          >
+            <Feather name="plus-circle" size={18} color={COLORS.primaryDark} />
+            <Text
+              style={{
+                marginLeft: 8,
+                fontWeight: "700",
+                color: COLORS.primaryDark,
+              }}
+            >
+              Nạp tiền ký quỹ
+            </Text>
+          </TouchableOpacity>
 
           <PeriodTabs
             tabs={e.periodTabs}
             value={e.period}
             onChange={e.setPeriod}
           />
-
           <PeriodSummaryCard period={e.data.period} />
           <SettlementCard settlement={e.data.settlement} />
-
           <HistorySection loading={e.historyLoading} rows={e.historyRows} />
         </ScrollView>
       )}
 
-      {WITHDRAW_ENABLED && (
-        <WithdrawModal
-          visible={e.showWithdraw}
-          onClose={e.closeWithdraw}
-          walletBalance={e.walletBalance}
-          onSuccess={e.onRefresh}
-        />
-      )}
+      <WithdrawModal
+        visible={e.showWithdraw}
+        onClose={e.closeWithdraw}
+        walletBalance={e.walletBalance}
+        onSuccess={e.onRefresh}
+      />
+      <TopupModal visible={e.showTopup} onClose={e.closeTopup} />
     </View>
   );
 }

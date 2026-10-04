@@ -3,6 +3,7 @@ import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { ComplaintAction } from "@/features/complaint/components/ComplaintAction";
 import { CancelReasonChips } from "@/features/job/components/CancelReasonChips";
 import type { JobActionsState } from "@/features/job/hooks/useJobDetail";
 import type {
@@ -465,6 +466,10 @@ export function JobActions({
       ) : null}
 
       {mineItem?.assignment_id ? <ContactAction actions={actions} /> : null}
+
+      {mineItem?.assignment_id && mineItem.status !== "CANCELLED" ? (
+        <ComplaintAction bookingId={item.booking_id} scheduleId={item.id} />
+      ) : null}
 
       {mineItem?.status === "PENDING" ? (
         <CancelBlock mineItem={mineItem} actions={actions} />

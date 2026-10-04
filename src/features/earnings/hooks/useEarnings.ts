@@ -48,7 +48,7 @@ const PERIOD_TABS: PeriodTab[] = [
 export function useEarnings() {
   const [period, setPeriod] = useState<EarningPeriod>("week");
   const [showWithdraw, setShowWithdraw] = useState(false);
-
+  const [showTopup, setShowTopup] = useState(false);
   const summaryQuery = useGetEarningsSummaryQuery(period);
   const historyQuery = useGetEarningsHistoryQuery(period);
   const walletTxQuery = useGetWalletTransactionsQuery();
@@ -155,6 +155,9 @@ export function useEarnings() {
     showWithdraw,
     openWithdraw: () => setShowWithdraw(true),
     closeWithdraw: () => setShowWithdraw(false),
+    showTopup,
+    openTopup: () => setShowTopup(true),
+    closeTopup: () => setShowTopup(false),
   };
 }
 
