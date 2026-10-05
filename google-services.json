@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "80644597948",
+    "project_id": "cleanwise-9f738",
+    "storage_bucket": "cleanwise-9f738.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80644597948:android:2f7aeea41d862719ec88b9",
+        "android_client_info": {
+          "package_name": "com.haophamkha.CleanWiseAppFE"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCep9JhZCJLfUZWh1-oF9TDxCQK_MmeTVU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80644597948:android:a6fec4fb0db33d8dec88b9",
+        "android_client_info": {
+          "package_name": "com.haophamkha.CleanWiseAppStaffFE"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCep9JhZCJLfUZWh1-oF9TDxCQK_MmeTVU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
