@@ -8,12 +8,29 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
-type Props = { bookingId: number; scheduleId: number };
+type Props = {
+  bookingId: number;
+  scheduleId: number;
+  /** Trạng thái buổi; "MISSED" = buổi bị hệ thống tự hủy do không check-in. */
+  scheduleStatus?: string;
+};
 
-export function ComplaintAction({ bookingId, scheduleId }: Props) {
+export function ComplaintAction({
+  bookingId,
+  scheduleId,
+  scheduleStatus,
+}: Props) {
   const [open, setOpen] = useState(false);
   const { data } = useGetMyComplaintsQuery({ schedule: scheduleId });
   const active = data?.find((c) => c.status !== "CANCELLED");
+  const missed = scheduleStatus === "MISSED";
+
+  const idleTitle = missed
+    ? "Đã làm nhưng đơn bị tự hủy?"
+    : "Báo sự cố / Khiếu nại";
+  const idleHint = missed
+    ? "Gửi khiếu nại trong 72 giờ để được xem xét thu nhập."
+    : "Khách không trả tiền, sự cố khi làm việc...";
 
   return (
     <FadeInView delay={150}>
@@ -38,12 +55,10 @@ export function ComplaintAction({ bookingId, scheduleId }: Props) {
         </View>
         <View className="flex-1">
           <Text className="text-ink text-sm font-extrabold">
-            {active ? "Đã gửi khiếu nại" : "Báo sự cố / Khiếu nại"}
+            {active ? "Đã gửi khiếu nại" : idleTitle}
           </Text>
           <Text className="text-ink-muted text-xs mt-0.5">
-            {active
-              ? `Trạng thái: ${active.status_label}`
-              : "Khách không trả tiền, sự cố khi làm việc..."}
+            {active ? `Trạng thái: ${active.status_label}` : idleHint}
           </Text>
         </View>
         <Feather name="chevron-right" size={22} color={COLORS.ink} />
@@ -53,6 +68,7 @@ export function ComplaintAction({ bookingId, scheduleId }: Props) {
         visible={open}
         bookingId={bookingId}
         scheduleId={scheduleId}
+        scheduleStatus={scheduleStatus}
         onClose={() => setOpen(false)}
       />
     </FadeInView>

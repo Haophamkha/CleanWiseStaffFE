@@ -1,7 +1,9 @@
 import { NotificationBellButton } from "@/components/common/NotificationBellButton";
 import { COLORS, RADIUS, TYPE } from "@/constants/theme";
 import { DayFilterBar } from "@/features/job/components/DayFilterBar";
+import { MyStatusTabs } from "@/features/job/components/MyStatusTabs";
 import type { Tab } from "@/features/job/types/jobNav";
+import type { MyJobsTab } from "@/features/schedule/types/Schedule";
 import type { DayChip } from "@/utils/dayChips";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
@@ -25,6 +27,8 @@ type JobsHeaderProps = {
   dayChips: DayChip[];
   day: string | null;
   onSelectDay: (key: string | null) => void;
+  myTab: MyJobsTab;
+  onSelectMyTab: (tab: MyJobsTab) => void;
 };
 
 function TabLabel({ label, active }: { label: string; active: boolean }) {
@@ -56,6 +60,8 @@ export function JobsHeader({
   dayChips,
   day,
   onSelectDay,
+  myTab,
+  onSelectMyTab,
 }: JobsHeaderProps) {
   const insets = useSafeAreaInsets();
   const [trackWidth, setTrackWidth] = useState(0);
@@ -177,7 +183,9 @@ export function JobsHeader({
 
       {tab === "available" ? (
         <DayFilterBar chips={dayChips} selected={day} onSelect={onSelectDay} />
-      ) : null}
+      ) : (
+        <MyStatusTabs value={myTab} onChange={onSelectMyTab} />
+      )}
     </View>
   );
 }

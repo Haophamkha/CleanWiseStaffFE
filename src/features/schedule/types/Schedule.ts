@@ -8,6 +8,13 @@ export type ScheduleStatus =
   | "MISSED";
 
 export type PaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
+export type MyJobsTab = "upcoming" | "today" | "completed" | "cancelled";
+export type MyJobsPagedArgs = {
+  page: number;
+  page_size?: number;
+  status?: string;
+  tab?: MyJobsTab;
+};
 
 export type ScheduleImageType = "BEFORE" | "AFTER" | "ISSUE" | "OTHER";
 
@@ -64,6 +71,8 @@ export interface WorkerMySchedule extends WorkerSchedule {
   receiver_phone: string;
   can_cancel: boolean;
   cancel_deadline: string;
+  completed_sessions?: number | null;
+  accepted_sessions?: number | null;
   images: ScheduleImage[];
   completion_note: string | null;
   delivery_address_line?: string | null;
@@ -136,10 +145,4 @@ export type AvailableJobsPagedArgs = {
   page_size?: number;
   date_from?: string;
   date_to?: string;
-};
-
-export type MyJobsPagedArgs = {
-  page: number;
-  page_size?: number;
-  status?: string;
 };

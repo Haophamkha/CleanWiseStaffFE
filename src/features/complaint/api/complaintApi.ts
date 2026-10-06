@@ -21,6 +21,9 @@ export type ComplaintStatus =
 export type ComplaintListItem = {
   id: number;
   booking: number;
+  booking_code?: string;
+  schedule?: number | null;
+  schedule_sequence_no?: number | null;
   issue_type_name: string;
   stage_label: string;
   status: ComplaintStatus;
@@ -34,6 +37,8 @@ export type ComplaintDetail = ComplaintListItem & {
   content: string;
   resolution_note: string | null;
   resolved_at: string | null;
+  outcome: "" | "REFUND_CUSTOMER" | "PAY_WORKER";
+  my_amount: string | null; // + đã cộng / - đã trừ vào ví của chính bạn
   attachments: ComplaintAttachment[];
 };
 

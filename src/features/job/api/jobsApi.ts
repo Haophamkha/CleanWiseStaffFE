@@ -13,7 +13,7 @@ import type {
   WorkerMySchedule,
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
-import { baseApi, UPLOAD_TIMEOUT_MS } from "@/store/baseApi";
+import { ACTION_TIMEOUT_MS, baseApi, UPLOAD_TIMEOUT_MS } from "@/store/baseApi";
 
 const unwrapResponse = (response: any) =>
   response?.data?.data ?? response?.data ?? response;
@@ -244,6 +244,7 @@ export const jobsApi = baseApi.injectEndpoints({
       query: ({ scheduleId, idempotencyKey }) => ({
         url: `/api/worker/schedules/${scheduleId}/claim/`,
         method: "POST",
+        timeout: ACTION_TIMEOUT_MS,
         headers: {
           "Idempotency-Key": idempotencyKey,
         },
@@ -394,6 +395,7 @@ export const jobsApi = baseApi.injectEndpoints({
       query: ({ bookingId, scheduleIds, idempotencyKey }) => ({
         url: `/api/worker/bookings/${bookingId}/claim/`,
         method: "POST",
+        timeout: ACTION_TIMEOUT_MS,
         data: scheduleIds?.length ? { schedule_ids: scheduleIds } : undefined,
         headers: {
           "Idempotency-Key": idempotencyKey,

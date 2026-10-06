@@ -16,6 +16,8 @@ function JobsContent() {
         dayChips={jobs.dayChips}
         day={jobs.day}
         onSelectDay={jobs.setDay}
+        myTab={jobs.myTab}
+        onSelectMyTab={jobs.setMyTab}
       />
 
       {jobs.tab === "available" ? (
@@ -30,6 +32,7 @@ function JobsContent() {
       ) : (
         <MyJobsList
           state={jobs.mine}
+          tab={jobs.myTab}
           onOpen={jobs.openJob}
           onScrollStart={jobs.markScrolled}
           onEndReached={jobs.onEndReached}

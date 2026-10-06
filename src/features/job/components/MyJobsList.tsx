@@ -5,31 +5,139 @@ import { MyJobCard } from "@/features/job/components/MyJobCard";
 import { MyPackageCard } from "@/features/job/components/MyPackageCard";
 import type { JobsListState } from "@/features/job/hooks/useJobs";
 import type { OpenJob } from "@/features/job/types/jobNav";
+import type {
+  MyJobsTab,
+  WorkerMySchedule,
+} from "@/features/schedule/types/Schedule";
 import type { MyDisplayItem } from "@/features/schedule/utils/myScheduleGrouping";
-import { useCallback } from "react";
+import { formatDayLabel, relativeDayLabel, toYMD } from "@/utils/format";
+import { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Text,
   View,
 } from "react-native";
 
 type MyJobsListProps = {
   state: JobsListState<MyDisplayItem>;
+  tab: MyJobsTab;
   onOpen: OpenJob;
   onScrollStart: () => void;
   onEndReached: () => void;
 };
 
+type Row =
+  | { kind: "header"; key: string; label: string; running: boolean }
+  | { kind: "item"; key: string; item: MyDisplayItem };
+
+const EMPTY: Record<MyJobsTab, { title: string; message: string }> = {
+  upcoming: {
+    title: "Chưa có buổi sắp tới",
+    message: "Vào tab Khả dụng để nhận việc",
+  },
+  today: {
+    title: "Hôm nay bạn không có buổi nào",
+    message: "Kéo xuống để làm mới",
+  },
+  completed: {
+    title: "Chưa có buổi nào hoàn thành",
+    message: "Các buổi đã làm xong sẽ hiện ở đây",
+  },
+  cancelled: {
+    title: "Không có buổi nào bị hủy",
+    message: "Kéo xuống để làm mới",
+  },
+};
+
+/** Buổi đại diện của 1 thẻ: đang làm > buổi chờ gần nhất > buổi đầu. */
+function anchorOf(item: MyDisplayItem): WorkerMySchedule {
+  if (item.type !== "package") return item.item;
+  const s = item.sessions;
+  const running = s.find((x) => x.status === "IN_PROGRESS");
+  if (running) return running;
+  const pending = s
+    .filter((x) => x.status === "PENDING")
+    .sort(
+      (a, b) =>
+        new Date(a.scheduled_start).getTime() -
+        new Date(b.scheduled_start).getTime(),
+    );
+  return pending[0] ?? s[0];
+}
+
+function buildRows(items: MyDisplayItem[]): Row[] {
+  const rows: Row[] = [];
+  let lastKey = "";
+
+  for (const it of items) {
+    const a = anchorOf(it);
+    const running = a.status === "IN_PROGRESS";
+    const key = running ? "running" : toYMD(new Date(a.scheduled_start));
+
+    if (key !== lastKey) {
+      lastKey = key;
+      const rel = relativeDayLabel(a.scheduled_start);
+      const day = formatDayLabel(a.scheduled_start);
+      rows.push({
+        kind: "header",
+        key: `h-${rows.length}`,
+        label: running ? "Đang thực hiện" : rel ? `${rel} · ${day}` : day,
+        running,
+      });
+    }
+
+    rows.push({
+      kind: "item",
+      key:
+        it.type === "package" ? `pkg-${it.bookingId}` : `single-${it.item.id}`,
+      item: it,
+    });
+  }
+  return rows;
+}
+
+function DayHeader({ label, running }: { label: string; running: boolean }) {
+  return (
+    <View className="flex-row items-center mt-2 mb-3">
+      <View
+        className="rounded-full mr-2"
+        style={{
+          width: 8,
+          height: 8,
+          backgroundColor: running ? COLORS.primary : COLORS.inkMuted,
+        }}
+      />
+      <Text
+        className={`text-xs font-bold uppercase ${
+          running ? "text-primary" : "text-ink-soft"
+        }`}
+        style={{ letterSpacing: 0.6 }}
+      >
+        {label}
+      </Text>
+      <View className="flex-1 h-[1px] bg-line ml-3" />
+    </View>
+  );
+}
+
 export function MyJobsList({
   state,
+  tab,
   onOpen,
   onScrollStart,
   onEndReached,
 }: MyJobsListProps) {
+  const rows = useMemo(() => buildRows(state.items), [state.items]);
+
   const renderItem = useCallback(
-    ({ item, index }: { item: MyDisplayItem; index: number }) =>
-      item.type === "package" ? (
+    ({ item: row, index }: { item: Row; index: number }) => {
+      if (row.kind === "header") {
+        return <DayHeader label={row.label} running={row.running} />;
+      }
+      const item = row.item;
+      return item.type === "package" ? (
         <MyPackageCard
           bookingId={item.bookingId}
           sessions={item.sessions}
@@ -38,7 +146,8 @@ export function MyJobsList({
         />
       ) : (
         <MyJobCard item={item.item} onOpen={onOpen} index={index} />
-      ),
+      );
+    },
     [onOpen],
   );
 
@@ -54,12 +163,8 @@ export function MyJobsList({
 
   return (
     <FlatList
-      data={state.items}
-      keyExtractor={(item) =>
-        item.type === "package"
-          ? `pkg-${item.bookingId}`
-          : `single-${item.item.id}`
-      }
+      data={rows}
+      keyExtractor={(row) => row.key}
       renderItem={renderItem}
       contentContainerStyle={{ padding: 20, paddingBottom: 24, flexGrow: 1 }}
       refreshControl={
@@ -100,8 +205,8 @@ export function MyJobsList({
           ) : (
             <EmptyState
               icon="clipboard"
-              title="Bạn chưa nhận buổi nào"
-              message="Kéo xuống để làm mới"
+              title={EMPTY[tab].title}
+              message={EMPTY[tab].message}
             />
           )}
         </View>
