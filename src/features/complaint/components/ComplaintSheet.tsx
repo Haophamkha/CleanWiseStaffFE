@@ -2,35 +2,37 @@ import { PressableScale } from "@/components/ui/PressableScale";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import { COLORS, RADIUS } from "@/constants/theme";
 import {
-    useCreateComplaintMutation,
-    useGetComplaintIssueTypesQuery,
+  useCreateComplaintMutation,
+  useGetComplaintIssueTypesQuery,
 } from "@/features/complaint/api/complaintApi";
 import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
 import { getErrorMessage } from "@/utils/apiError";
 import { pickImage, takePhoto } from "@/utils/imagePicker";
 import { showErrorToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const MAX_IMAGES = 5;
+const WORKED_CODE = "AUTO_CANCELLED_WORKED";
 
 type Props = {
   visible: boolean;
   bookingId: number;
   scheduleId: number;
+  scheduleStatus?: string;
   onClose: () => void;
 };
 
@@ -38,12 +40,21 @@ export function ComplaintSheet({
   visible,
   bookingId,
   scheduleId,
+  scheduleStatus,
   onClose,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const { data: types = [], isLoading } = useGetComplaintIssueTypesQuery(
+  const missed = scheduleStatus === "MISSED";
+  const { data: allTypes = [], isLoading } = useGetComplaintIssueTypesQuery(
     undefined,
     { skip: !visible },
+  );
+  const types = useMemo(
+    () =>
+      allTypes.filter((t) =>
+        missed ? t.code === WORKED_CODE : t.code !== WORKED_CODE,
+      ),
+    [allTypes, missed],
   );
   const [createComplaint, { isLoading: submitting }] =
     useCreateComplaintMutation();
@@ -52,6 +63,11 @@ export function ComplaintSheet({
   const [content, setContent] = useState("");
   const [images, setImages] = useState<PickedFile[]>([]);
   const [done, setDone] = useState(false);
+
+  // Buổi bị tự hủy chỉ có 1 loại sự cố -> chọn sẵn.
+  useEffect(() => {
+    if (missed && types.length === 1) setIssueTypeId(types[0].id);
+  }, [missed, types]);
 
   const reset = () => {
     setIssueTypeId(null);
@@ -117,7 +133,7 @@ export function ComplaintSheet({
                 <Feather name="alert-circle" size={18} color={COLORS.danger} />
               </View>
               <Text className="text-ink text-base font-extrabold flex-1">
-                Báo sự cố / Khiếu nại
+                {missed ? "Khiếu nại buổi bị tự hủy" : "Báo sự cố / Khiếu nại"}
               </Text>
               <Pressable onPress={close} hitSlop={10}>
                 <Feather name="x" size={22} color={COLORS.ink} />
@@ -128,6 +144,14 @@ export function ComplaintSheet({
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
+              {missed ? (
+                <Text className="text-ink-soft text-xs leading-5 mb-4">
+                  Buổi này bị hệ thống tự hủy vì chưa check-in đúng hạn. Nếu bạn
+                  đã đến và làm việc, hãy mô tả và đính kèm ảnh minh chứng để
+                  CleanWise xem xét.
+                </Text>
+              ) : null}
+
               <Text className="text-ink text-sm font-semibold mb-2">
                 Loại sự cố
               </Text>
@@ -173,7 +197,11 @@ export function ComplaintSheet({
               <TextInput
                 value={content}
                 onChangeText={setContent}
-                placeholder="Ví dụ: Khách không thanh toán tiền mặt sau khi hoàn thành..."
+                placeholder={
+                  missed
+                    ? "Ví dụ: Tôi đến đúng giờ nhưng GPS lỗi nên không check-in được..."
+                    : "Ví dụ: Khách không thanh toán tiền mặt sau khi hoàn thành..."
+                }
                 placeholderTextColor={COLORS.inkMuted}
                 multiline
                 maxLength={1000}

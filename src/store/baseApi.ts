@@ -296,7 +296,13 @@ axiosInstance.interceptors.response.use(
  */
 
 const IDEMPOTENCY_RETRY_DELAY_MS = 1500;
-const IDEMPOTENCY_MAX_RETRIES = 3;
+const IDEMPOTENCY_MAX_RETRIES = 5;
+const TIMEOUT_MAX_RETRIES = 1;
+export const ACTION_TIMEOUT_MS = 15000;
+
+const isTimeoutError = (error: AxiosError): boolean =>
+  !error.response &&
+  (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT");
 
 const isIdempotencyProcessing = (error: AxiosError): boolean => {
   const data = error.response?.data as { error_code?: string } | undefined;
@@ -356,6 +362,8 @@ const axiosBaseQuery = (): BaseQueryFn<
       ...(headers !== undefined && { headers }),
     };
 
+    let timeoutRetries = 0;
+
     for (let attempt = 0; attempt <= IDEMPOTENCY_MAX_RETRIES; attempt++) {
       try {
         const result = await axiosInstance(requestConfig);
@@ -363,18 +371,17 @@ const axiosBaseQuery = (): BaseQueryFn<
       } catch (axiosError) {
         const err = axiosError as AxiosError;
 
+        // Request có Idempotency-Key thì gọi lại cùng key là an toàn:
+        // BE trả kết quả cũ hoặc 409 PROCESSING (đợi rồi thử tiếp).
         const shouldRetry =
-          isIdempotencyProcessing(err) &&
           hasIdempotencyKey(requestConfig) &&
-          attempt < IDEMPOTENCY_MAX_RETRIES;
+          attempt < IDEMPOTENCY_MAX_RETRIES &&
+          (isIdempotencyProcessing(err) ||
+            (isTimeoutError(err) && ++timeoutRetries <= TIMEOUT_MAX_RETRIES));
 
         if (shouldRetry) {
           if (__DEV__) {
-            console.log(
-              "[IDEMPOTENCY RETRY]",
-              url,
-              `attempt ${attempt + 1}/${IDEMPOTENCY_MAX_RETRIES}`,
-            );
+            console.log("[IDEMPOTENCY RETRY]", url, `attempt ${attempt + 1}`);
           }
           await sleep(IDEMPOTENCY_RETRY_DELAY_MS);
           continue;
@@ -396,11 +403,12 @@ const axiosBaseQuery = (): BaseQueryFn<
     }
 
     return { error: { isNetworkError: true } };
+
+    return { error: { isNetworkError: true } };
   };
 };
 
 /* =========================================================
- * RTK QUERY
  * ======================================================= */
 
 export const baseApi = createApi({

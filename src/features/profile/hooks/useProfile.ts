@@ -104,6 +104,11 @@ function buildMenuGroups(openSettings: () => void): MenuGroup[] {
     {
       title: "Khác",
       items: [
+        {
+          icon: "alert-circle",
+          label: "Khiếu nại của tôi",
+          onPress: () => router.push("/complaints" as any),
+        },
         { icon: "settings", label: "Cài đặt", onPress: openSettings },
         {
           icon: "info",

@@ -14,9 +14,13 @@ import type {
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
 import { getSessionInteraction } from "@/features/schedule/utils/scheduleStatus";
-import { verifyScheduleMutation } from "@/features/schedule/utils/verifyMutation";
+import {
+  isUncertainError,
+  pollSchedules,
+  verifyScheduleMutation,
+} from "@/features/schedule/utils/verifyMutation";
 import { useIdempotencyKey } from "@/hooks/useIdempotencyKey";
-import { getErrorMessage, isNetworkError } from "@/utils/apiError";
+import { getErrorMessage } from "@/utils/apiError";
 import { formatDayLabel, formatTime } from "@/utils/format";
 import {
   showErrorToast,
@@ -129,6 +133,7 @@ export function useJobActions({
   const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   const claimKey = useIdempotencyKey();
+  const [isVerifyingClaim, setIsVerifyingClaim] = useState(false);
   const claimPackageKey = useIdempotencyKey();
   const cancelKey = useIdempotencyKey();
   const cancelSessionKey = useIdempotencyKey();
@@ -244,23 +249,28 @@ export function useJobActions({
         message: successMessage,
       });
     } catch (err) {
-      await verifyScheduleMutation({
-        err,
-        scheduleId,
-        refetch: refetchBookingSchedules,
-        isNowSuccess: (s) => s.claim_state === "MINE",
-        successTitle: "Nhận việc thành công",
-        successMessage,
-        errorTitle: "Không thể nhận việc",
-        onSuccess: () => {
-          claimKey.resetKey();
+      setIsVerifyingClaim(true);
+      try {
+        await verifyScheduleMutation({
+          err,
+          scheduleId,
+          refetch: refetchBookingSchedules,
+          isNowSuccess: (s) => s.claim_state === "MINE",
+          successTitle: "Nhận việc thành công",
+          successMessage,
+          errorTitle: "Không thể nhận việc",
+          onSuccess: () => {
+            claimKey.resetKey();
 
-          openSuccessModal({
-            title: "Nhận việc thành công",
-            message: successMessage,
-          });
-        },
-      });
+            openSuccessModal({
+              title: "Nhận việc thành công",
+              message: successMessage,
+            });
+          },
+        });
+      } finally {
+        setIsVerifyingClaim(false);
+      }
     }
   };
 
@@ -314,30 +324,28 @@ export function useJobActions({
         details: skipped.length > 0 ? details : undefined,
       });
     } catch (err: any) {
-      if (isNetworkError(err)) {
+      if (isUncertainError(err)) {
+        setIsVerifyingClaim(true);
         try {
-          const fresh = await refetchBookingSchedules();
+          let nowMine: number[] = [];
+          const ok = await pollSchedules(refetchBookingSchedules, (list) => {
+            nowMine = attemptedIds.filter((sid) =>
+              list.some((s) => s.id === sid && s.claim_state === "MINE"),
+            );
+            return nowMine.length > 0;
+          });
 
-          const freshData: WorkerSchedule[] = fresh?.data ?? bookingSchedules;
-
-          const nowMine = attemptedIds.filter((sid) =>
-            freshData.some((s) => s.id === sid && s.claim_state === "MINE"),
-          );
-
-          if (nowMine.length > 0) {
+          if (ok) {
             claimPackageKey.resetKey();
-
             setSelected((prev) => prev.filter((sid) => !nowMine.includes(sid)));
-
             openSuccessModal({
               title: "Nhận việc thành công",
-              message: `Bạn đã nhận ${nowMine.length} buổi làm việc. (Kết nối mạng bị gián đoạn lúc nhận thông báo, nhưng hệ thống đã ghi nhận buổi làm của bạn.)`,
+              message: `Bạn đã nhận ${nowMine.length} buổi làm việc. (Mạng chập chờn nhưng hệ thống đã ghi nhận.)`,
             });
-
             return;
           }
-        } catch {
-          // Ignore verification failure.
+        } finally {
+          setIsVerifyingClaim(false);
         }
       }
 
@@ -350,16 +358,20 @@ export function useJobActions({
     null,
   );
 
-  const handleClaim = () => setPendingClaim("single");
+  const handleClaim = () => {
+    if (isClaiming || isVerifyingClaim) return;
+    setPendingClaim("single");
+  };
 
   const handleClaimSelected = () => {
+    if (isClaimingPackage || isVerifyingClaim) return;
     if (!bookingId || validSelected.length === 0) return;
     setPendingClaim("package");
   };
 
   const confirmClaim = async () => {
     const kind = pendingClaim;
-    if (!kind) return;
+    if (!kind || isClaiming || isClaimingPackage || isVerifyingClaim) return;
     setPendingClaim(null);
     if (kind === "single") await performClaim();
     else await performClaimSelected();
@@ -686,9 +698,9 @@ export function useJobActions({
     claimConfirm,
     confirmClaim,
     dismissClaimConfirm,
-    isClaiming,
+    isClaiming: isClaiming || isVerifyingClaim,
     handleClaimSelected,
-    isClaimingPackage,
+    isClaimingPackage: isClaimingPackage || isVerifyingClaim,
 
     handleCheckIn,
     isCheckingIn: isCheckingIn || isLocating,

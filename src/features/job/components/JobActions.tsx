@@ -467,8 +467,18 @@ export function JobActions({
 
       {mineItem?.assignment_id ? <ContactAction actions={actions} /> : null}
 
-      {mineItem?.assignment_id && mineItem.status !== "CANCELLED" ? (
-        <ComplaintAction bookingId={item.booking_id} scheduleId={item.id} />
+      {mineItem?.status === "MISSED" ? (
+        <ComplaintAction
+          bookingId={item.booking_id}
+          scheduleId={item.id}
+          scheduleStatus="MISSED"
+        />
+      ) : mineItem?.assignment_id && mineItem.status !== "CANCELLED" ? (
+        <ComplaintAction
+          bookingId={item.booking_id}
+          scheduleId={item.id}
+          scheduleStatus={mineItem.status}
+        />
       ) : null}
 
       {mineItem?.status === "PENDING" ? (

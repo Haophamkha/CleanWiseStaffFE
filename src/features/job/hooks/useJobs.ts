@@ -7,6 +7,7 @@ import type { OpenJob, Tab } from "@/features/job/types/jobNav";
 import type {
   AvailableJobsPagedArgs,
   MyJobsPagedArgs,
+  MyJobsTab,
   WorkerMySchedule,
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
@@ -20,8 +21,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type AvailableFilters = Omit<AvailableJobsPagedArgs, "page">;
 type MyFilters = Omit<MyJobsPagedArgs, "page">;
-
-const NO_MY_FILTERS: MyFilters = {};
 
 export type JobsListState<T> = {
   items: T[];
@@ -39,26 +38,42 @@ export type JobsListState<T> = {
 
 export function useJobs() {
   const { tab: initialTab } = useLocalSearchParams<{ tab?: Tab }>();
-  const [tab, setTab] = useState<Tab>(
-    initialTab === "mine" ? "mine" : "available",
+
+  // Tab chính: available / mine
+  const [tab, setTab] = useState<Tab>(initialTab ?? "available");
+
+  // Tab con của "mine": upcoming / history...
+  const [myTab, setMyTab] = useState<MyJobsTab>("upcoming");
+
+  const myFilters = useMemo<MyFilters>(() => ({ tab: myTab }), [myTab]);
+
+  const mine = usePagedJobs<WorkerMySchedule, MyFilters>(
+    useGetMyJobsPagedQuery,
+    myFilters,
   );
 
   const [day, setDay] = useState<string | null>(null);
+
   const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT), []);
+
   const availableFilters = useMemo<AvailableFilters>(
-    () => (day ? { date_from: day, date_to: day } : {}),
+    () =>
+      day
+        ? {
+            date_from: day,
+            date_to: day,
+          }
+        : {},
     [day],
   );
+
   const dayFiltered = day !== null;
 
   const available = usePagedJobs<WorkerSchedule, AvailableFilters>(
     useGetAvailableJobsPagedQuery,
     availableFilters,
   );
-  const mine = usePagedJobs<WorkerMySchedule, MyFilters>(
-    useGetMyJobsPagedQuery,
-    NO_MY_FILTERS,
-  );
+
   const current = tab === "available" ? available : mine;
 
   const myDisplayItems = useMemo<MyDisplayItem[]>(
@@ -66,32 +81,48 @@ export function useJobs() {
     [mine.items],
   );
 
+  // Giữ reference mới nhất của list đang active
   const currentRef = useRef(current);
   currentRef.current = current;
+
+  // Refresh khi màn hình được focus lại
   const firstFocus = useRef(true);
+
   useFocusEffect(
     useCallback(() => {
       if (firstFocus.current) {
         firstFocus.current = false;
         return;
       }
+
       currentRef.current.refresh();
     }, []),
   );
 
+  // Refresh khi notification thay đổi
   const refreshTick = useAppSelector((s) => s.notification.refreshTick);
+
   const lastTick = useRef(refreshTick);
+
   useEffect(() => {
     if (lastTick.current === refreshTick) return;
+
     lastTick.current = refreshTick;
     currentRef.current.refresh();
   }, [refreshTick]);
 
-  const switchTab = (next: Tab) => {
-    if (next === tab) return;
-    setTab(next);
-    (next === "available" ? available : mine).refresh();
-  };
+  const switchTab = useCallback(
+    (next: Tab) => {
+      if (next === tab) return;
+
+      setTab(next);
+
+      const nextList = next === "available" ? available : mine;
+
+      nextList.refresh();
+    },
+    [tab, available, mine],
+  );
 
   const navigateOnce = useSingleNavigate();
 
@@ -103,7 +134,11 @@ export function useJobs() {
           params: {
             id: String(id),
             source,
-            ...(bookingId ? { bookingId: String(bookingId) } : {}),
+            ...(bookingId
+              ? {
+                  bookingId: String(bookingId),
+                }
+              : {}),
           },
         }),
       );
@@ -111,36 +146,48 @@ export function useJobs() {
     [navigateOnce],
   );
 
+  // Chỉ cho phép load more sau khi user thật sự scroll
   const userScrolledRef = useRef(false);
-  const markScrolled = () => {
+
+  const markScrolled = useCallback(() => {
     userScrolledRef.current = true;
-  };
-  const onEndReached = () => {
+  }, []);
+
+  const onEndReached = useCallback(() => {
     if (!userScrolledRef.current) return;
+
     userScrolledRef.current = false;
     current.loadMore();
-  };
+  }, [current]);
 
   const availableState: JobsListState<WorkerSchedule> = {
     ...available,
     hasItems: available.items.length > 0,
   };
+
   const mineState: JobsListState<MyDisplayItem> = {
     ...mine,
     items: myDisplayItems,
-    hasItems: mine.items.length > 0,
+    hasItems: myDisplayItems.length > 0,
   };
 
   return {
+    myTab,
+    setMyTab,
+
     tab,
     switchTab,
+
     day,
     setDay,
     dayChips,
     dayFiltered,
+
     available: availableState,
     mine: mineState,
+
     openJob,
+
     markScrolled,
     onEndReached,
   };

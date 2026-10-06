@@ -5,12 +5,12 @@ import { PressableScale } from "@/components/ui/PressableScale";
 import { ENV } from "@/config/env";
 import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
 import {
-    useCancelComplaintMutation,
-    useGetComplaintDetailQuery,
+  useCancelComplaintMutation,
+  useGetComplaintDetailQuery,
 } from "@/features/complaint/api/complaintApi";
 import { ComplaintStatusBadge } from "@/features/complaint/components/ComplaintStatusBadge";
 import { getErrorMessage } from "@/utils/apiError";
-import { formatDateTime } from "@/utils/format";
+import { formatCurrency, formatDateTime } from "@/utils/format";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -82,12 +82,22 @@ export default function ComplaintDetailScreen() {
   }
 
   const canCancel = data.status === "PENDING";
+  const amount = Number(data.my_amount ?? 0);
+  const showAmount = data.status === "RESOLVED" && amount !== 0;
 
   return (
     <View className="flex-1 bg-canvas">
       <DetailHeader
         title="Chi tiết khiếu nại"
-        subtitle={`#${data.id}`}
+        subtitle={`${
+          data.booking_code
+            ? `Đơn ${data.booking_code}`
+            : `Đơn #${data.booking}`
+        }${
+          data.schedule_sequence_no
+            ? ` · Buổi ${data.schedule_sequence_no}`
+            : ""
+        }`}
         onBack={() => router.back()}
       />
 
@@ -143,6 +153,24 @@ export default function ComplaintDetailScreen() {
                 {formatDateTime(data.resolved_at)}
               </Text>
             ) : null}
+          </Section>
+        ) : null}
+
+        {showAmount ? (
+          <Section title="Kết quả xử lý">
+            <Text
+              className={`text-base font-extrabold ${
+                amount > 0 ? "text-success" : "text-danger"
+              }`}
+            >
+              {amount > 0 ? "+" : "-"}
+              {formatCurrency(String(Math.abs(amount))) ?? ""}
+            </Text>
+            <Text className="text-ink-muted text-xs mt-1">
+              {amount > 0
+                ? "Đã cộng vào ví của bạn."
+                : "Đã trừ khỏi ví của bạn."}
+            </Text>
           </Section>
         ) : null}
 
