@@ -32,6 +32,13 @@ export const AvailableJobCard = memo(function AvailableJobCard({
   const remaining = item.available_sessions ?? 1;
   const price = formatCurrency(item.price);
   const dayChip = relativeDayLabel(item.scheduled_start);
+  const preferredMinutes =
+    item.is_preferred_for_me && item.preferred_until
+      ? Math.ceil(
+          (new Date(item.preferred_until).getTime() - Date.now()) / 60000,
+        )
+      : 0;
+  const isPreferred = preferredMinutes > 0;
 
   return (
     <FadeInView delay={Math.min(index, 5) * 60}>
@@ -40,9 +47,22 @@ export const AvailableJobCard = memo(function AvailableJobCard({
         accessibilityRole="button"
         accessibilityLabel={`Xem công việc ${item.service_name}`}
         containerStyle={{ marginBottom: 12 }}
-        className="bg-surface border border-line p-4"
+        className={`bg-surface border p-4 ${
+          isPreferred ? "border-primary" : "border-line"
+        }`}
         style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
       >
+        {isPreferred ? (
+          <View
+            className="self-start flex-row items-center rounded-full px-2.5 py-1 mb-3"
+            style={{ backgroundColor: COLORS.primary }}
+          >
+            <Feather name="user-check" size={11} color={COLORS.white} />
+            <Text className="text-white text-xs font-semibold ml-1">
+              Khách chỉ định bạn · còn {preferredMinutes} phút
+            </Text>
+          </View>
+        ) : null}
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center flex-1 mr-2">
             {isPackage ? (
