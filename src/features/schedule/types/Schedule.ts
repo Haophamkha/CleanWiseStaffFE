@@ -62,6 +62,8 @@ export interface WorkerSchedule {
   };
   assignment_id: number | null;
   claim_state?: ScheduleClaimState;
+  is_preferred_for_me?: boolean;
+  preferred_until?: string | null;
 }
 
 export interface WorkerMySchedule extends WorkerSchedule {

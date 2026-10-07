@@ -413,6 +413,34 @@ export const jobsApi = baseApi.injectEndpoints({
         },
       ],
     }),
+
+    declinePreferred: builder.mutation<
+      void,
+      {
+        bookingId: number;
+        idempotencyKey: string;
+      }
+    >({
+      query: ({ bookingId, idempotencyKey }) => ({
+        url: `/api/worker/bookings/${bookingId}/decline/`,
+        method: "POST",
+        timeout: ACTION_TIMEOUT_MS,
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: [
+        {
+          type: "AvailableSchedules",
+          id: "LIST",
+        },
+        {
+          type: "MySchedules",
+          id: "LIST",
+        },
+      ],
+    }),
   }),
 
   overrideExisting: true,
@@ -425,6 +453,7 @@ export const {
   useGetMySchedulesQuery,
   useGetBookingSchedulesQuery,
   useClaimBookingPackageMutation,
+  useDeclinePreferredMutation,
   useClaimScheduleMutation,
   useCancelAssignmentMutation,
   useCheckInMutation,

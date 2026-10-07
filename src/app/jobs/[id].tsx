@@ -11,6 +11,7 @@ import {
   PackageClaimBar,
   PackageSessionsCard,
 } from "@/features/job/components/PackageSessions";
+import { PreferredRequestBanner } from "@/features/job/components/PreferredRequestBanner";
 import { ProofImagesSection } from "@/features/job/components/ProofImagesSection";
 import { ServiceDetailReadOnly } from "@/features/job/components/ServiceDetailReadOnly";
 import { useJobDetail } from "@/features/job/hooks/useJobDetail";
@@ -61,6 +62,13 @@ export default function JobDetailScreen() {
           paddingBottom: (job.hasOpenSessions ? 120 : 40) + insets.bottom,
         }}
       >
+        {!job.isMine && item.is_preferred_for_me && item.preferred_until ? (
+          <PreferredRequestBanner
+            bookingId={item.booking_id}
+            until={item.preferred_until}
+            onDeclined={job.goBack}
+          />
+        ) : null}
         <FadeInView>
           <JobInfoCard
             summary={summary}

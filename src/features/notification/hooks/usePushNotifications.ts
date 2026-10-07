@@ -5,6 +5,7 @@ import {
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { Platform } from "react-native";
 
 const handledResponses = new Set<string>();
 
@@ -31,14 +32,21 @@ export function usePushNotifications(enabled: boolean) {
       const data = response?.notification?.request?.content?.data;
       if (data?.notification_id) markRead(Number(data.notification_id));
       if (data?.schedule_id && data?.booking_id) {
+        const isAvailable = data?.source === "available";
         router.push({
           pathname: "/jobs/[id]",
-          params: {
-            id: String(data.schedule_id),
-            source: "mine",
-            bookingId: String(data.booking_id),
-            view: "session",
-          },
+          params: isAvailable
+            ? {
+                id: String(data.schedule_id),
+                source: "available",
+                bookingId: String(data.booking_id),
+              }
+            : {
+                id: String(data.schedule_id),
+                source: "mine",
+                bookingId: String(data.booking_id),
+                view: "session",
+              },
         } as any);
       } else {
         router.push("/notifications" as any);
@@ -48,7 +56,15 @@ export function usePushNotifications(enabled: boolean) {
     (async () => {
       const Notifications = await import("expo-notifications");
       if (cancelled) return;
-      // App mở từ trạng thái tắt hẳn bằng cách bấm push
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "Thông báo chung",
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#AE525C",
+          sound: "default",
+        });
+      }
       const last = await Notifications.getLastNotificationResponseAsync();
       if (last) open(last);
       sub = Notifications.addNotificationResponseReceivedListener(open);
