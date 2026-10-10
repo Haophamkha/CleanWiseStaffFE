@@ -32,10 +32,11 @@ export const AvailableJobCard = memo(function AvailableJobCard({
   const remaining = item.available_sessions ?? 1;
   const price = formatCurrency(item.price);
   const dayChip = relativeDayLabel(item.scheduled_start);
+  const invitation = item.invitation?.status === 'PENDING' ? item.invitation : null;
   const preferredMinutes =
-    item.is_preferred_for_me && item.preferred_until
+    (invitation?.expires_at || (item.is_preferred_for_me && item.preferred_until))
       ? Math.ceil(
-          (new Date(item.preferred_until).getTime() - Date.now()) / 60000,
+          (new Date(invitation?.expires_at ?? item.preferred_until!).getTime() - Date.now()) / 60000,
         )
       : 0;
   const isPreferred = preferredMinutes > 0;
@@ -59,7 +60,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
           >
             <Feather name="user-check" size={11} color={COLORS.white} />
             <Text className="text-white text-xs font-semibold ml-1">
-              Khách chỉ định bạn · còn {preferredMinutes} phút
+              {invitation ? "Lời mời từ admin" : "Khách hàng mời bạn"} · còn {preferredMinutes} phút
             </Text>
           </View>
         ) : null}

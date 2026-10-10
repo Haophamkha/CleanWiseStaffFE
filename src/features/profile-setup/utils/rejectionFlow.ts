@@ -87,7 +87,7 @@ export function fieldRejectionNote(
   profile: Pick<WorkerProfileResponse, "status" | "rejected_fields">,
   field: string,
 ): string | null {
-  if (profile.status !== "REJECTED") return null;
+  if (profile.status !== "REJECTED" && profile.status !== "DRAFT") return null;
   return profile.rejected_fields?.[field] ?? null;
 }
 

@@ -37,6 +37,7 @@ export function useJobDetailData({
     {
       skip: !bookingId,
       refetchOnMountOrArgChange: true,
+      pollingInterval: 15000,
     },
   );
   const mineQuery = useGetMySchedulesQuery(

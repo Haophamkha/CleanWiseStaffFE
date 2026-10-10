@@ -88,7 +88,7 @@ export function useNotifications() {
         pathname: "/jobs/[id]",
         params: {
           id: String(n.related_schedule),
-          source: "mine",
+          source: n.navigation_source ?? "mine",
           bookingId: String(n.related_booking),
           view: "session",
         },
@@ -98,11 +98,7 @@ export function useNotifications() {
     } else if (n.related_booking) {
       router.push({ pathname: "/(tabs)/jobs", params: { tab: "mine" } });
     }
-    if (n.type === "SYSTEM") {
-      router.push("/(tabs)/profile" as any);
-    } else if (n.related_booking) {
-      router.push({ pathname: "/(tabs)/jobs", params: { tab: "mine" } });
-    }
+
   };
 
   const handleMarkAllRead = () => {

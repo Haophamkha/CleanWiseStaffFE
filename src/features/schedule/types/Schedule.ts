@@ -62,6 +62,13 @@ export interface WorkerSchedule {
   };
   assignment_id: number | null;
   claim_state?: ScheduleClaimState;
+  invitation?: {
+    id: number;
+    source: 'ADMIN';
+    status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
+    expires_at: string;
+    sender_name: string;
+  } | null;
   is_preferred_for_me?: boolean;
   preferred_until?: string | null;
 }

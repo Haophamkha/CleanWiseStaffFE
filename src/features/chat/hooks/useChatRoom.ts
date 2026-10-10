@@ -5,8 +5,13 @@ import {
     useSendChatMessageMutation,
 } from "@/features/chat/api/chatApi";
 import { useChatSocket } from "@/features/chat/hooks/useChatSocket";
+import {
+    getChatBlockedMessage,
+    restoreBlockedDraft,
+} from "@/features/chat/utils/chatModeration";
 import type { ChatAssignment, ChatMessage } from "@/features/chat/types/chat";
 import { useAppSelector } from "@/store/hooks";
+import { showErrorToast } from "@/utils/toast";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -337,7 +342,15 @@ export function useChatRoom(id: number) {
         ),
       );
       scrollToLatest();
-    } catch {
+    } catch (error) {
+      const blockedMessage = getChatBlockedMessage(error);
+      if (blockedMessage) {
+        setMessages((previous) => previous.filter((item) => item.id !== localId));
+        draftRef.current = restoreBlockedDraft(text, draftRef.current);
+        setDraft(draftRef.current);
+        showErrorToast("Không thể gửi tin nhắn", blockedMessage);
+        return;
+      }
       setMessages((previous) =>
         previous.map((item) =>
           item.id === localId ? { ...item, localStatus: "failed" } : item,

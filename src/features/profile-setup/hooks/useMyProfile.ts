@@ -74,7 +74,7 @@ function buildView(profile: WorkerProfileResponse) {
   const approvalWasRevoked =
     profile.status === "DRAFT" && !!profile.rejection_reason;
   const isFieldRejected = (field: string) =>
-    profile.status === "REJECTED" && field in (profile.rejected_fields ?? {});
+    (profile.status === "REJECTED" || approvalWasRevoked) && field in (profile.rejected_fields ?? {});
 
   const fieldNote = (field: string) =>
     isFieldRejected(field) ? (profile.rejected_fields[field] ?? "") : "";
