@@ -433,7 +433,7 @@ export function JobActions({
   if (!isMine) {
     return item.claim_state === "OPEN" ? (
       <PrimaryButton
-        label="Nhận việc"
+        label={item.invitation ? "Nhận việc từ danh sách chung" : "Nhận việc"}
         loading={actions.isClaiming}
         loadingLabel="Đang xử lý..."
         onPress={actions.handleClaim}

@@ -122,6 +122,7 @@ export const jobsApi = baseApi.injectEndpoints({
           group_by: "booking",
         },
       }),
+      providesTags: [{ type: 'AvailableSchedules', id: 'LIST' }],
       transformResponse: (r: any) => unwrapPaginated<WorkerSchedule>(r),
       ...pagedCacheConfig<WorkerSchedule, AvailableJobsPagedArgs>(),
     }),
@@ -136,6 +137,7 @@ export const jobsApi = baseApi.injectEndpoints({
             page,
           },
         }),
+        providesTags: [{ type: 'MySchedules', id: 'LIST' }],
         transformResponse: (r: any) => unwrapPaginated<WorkerMySchedule>(r),
         ...pagedCacheConfig<WorkerMySchedule, MyJobsPagedArgs>(),
       },
@@ -414,6 +416,14 @@ export const jobsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    respondInvitation: builder.mutation<{ id: number; status: string }, { invitationId: number; action: 'accept' | 'decline'; idempotencyKey: string }>({
+      query: ({ invitationId, action, idempotencyKey }) => ({
+        url: `/api/worker/invitations/${invitationId}/respond/`, method: 'POST',
+        data: { action }, timeout: ACTION_TIMEOUT_MS, headers: { 'Idempotency-Key': idempotencyKey },
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: [{ type: 'AvailableSchedules', id: 'LIST' }, { type: 'MySchedules', id: 'LIST' }],
+    }),
     declinePreferred: builder.mutation<
       void,
       {
@@ -454,6 +464,7 @@ export const {
   useGetBookingSchedulesQuery,
   useClaimBookingPackageMutation,
   useDeclinePreferredMutation,
+  useRespondInvitationMutation,
   useClaimScheduleMutation,
   useCancelAssignmentMutation,
   useCheckInMutation,

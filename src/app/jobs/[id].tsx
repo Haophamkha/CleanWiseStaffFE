@@ -11,6 +11,7 @@ import {
   PackageClaimBar,
   PackageSessionsCard,
 } from "@/features/job/components/PackageSessions";
+import { AdminInvitationBanner } from "@/features/job/components/AdminInvitationBanner";
 import { PreferredRequestBanner } from "@/features/job/components/PreferredRequestBanner";
 import { ProofImagesSection } from "@/features/job/components/ProofImagesSection";
 import { ServiceDetailReadOnly } from "@/features/job/components/ServiceDetailReadOnly";
@@ -62,6 +63,9 @@ export default function JobDetailScreen() {
           paddingBottom: (job.hasOpenSessions ? 120 : 40) + insets.bottom,
         }}
       >
+        {!job.isMine && (job.isPackage ? job.visibleSessions : [item]).filter((session) => session.invitation).map((session) => (
+          <AdminInvitationBanner key={session.id} invitation={session.invitation!} bookingId={session.booking_id} scheduleId={session.id} sequenceNo={session.sequence_no} />
+        ))}
         {!job.isMine && item.is_preferred_for_me && item.preferred_until ? (
           <PreferredRequestBanner
             bookingId={item.booking_id}
@@ -119,13 +123,13 @@ export default function JobDetailScreen() {
           </FadeInView>
         ) : null}
 
-        <JobActions
+        {!(item.invitation?.status === "PENDING" && !job.isMine && !job.isPackage) && <JobActions
           isMine={job.isMine}
           isPackage={job.isPackage}
           item={item}
           mineItem={mineItem}
           actions={actions}
-        />
+        />}
       </ScrollView>
 
       {job.hasOpenSessions ? <PackageClaimBar actions={actions} /> : null}

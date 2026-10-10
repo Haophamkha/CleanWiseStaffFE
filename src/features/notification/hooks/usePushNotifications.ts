@@ -19,7 +19,7 @@ export function usePushNotifications(enabled: boolean) {
   const [markRead] = useMarkNotificationReadMutation();
 
   useEffect(() => {
-    if (!enabled || isExpoGo) return;
+    if (!enabled || isExpoGo || Platform.OS === "web") return;
     let cancelled = false;
     let sub: { remove: () => void } | undefined;
 
@@ -39,6 +39,7 @@ export function usePushNotifications(enabled: boolean) {
             ? {
                 id: String(data.schedule_id),
                 source: "available",
+                view: data.view === "session" || data.invitation_id ? "session" : undefined,
                 bookingId: String(data.booking_id),
               }
             : {
