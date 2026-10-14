@@ -404,7 +404,6 @@ const axiosBaseQuery = (): BaseQueryFn<
 
     return { error: { isNetworkError: true } };
 
-    return { error: { isNetworkError: true } };
   };
 };
 
@@ -428,6 +427,7 @@ export const baseApi = createApi({
     "WalletTransactions",
     "Notifications",
     "Complaints",
+    "ChatbotConversations",
   ],
 
   endpoints: () => ({}),

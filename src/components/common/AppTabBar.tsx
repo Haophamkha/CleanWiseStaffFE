@@ -1,9 +1,11 @@
 import { COLORS, SHADOWS, TYPE } from "@/constants/theme";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { useEffect, useRef, type ComponentProps } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 import {
   Animated,
+  Keyboard,
+  Platform,
   Pressable,
   Text,
   View,
@@ -302,7 +304,23 @@ export default function AppTabBar({
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width: barWidth } = useWindowDimensions();
-
+  const [kb, setKb] = useState(false);
+  useEffect(() => {
+    const ios = Platform.OS === "ios";
+    const s = Keyboard.addListener(
+      ios ? "keyboardWillShow" : "keyboardDidShow",
+      () => setKb(true),
+    );
+    const h = Keyboard.addListener(
+      ios ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKb(false),
+    );
+    return () => {
+      s.remove();
+      h.remove();
+    };
+  }, []);
+  if (kb) return null;
   const visible = state.routes.map((route, index) => ({ route, index }));
 
   const slotWidth = barWidth / visible.length;
