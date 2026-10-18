@@ -8,6 +8,7 @@ type Props = {
   disabled: boolean;
   onSetDefault: (method: PaymentMethod) => void;
   onDelete: (method: PaymentMethod) => void;
+  onVerify: (method: PaymentMethod) => void;
 };
 
 export default function PaymentMethodCard({
@@ -15,14 +16,19 @@ export default function PaymentMethodCard({
   disabled,
   onSetDefault,
   onDelete,
+  onVerify,
 }: Props) {
   const verified = method.verification_status === "VERIFIED";
+  const sandboxVerified = method.verification_status === "SANDBOX_VERIFIED";
   const failed = method.verification_status === "FAILED";
+  const pending = method.verification_status === "PENDING";
   const statusLabel = verified
     ? "Đã xác minh"
+    : sandboxVerified
+      ? "Đã test Sandbox · chưa dùng để rút tiền"
     : failed
       ? "Xác minh thất bại"
-      : "Chưa xác minh";
+      : pending ? "Đang xác minh" : "Chưa xác minh";
   const statusBackground = verified
     ? COLORS.successLight
     : failed
@@ -82,6 +88,19 @@ export default function PaymentMethodCard({
       </View>
 
       <View className="flex-row border-t border-line mt-4 pt-2">
+        {!verified && (
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center"
+            style={{ minHeight: 44 }}
+            onPress={() => onVerify(method)}
+            disabled={disabled}
+          >
+            <Feather name={pending ? "refresh-cw" : "shield"} size={16} color={COLORS.ink} />
+            <Text className="text-ink ml-2" style={TYPE.label}>
+              {pending ? "Tiếp tục xác minh" : sandboxVerified ? "Test lại Sandbox" : "Xác minh Sandbox TINGEE"}
+            </Text>
+          </TouchableOpacity>
+        )}
         {!method.is_default && (
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center"

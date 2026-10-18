@@ -2,12 +2,14 @@ import {
     useCreateBankPaymentMethodMutation,
     useGetBankCatalogQuery,
     useGetPaymentMethodOptionsQuery,
+    useStartBankAccountVerificationMutation,
+    useConfirmBankAccountVerificationMutation,
 } from "@/features/payment/api/paymentMethodApi";
 import type {
     BankCatalogItem,
     PaymentMethodOption,
 } from "@/features/payment/types/PaymentMethod";
-import { showSuccessToast } from "@/utils/toast";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import type { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState, type ComponentProps } from "react";
@@ -46,6 +48,10 @@ export function useAddPaymentMethod() {
   );
   const [accountNumber, setAccountNumber] = useState("");
   const [accountHolderName, setAccountHolderName] = useState("");
+  const [identity, setIdentity] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpMethodId, setOtpMethodId] = useState<number | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [isDefault, setIsDefault] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -61,6 +67,11 @@ export function useAddPaymentMethod() {
   } = useGetBankCatalogQuery(undefined, { skip: step !== "bank-form" });
   const [createBankMethod, { isLoading: isSaving }] =
     useCreateBankPaymentMethodMutation();
+  const [startVerification, { isLoading: isStartingVerification }] =
+    useStartBankAccountVerificationMutation();
+  const [confirmVerification, { isLoading: isConfirming }] =
+    useConfirmBankAccountVerificationMutation();
+  const isBusy = isSaving || isStartingVerification || isConfirming;
 
   const visibleOptions = useMemo<PaymentMethodOption[]>(
     () =>
@@ -93,7 +104,7 @@ export function useAddPaymentMethod() {
   );
 
   const handleBack = () => {
-    if (isSaving) return;
+    if (isBusy) return;
     if (step === "bank-form") {
       setStep("options");
       setError("");
@@ -140,10 +151,16 @@ export function useAddPaymentMethod() {
     if (accountHolderName.trim().length < 2) {
       return setError("Vui lòng nhập tên chủ tài khoản.");
     }
+    if (!/^\d{9,14}$/.test(identity)) {
+      return setError("CCCD/CMND Sandbox phải gồm từ 9 đến 14 chữ số.");
+    }
+    if (!/^0\d{9}$/.test(mobile)) {
+      return setError("Số điện thoại Sandbox phải gồm 10 chữ số và bắt đầu bằng 0.");
+    }
 
     setError("");
     try {
-      await createBankMethod({
+      const method = await createBankMethod({
         bank_bin: selectedBank.bin,
         bank_code: selectedBank.code,
         bank_name: selectedBank.short_name || selectedBank.name,
@@ -153,9 +170,35 @@ export function useAddPaymentMethod() {
         is_default: isDefault,
       }).unwrap();
       showSuccessToast("Đã thêm tài khoản ngân hàng");
+      try {
+        const result = await startVerification({ id: method.id, identity, mobile }).unwrap();
+        if (result.requires_otp) {
+          setOtpMethodId(method.id);
+          return;
+        }
+      } catch (verificationError: any) {
+        showSuccessToast(
+          "Tài khoản đã được lưu",
+          verificationError?.data?.message ?? "Bạn có thể thử lại trong danh sách tài khoản.",
+        );
+        router.back();
+        return;
+      }
       router.back();
     } catch (requestError) {
       setError(getFirstError(requestError));
+    }
+  };
+
+  const handleConfirmOtp = async () => {
+    if (!otpMethodId) return;
+    try {
+      await confirmVerification({ id: otpMethodId, otp }).unwrap();
+      showSuccessToast("Xác minh Sandbox TINGEE thành công");
+      setOtpMethodId(null);
+      router.back();
+    } catch (verificationError: any) {
+      showErrorToast("OTP chưa hợp lệ", verificationError?.data?.message ?? "Vui lòng thử lại.");
     }
   };
 
@@ -163,7 +206,7 @@ export function useAddPaymentMethod() {
     step,
     headerTitle:
       step === "options" ? "Thêm phương thức" : "Thêm tài khoản ngân hàng",
-    isSaving,
+    isSaving: isBusy,
     error,
     handleBack,
     handleSubmit,
@@ -190,6 +233,16 @@ export function useAddPaymentMethod() {
     changeAccountNumber,
     accountHolderName,
     changeAccountHolderName,
+    identity,
+    setIdentity,
+    mobile,
+    setMobile,
+    otp,
+    setOtp,
+    otpMethodId,
+    setOtpMethodId,
+    handleConfirmOtp,
+    isConfirming,
     displayName,
     setDisplayName,
     isDefault,
