@@ -8,8 +8,11 @@ import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   RefreshControl,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -77,6 +80,7 @@ export default function WorkerPaymentMethodsScreen() {
               disabled={p.isMutating}
               onSetDefault={p.handleSetDefault}
               onDelete={p.requestDelete}
+              onVerify={p.handleVerify}
             />
           )}
           ListEmptyComponent={
@@ -112,6 +116,26 @@ export default function WorkerPaymentMethodsScreen() {
         onConfirm={p.confirmDelete}
         onCancel={p.cancelDelete}
       />
+      <Modal visible={p.otpMethodId !== null || p.verifyMethodId !== null} transparent animationType="fade" onRequestClose={() => { p.setOtpMethodId(null); p.setVerifyMethodId(null); }}>
+        <View className="flex-1 bg-black/40 justify-center px-6">
+          <View className="bg-white rounded-3xl p-5">
+            {p.verifyMethodId !== null ? <>
+              <Text className="text-ink text-lg font-bold">Thông tin Sandbox</Text>
+              <Text className="text-ink-soft mt-2 leading-5">Nhập CCCD/CMND và điện thoại theo kịch bản test TINGEE.</Text>
+              <TextInput className="border border-line rounded-2xl px-4 py-3 mt-4 text-ink" keyboardType="number-pad" value={p.identity} onChangeText={(value) => p.setIdentity(value.replace(/\D/g, "").slice(0, 14))} placeholder="CCCD/CMND test" />
+              <TextInput className="border border-line rounded-2xl px-4 py-3 mt-3 text-ink" keyboardType="phone-pad" value={p.mobile} onChangeText={(value) => p.setMobile(value.replace(/\D/g, "").slice(0, 10))} placeholder="Điện thoại test" />
+            </> : <>
+              <Text className="text-ink text-lg font-bold">Nhập OTP Sandbox</Text>
+              <Text className="text-ink-soft mt-2 leading-5">Nhập mã OTP giả lập của kịch bản TINGEE.</Text>
+              <TextInput className="border border-line rounded-2xl px-4 py-3 mt-4 text-ink" keyboardType="number-pad" value={p.otp} onChangeText={(value) => p.setOtp(value.replace(/\D/g, "").slice(0, 8))} placeholder="Mã OTP" maxLength={8} />
+            </>}
+            <View className="flex-row mt-5">
+              <TouchableOpacity className="flex-1 py-3 items-center" onPress={() => { p.setOtpMethodId(null); p.setVerifyMethodId(null); }}><Text className="text-ink-soft font-semibold">Để sau</Text></TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3 items-center bg-ink rounded-xl" onPress={p.verifyMethodId !== null ? p.handleStartVerification : p.handleConfirmOtp} disabled={p.isMutating || (p.verifyMethodId !== null ? p.identity.length < 9 || p.mobile.length !== 10 || !p.mobile.startsWith("0") : p.otp.length < 4)}><Text className="text-white font-bold">{p.isMutating ? "Đang kiểm tra..." : p.verifyMethodId !== null ? "Bắt đầu xác minh" : "Xác nhận OTP"}</Text></TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

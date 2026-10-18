@@ -149,7 +149,7 @@ export default function WithdrawModal({
         <TouchableOpacity
           onPress={() => {
             w.handleClose();
-            router.push("/payment-methods/add" as any);
+            router.push((w.hasUnverifiedMethods ? "/payment-methods" : "/payment-methods/add") as any);
           }}
           activeOpacity={0.8}
           style={{
@@ -163,10 +163,12 @@ export default function WithdrawModal({
           }}
         >
           <Text style={{ fontWeight: "700", color: COLORS.primaryDark }}>
-            + Thêm tài khoản ngân hàng
+            {w.hasUnverifiedMethods ? "Xác minh tài khoản ngân hàng" : "+ Thêm tài khoản ngân hàng"}
           </Text>
           <Text style={{ fontSize: 12, marginTop: 2, color: COLORS.inkSoft }}>
-            Bạn cần có tài khoản ngân hàng để rút tiền.
+            {w.hasUnverifiedMethods
+              ? "Hãy xác minh tài khoản đã lưu trước khi rút tiền."
+              : "Bạn cần có tài khoản ngân hàng để rút tiền."}
           </Text>
         </TouchableOpacity>
       ) : (

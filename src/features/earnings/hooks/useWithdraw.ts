@@ -46,8 +46,11 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
   const { data: allMethods = [], isLoading: methodsLoading } =
     useGetPaymentMethodsQuery();
   const methods = useMemo(
-    () => allMethods.filter((m) => m.method_type === "BANK_ACCOUNT"),
+    () => allMethods.filter((m) => m.method_type === "BANK_ACCOUNT" && m.verification_status === "VERIFIED"),
     [allMethods],
+  );
+  const hasUnverifiedMethods = allMethods.some(
+    (m) => m.method_type === "BANK_ACCOUNT" && m.verification_status !== "VERIFIED",
   );
   const selected =
     methods.find((m) => m.id === selectedId) ??
@@ -157,6 +160,7 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     hintText: `Ví ký quỹ phải giữ tối thiểu ${formatVnd(MIN_ESCROW_BALANCE)}. Bạn có thể rút tối đa ${formatVnd(maxWithdrawable)}.`,
     quickAmounts,
     methods,
+    hasUnverifiedMethods,
     methodsLoading,
     selected,
     selectMethod: setSelectedId,

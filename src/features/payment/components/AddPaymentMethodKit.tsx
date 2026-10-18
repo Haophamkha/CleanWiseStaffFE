@@ -109,8 +109,7 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
           style={{ marginTop: 1 }}
         />
         <Text className="flex-1 text-ink-soft text-sm leading-5 ml-3">
-          Tài khoản được lưu ở trạng thái chưa xác minh. CleanWise không yêu cầu
-          mật khẩu hoặc OTP ngân hàng.
+          Dùng dữ liệu giả lập TINGEE Sandbox và nhập OTP test. Không nhập mật khẩu hoặc OTP ngân hàng thật.
         </Text>
       </View>
 
@@ -173,6 +172,14 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
             onChangeText={form.changeAccountHolderName}
             autoCapitalize="characters"
           />
+        </Field>
+
+        <Field label="CCCD/CMND Sandbox">
+          <FormInput icon="user-check" placeholder="Mã định danh trong kịch bản test" value={form.identity} onChangeText={form.setIdentity} keyboardType="number-pad" maxLength={14} />
+        </Field>
+
+        <Field label="Số điện thoại Sandbox">
+          <FormInput icon="smartphone" placeholder="Số điện thoại trong kịch bản test" value={form.mobile} onChangeText={form.setMobile} keyboardType="phone-pad" maxLength={10} />
         </Field>
 
         <Field label="Tên gợi nhớ (không bắt buộc)" last>
