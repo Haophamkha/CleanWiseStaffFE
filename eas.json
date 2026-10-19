@@ -12,7 +12,7 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://take-unreeling-shaping.ngrok-free.dev"
+        "EXPO_PUBLIC_API_URL": "https://api.cleanwise.id.vn"
       }
     },
     "production": {
