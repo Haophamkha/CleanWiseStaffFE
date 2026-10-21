@@ -20,6 +20,7 @@ export type ComplaintStatus =
 
 export type ComplaintListItem = {
   id: number;
+  code?: string | null;
   booking: number;
   booking_code?: string;
   schedule?: number | null;

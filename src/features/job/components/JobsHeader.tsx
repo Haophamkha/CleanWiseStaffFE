@@ -29,6 +29,7 @@ type JobsHeaderProps = {
   onSelectDay: (key: string | null) => void;
   myTab: MyJobsTab;
   onSelectMyTab: (tab: MyJobsTab) => void;
+  myCounts?: Partial<Record<MyJobsTab, number>>;
 };
 
 function TabLabel({ label, active }: { label: string; active: boolean }) {
@@ -62,6 +63,7 @@ export function JobsHeader({
   onSelectDay,
   myTab,
   onSelectMyTab,
+  myCounts,
 }: JobsHeaderProps) {
   const insets = useSafeAreaInsets();
   const [trackWidth, setTrackWidth] = useState(0);
@@ -184,7 +186,11 @@ export function JobsHeader({
       {tab === "available" ? (
         <DayFilterBar chips={dayChips} selected={day} onSelect={onSelectDay} />
       ) : (
-        <MyStatusTabs value={myTab} onChange={onSelectMyTab} />
+        <MyStatusTabs
+          value={myTab}
+          onChange={onSelectMyTab}
+          counts={myCounts}
+        />
       )}
     </View>
   );

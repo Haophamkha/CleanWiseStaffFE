@@ -5,6 +5,7 @@ import type {
   CancelAssignmentResult,
   ClaimBookingPackageResult,
   ClaimScheduleResult,
+  MyJobCounts,
   MyJobsPagedArgs,
   MySchedulesParams,
   Paginated,
@@ -122,7 +123,7 @@ export const jobsApi = baseApi.injectEndpoints({
           group_by: "booking",
         },
       }),
-      providesTags: [{ type: 'AvailableSchedules', id: 'LIST' }],
+      providesTags: [{ type: "AvailableSchedules", id: "LIST" }],
       transformResponse: (r: any) => unwrapPaginated<WorkerSchedule>(r),
       ...pagedCacheConfig<WorkerSchedule, AvailableJobsPagedArgs>(),
     }),
@@ -137,11 +138,20 @@ export const jobsApi = baseApi.injectEndpoints({
             page,
           },
         }),
-        providesTags: [{ type: 'MySchedules', id: 'LIST' }],
+        providesTags: [{ type: "MySchedules", id: "LIST" }],
         transformResponse: (r: any) => unwrapPaginated<WorkerMySchedule>(r),
         ...pagedCacheConfig<WorkerMySchedule, MyJobsPagedArgs>(),
       },
     ),
+
+    getMyJobCounts: builder.query<MyJobCounts, void>({
+      query: () => ({
+        url: "/api/worker/schedules/my-schedules/counts/",
+        method: "GET",
+      }),
+      transformResponse: unwrapResponse,
+      providesTags: [{ type: "MySchedules", id: "LIST" }],
+    }),
 
     getAvailableSchedules: builder.query<
       WorkerSchedule[],
@@ -346,6 +356,21 @@ export const jobsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    confirmCash: builder.mutation<
+      { payment_id: number; status: string },
+      { scheduleId: number }
+    >({
+      query: ({ scheduleId }) => ({
+        url: `/api/worker/schedules/${scheduleId}/confirm-cash/`,
+        method: "POST",
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: (_r, _e, { scheduleId }) => [
+        { type: "MySchedules", id: scheduleId },
+        { type: "MySchedules", id: "LIST" },
+      ],
+    }),
+
     uploadScheduleImage: builder.mutation<
       ScheduleImage,
       {
@@ -416,13 +441,26 @@ export const jobsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    respondInvitation: builder.mutation<{ id: number; status: string }, { invitationId: number; action: 'accept' | 'decline'; idempotencyKey: string }>({
+    respondInvitation: builder.mutation<
+      { id: number; status: string },
+      {
+        invitationId: number;
+        action: "accept" | "decline";
+        idempotencyKey: string;
+      }
+    >({
       query: ({ invitationId, action, idempotencyKey }) => ({
-        url: `/api/worker/invitations/${invitationId}/respond/`, method: 'POST',
-        data: { action }, timeout: ACTION_TIMEOUT_MS, headers: { 'Idempotency-Key': idempotencyKey },
+        url: `/api/worker/invitations/${invitationId}/respond/`,
+        method: "POST",
+        data: { action },
+        timeout: ACTION_TIMEOUT_MS,
+        headers: { "Idempotency-Key": idempotencyKey },
       }),
       transformResponse: unwrapResponse,
-      invalidatesTags: [{ type: 'AvailableSchedules', id: 'LIST' }, { type: 'MySchedules', id: 'LIST' }],
+      invalidatesTags: [
+        { type: "AvailableSchedules", id: "LIST" },
+        { type: "MySchedules", id: "LIST" },
+      ],
     }),
     declinePreferred: builder.mutation<
       void,
@@ -470,4 +508,6 @@ export const {
   useCheckInMutation,
   useCheckOutMutation,
   useUploadScheduleImageMutation,
+  useConfirmCashMutation,
+  useGetMyJobCountsQuery,
 } = jobsApi;

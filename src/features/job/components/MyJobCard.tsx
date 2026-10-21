@@ -87,6 +87,20 @@ export const MyJobCard = memo(function MyJobCard({
             </Text>
           </View>
         </View>
+        {dead && !!item.cancel_reason && (
+          <View className="flex-row items-start bg-danger-light rounded-2xl p-3 mt-3">
+            <Feather
+              name="info"
+              size={14}
+              color={COLORS.danger}
+              style={{ marginTop: 2 }}
+            />
+            <Text className="text-ink-soft text-xs ml-2 flex-1 leading-4">
+              <Text className="font-bold">Lý do: </Text>
+              {item.cancel_reason}
+            </Text>
+          </View>
+        )}
 
         <View className="flex-row items-center justify-between mt-4">
           <View>

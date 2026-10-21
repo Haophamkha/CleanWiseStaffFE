@@ -382,6 +382,11 @@ function WalletTxRow({ row, last }: { row: WalletTxRowView; last: boolean }) {
           {row.timeText}
           {row.statusText ? ` · ${row.statusText}` : ""}
         </Text>
+        {!!row.code && (
+          <Text selectable className="text-ink-muted text-[11px] mt-0.5">
+            {row.code}
+          </Text>
+        )}
       </View>
 
       <Text

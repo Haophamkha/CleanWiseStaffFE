@@ -5,6 +5,7 @@ import {
   useCheckOutMutation,
   useClaimBookingPackageMutation,
   useClaimScheduleMutation,
+  useConfirmCashMutation,
   useUploadScheduleImageMutation,
 } from "@/features/job/api/jobsApi";
 import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
@@ -153,6 +154,19 @@ export function useJobActions({
   const [isLocating, setIsLocating] = useState(false);
 
   const [checkOut, { isLoading: isCheckingOut }] = useCheckOutMutation();
+  const [confirmCash, { isLoading: isConfirmingCash }] =
+    useConfirmCashMutation();
+
+  const handleConfirmCash = async () => {
+    try {
+      await confirmCash({ scheduleId }).unwrap();
+      await refetchBookingSchedules();
+      await refetchMineSchedules();
+      showSuccessToast("Đã xác nhận", "Bạn đã xác nhận thu tiền mặt từ khách.");
+    } catch (err) {
+      showErrorToast("Không thể xác nhận", getErrorMessage(err));
+    }
+  };
 
   const [uploadImage] = useUploadScheduleImageMutation();
 
@@ -706,6 +720,9 @@ export function useJobActions({
     isCheckingIn: isCheckingIn || isLocating,
     handleCheckOut,
     isCheckingOut: isCheckingOut || isUploadingImages,
+
+    handleConfirmCash,
+    isConfirmingCash,
 
     handleOpenChat,
     openingChat,

@@ -89,15 +89,7 @@ export default function ComplaintDetailScreen() {
     <View className="flex-1 bg-canvas">
       <DetailHeader
         title="Chi tiết khiếu nại"
-        subtitle={`${
-          data.booking_code
-            ? `Đơn ${data.booking_code}`
-            : `Đơn #${data.booking}`
-        }${
-          data.schedule_sequence_no
-            ? ` · Buổi ${data.schedule_sequence_no}`
-            : ""
-        }`}
+        subtitle={data.code ?? `#${data.id}`}
         onBack={() => router.back()}
       />
 
@@ -109,13 +101,24 @@ export default function ComplaintDetailScreen() {
         }}
       >
         <Section title="Loại sự cố">
-          <Text className="text-ink text-base font-extrabold mb-3">
+          <Text className="text-ink text-base font-extrabold mb-1">
             {data.issue_type_name}
           </Text>
+
+          <Text className="text-ink-soft text-xs mb-3">
+            {data.booking_code
+              ? `Đơn ${data.booking_code}`
+              : `Đơn #${data.booking}`}
+            {data.schedule_sequence_no
+              ? ` · Buổi ${data.schedule_sequence_no}`
+              : ""}
+          </Text>
+
           <View className="flex-row items-center justify-between">
             <Text className="text-ink-soft text-xs">
               {data.stage_label} · {formatDateTime(data.created_at)}
             </Text>
+
             <ComplaintStatusBadge
               status={data.status}
               label={data.status_label}
@@ -148,6 +151,7 @@ export default function ComplaintDetailScreen() {
             <Text className="text-ink text-sm leading-5">
               {data.resolution_note}
             </Text>
+
             {data.resolved_at ? (
               <Text className="text-ink-muted text-xs mt-2">
                 {formatDateTime(data.resolved_at)}
@@ -166,6 +170,7 @@ export default function ComplaintDetailScreen() {
               {amount > 0 ? "+" : "-"}
               {formatCurrency(String(Math.abs(amount))) ?? ""}
             </Text>
+
             <Text className="text-ink-muted text-xs mt-1">
               {amount > 0
                 ? "Đã cộng vào ví của bạn."
@@ -182,6 +187,7 @@ export default function ComplaintDetailScreen() {
             style={{ height: 48 }}
           >
             <Feather name="x-circle" size={16} color={COLORS.danger} />
+
             <Text className="text-danger text-xs ml-2 font-extrabold">
               HỦY KHIẾU NẠI
             </Text>

@@ -20,6 +20,8 @@ export type ScheduleImageType = "BEFORE" | "AFTER" | "ISSUE" | "OTHER";
 
 export type ScheduleClaimState = "OPEN" | "MINE" | "TAKEN" | "CONFLICT";
 
+export type MyJobCounts = Record<MyJobsTab, number>;
+
 export interface ScheduleImage {
   id: number;
   image: string;
@@ -50,6 +52,10 @@ export interface WorkerSchedule {
   customer_name: string;
   payment_status: PaymentStatus;
   price: string | null;
+  cancel_reason?: string | null;
+  payment_method?: string | null;
+  cash_to_collect?: string | null;
+  platform_fee?: string | null;
   service_data: Record<string, any>;
   available_sessions?: number | null;
   form_schema?: {
@@ -64,8 +70,9 @@ export interface WorkerSchedule {
   claim_state?: ScheduleClaimState;
   invitation?: {
     id: number;
-    source: 'ADMIN';
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
+    source: "ADMIN";
+    status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "EXPIRED";
+    response_note?: string;
     expires_at: string;
     sender_name: string;
   } | null;
@@ -85,6 +92,8 @@ export interface WorkerMySchedule extends WorkerSchedule {
   images: ScheduleImage[];
   completion_note: string | null;
   delivery_address_line?: string | null;
+  payment_method?: "CASH" | "BANK_TRANSFER" | "WALLET" | string | null;
+  booking_status?: string;
 }
 
 export interface ClaimScheduleResult {

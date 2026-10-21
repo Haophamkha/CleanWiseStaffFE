@@ -5,6 +5,7 @@ import {
   useMarkNotificationReadMutation,
 } from "@/features/notification/api/notificationApi";
 import type { AppNotification } from "@/features/notification/types/Notification";
+import { resolveNotificationRoute } from "@/features/notification/utils/notificationMeta";
 import { useAppSelector } from "@/store/hooks";
 import { startOfDay } from "@/utils/format";
 import { router } from "expo-router";
@@ -83,22 +84,15 @@ export function useNotifications() {
         prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)),
       );
     }
-    if (n.related_schedule && n.related_booking) {
-      router.push({
-        pathname: "/jobs/[id]",
-        params: {
-          id: String(n.related_schedule),
-          source: n.navigation_source ?? "mine",
-          bookingId: String(n.related_booking),
-          view: "session",
-        },
-      });
-    } else if (n.type === "SYSTEM") {
-      router.push("/(tabs)/profile" as any);
-    } else if (n.related_booking) {
-      router.push({ pathname: "/(tabs)/jobs", params: { tab: "mine" } });
-    }
-
+    const route = resolveNotificationRoute({
+      target: n.target,
+      type: n.type,
+      bookingId: n.related_booking,
+      scheduleId: n.related_schedule,
+      source: n.navigation_source,
+      view: "session",
+    });
+    if (route) router.push(route);
   };
 
   const handleMarkAllRead = () => {

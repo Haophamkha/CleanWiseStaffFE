@@ -266,6 +266,41 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
   );
 }
 
+function CashBlock({ actions }: { actions: JobActionsState }) {
+  const [visible, setVisible] = useState(false);
+  const loading = actions.isConfirmingCash;
+  return (
+    <>
+      <FadeInView delay={60}>
+        <HeroAction
+          title="Xác nhận đã thu tiền mặt"
+          subtitle="Bấm sau khi nhận đủ tiền từ khách"
+          icon="dollar-sign"
+          tone="primary"
+          loading={loading}
+          loadingLabel="Đang xử lý..."
+          onPress={() => setVisible(true)}
+        />
+      </FadeInView>
+      <ConfirmModal
+        visible={visible}
+        tone="dark"
+        icon="dollar-sign"
+        title="Đã thu tiền mặt?"
+        message="Chỉ xác nhận khi bạn đã nhận đủ tiền từ khách. Nếu không xác nhận, hệ thống sẽ tự xác nhận sau 24 giờ."
+        confirmLabel="Đã thu đủ"
+        cancelLabel="Chưa"
+        loading={loading}
+        onConfirm={async () => {
+          await actions.handleConfirmCash();
+          setVisible(false);
+        }}
+        onCancel={() => !loading && setVisible(false)}
+      />
+    </>
+  );
+}
+
 /** Liên hệ khách: thẻ trắng có icon tròn. */
 function ContactAction({ actions }: { actions: JobActionsState }) {
   const loading = actions.openingChat;
@@ -463,6 +498,13 @@ export function JobActions({
 
       {mineItem?.status === "IN_PROGRESS" ? (
         <CheckOutBlock actions={actions} />
+      ) : null}
+
+      {mineItem?.status === "COMPLETED" &&
+      mineItem.booking_status === "COMPLETED" &&
+      mineItem.payment_method === "CASH" &&
+      mineItem.payment_status === "UNPAID" ? (
+        <CashBlock actions={actions} />
       ) : null}
 
       {mineItem?.assignment_id ? <ContactAction actions={actions} /> : null}

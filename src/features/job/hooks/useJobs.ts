@@ -1,5 +1,6 @@
 import {
   useGetAvailableJobsPagedQuery,
+  useGetMyJobCountsQuery,
   useGetMyJobsPagedQuery,
 } from "@/features/job/api/jobsApi";
 import { usePagedJobs } from "@/features/job/hooks/usePagedJobs";
@@ -42,15 +43,27 @@ export function useJobs() {
   // Tab chính: available / mine
   const [tab, setTab] = useState<Tab>(initialTab ?? "available");
 
-  // Tab con của "mine": upcoming / history...
-  const [myTab, setMyTab] = useState<MyJobsTab>("upcoming");
+  // Tab con của "mine": today / upcoming / completed / cancelled...
+  const [myTab, setMyTab] = useState<MyJobsTab>("today");
 
-  const myFilters = useMemo<MyFilters>(() => ({ tab: myTab }), [myTab]);
+  // Hoàn thành / Đã hủy chỉ tải 5 đơn mỗi trang
+  const myFilters = useMemo<MyFilters>(
+    () =>
+      myTab === "completed" || myTab === "cancelled"
+        ? { tab: myTab, page_size: 5 }
+        : { tab: myTab },
+    [myTab],
+  );
 
   const mine = usePagedJobs<WorkerMySchedule, MyFilters>(
     useGetMyJobsPagedQuery,
     myFilters,
   );
+
+  // Số lượng đơn của từng tab con
+  const { data: myCounts, refetch: refetchMyCounts } = useGetMyJobCountsQuery();
+  const refetchMyCountsRef = useRef(refetchMyCounts);
+  refetchMyCountsRef.current = refetchMyCounts;
 
   const [day, setDay] = useState<string | null>(null);
 
@@ -96,6 +109,7 @@ export function useJobs() {
       }
 
       currentRef.current.refresh();
+      refetchMyCountsRef.current();
     }, []),
   );
 
@@ -109,6 +123,7 @@ export function useJobs() {
 
     lastTick.current = refreshTick;
     currentRef.current.refresh();
+    refetchMyCountsRef.current();
   }, [refreshTick]);
 
   const switchTab = useCallback(
@@ -174,6 +189,7 @@ export function useJobs() {
   return {
     myTab,
     setMyTab,
+    myCounts,
 
     tab,
     switchTab,
