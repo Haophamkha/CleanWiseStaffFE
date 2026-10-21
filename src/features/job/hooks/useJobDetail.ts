@@ -1,13 +1,29 @@
 import { useJobActions } from "@/features/job/hooks/useJobActions";
 import { useJobDetailData } from "@/features/job/hooks/useJobDetailData";
 import type { PaymentStatus } from "@/features/schedule/types/Schedule";
-import { formatCurrency, formatDateTime } from "@/utils/format";
+import {
+  formatDistance,
+  useDistanceToAddress,
+} from "@/hooks/useDistanceToAddress";
+import {
+  formatCurrency,
+  formatDateTime,
+  formatDayLabel,
+  formatDuration,
+  formatTime,
+} from "@/utils/format";
 import type { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, type ComponentProps } from "react";
 import { Alert, Linking } from "react-native";
 
 const HIDE_TAKEN_SESSIONS = true;
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  CASH: "Tiền mặt, thu trực tiếp từ khách",
+  BANK_TRANSFER: "Chuyển khoản online",
+  WALLET: "Ví CleanWise",
+};
 
 export type InfoRowData = {
   icon: ComponentProps<typeof Feather>["name"];
@@ -83,6 +99,8 @@ export function useJobDetail() {
     return { latitude: lat, longitude: lng };
   }, [item?.address_latitude, item?.address_longitude]);
 
+  const distanceKm = useDistanceToAddress(destination);
+
   const actions = useJobActions({
     scheduleId,
     isMine,
@@ -113,24 +131,45 @@ export function useJobDetail() {
   if (item) {
     const rows: InfoRowData[] = [];
     if (!isPackage) {
-      rows.push(
-        {
-          icon: "calendar",
-          label: "Bắt đầu",
-          value: formatDateTime(item.scheduled_start),
-        },
-        {
-          icon: "clock",
-          label: "Kết thúc",
-          value: formatDateTime(item.scheduled_end),
-        },
-      );
+      rows.push({
+        icon: "calendar",
+        label: "Thời gian",
+        value: `${formatDayLabel(item.scheduled_start)}, ${formatTime(item.scheduled_start)} - ${formatTime(item.scheduled_end)} (${formatDuration(item.scheduled_start, item.scheduled_end)})`,
+      });
     }
     rows.push({
       icon: "map-pin",
       label: "Khu vực",
       value: `${item.address_ward ? item.address_ward + ", " : ""}${item.address_city}`,
     });
+    if (distanceKm !== null) {
+      rows.push({
+        icon: "navigation",
+        label: "Cách vị trí của bạn",
+        value: formatDistance(distanceKm),
+      });
+    }
+    if (item.payment_method) {
+      rows.push({
+        icon: "credit-card",
+        label: "Hình thức thanh toán",
+        value: PAYMENT_METHOD_LABEL[item.payment_method] ?? item.payment_method,
+      });
+    }
+    if (item.cash_to_collect) {
+      rows.push({
+        icon: "dollar-sign",
+        label: "Cần thu từ khách",
+        value: formatCurrency(item.cash_to_collect) ?? item.cash_to_collect,
+      });
+    }
+    if (item.platform_fee) {
+      rows.push({
+        icon: "percent",
+        label: "Phí nền tảng",
+        value: `${formatCurrency(item.platform_fee) ?? item.platform_fee}, trừ vào ví khi nhận việc`,
+      });
+    }
     if (mineItem) {
       rows.push(
         {
@@ -138,13 +177,24 @@ export function useJobDetail() {
           label: "Địa chỉ chi tiết",
           value: mineItem.address_line,
         },
-        { icon: "user", label: "Người nhận", value: mineItem.receiver_name },
+        {
+          icon: "user",
+          label: "Tên liên hệ",
+          value: mineItem.receiver_name,
+        },
         {
           icon: "phone",
-          label: "Số điện thoại",
+          label: "SĐT liên hệ",
           value: mineItem.receiver_phone,
         },
       );
+      if (mineItem.status === "PENDING" && mineItem.can_cancel) {
+        rows.push({
+          icon: "x-circle",
+          label: "Hạn hủy nhận việc",
+          value: `Trước ${formatDateTime(mineItem.cancel_deadline)}`,
+        });
+      }
     }
 
     const noteRows: InfoRowData[] = [];
@@ -160,6 +210,17 @@ export function useJobDetail() {
         icon: "edit-3",
         label: "Ghi chú buổi làm",
         value: mineItem.note,
+      });
+    }
+    if (
+      mineItem &&
+      (mineItem.status === "CANCELLED" || mineItem.status === "MISSED") &&
+      mineItem.cancel_reason
+    ) {
+      noteRows.push({
+        icon: "info",
+        label: "Lý do hủy buổi",
+        value: mineItem.cancel_reason,
       });
     }
 

@@ -12,6 +12,7 @@ type ServiceDetailReadOnlyProps = {
   fields?: FormField[] | null;
   values?: Record<string, unknown> | null;
   taskChecklist?: string | null;
+  hideSchedule?: boolean;
 };
 
 const WEEKDAY_LABELS: Record<string, string> = {
@@ -254,12 +255,15 @@ function FieldList({
   fields,
   values,
   taskChecklist,
+  hideSchedule,
 }: {
   fields: FormField[];
   values: Record<string, unknown>;
   taskChecklist?: string | null;
+  hideSchedule?: boolean;
 }) {
   const visible = fields.filter((f) => {
+    if (hideSchedule && (f.type === "DATE" || f.type === "TIME")) return false;
     if (f.type === "TASK_CHECKLIST") return !!taskChecklist;
     return !isEmptyValue(values[f.key]);
   });
@@ -362,12 +366,16 @@ export function ServiceDetailReadOnly({
   fields,
   values,
   taskChecklist,
+  hideSchedule = false,
 }: ServiceDetailReadOnlyProps) {
   if (!fields || fields.length === 0) return null;
   const scope = values ?? {};
-  const hasVisible = fields.some((f) =>
-    f.type === "TASK_CHECKLIST" ? !!taskChecklist : !isEmptyValue(scope[f.key]),
-  );
+  const hasVisible = fields.some((f) => {
+    if (hideSchedule && (f.type === "DATE" || f.type === "TIME")) return false;
+    return f.type === "TASK_CHECKLIST"
+      ? !!taskChecklist
+      : !isEmptyValue(scope[f.key]);
+  });
   if (!hasVisible) return null;
 
   return (
@@ -378,7 +386,12 @@ export function ServiceDetailReadOnly({
       <Text className="text-ink text-base font-extrabold mb-3">
         Thông tin dịch vụ
       </Text>
-      <FieldList fields={fields} values={scope} taskChecklist={taskChecklist} />
+      <FieldList
+        fields={fields}
+        values={scope}
+        taskChecklist={taskChecklist}
+        hideSchedule={hideSchedule}
+      />
     </View>
   );
 }

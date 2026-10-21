@@ -18,6 +18,7 @@ function JobsContent() {
         onSelectDay={jobs.setDay}
         myTab={jobs.myTab}
         onSelectMyTab={jobs.setMyTab}
+        myCounts={jobs.myCounts}
       />
 
       {jobs.tab === "available" ? (

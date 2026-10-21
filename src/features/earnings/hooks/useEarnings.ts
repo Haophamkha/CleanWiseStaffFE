@@ -31,6 +31,7 @@ export type HistoryRowView = {
 
 export type WalletTxRowView = {
   id: number;
+  code: string | null;
   isCredit: boolean;
   title: string;
   subText: string;
@@ -123,6 +124,7 @@ export function useEarnings() {
       const failed = tx.status === "FAILED";
       return {
         id: tx.id,
+        code: tx.code ?? null,
         isCredit,
         title: tx.type_display,
         subText: tx.note || tx.booking_code || "",

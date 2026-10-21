@@ -4,6 +4,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import { COLORS } from "@/constants/theme";
+import {
+  AdminInvitationBanner,
+  InvitationActions,
+} from "@/features/job/components/AdminInvitationBanner";
 import { JobActions } from "@/features/job/components/JobActions";
 import { JobInfoCard } from "@/features/job/components/JobInfoCard";
 import { JobRouteMap } from "@/features/job/components/JobRouteMap";
@@ -11,8 +15,10 @@ import {
   PackageClaimBar,
   PackageSessionsCard,
 } from "@/features/job/components/PackageSessions";
-import { AdminInvitationBanner } from "@/features/job/components/AdminInvitationBanner";
-import { PreferredRequestBanner } from "@/features/job/components/PreferredRequestBanner";
+import {
+  PreferredDeclineButton,
+  PreferredRequestBanner,
+} from "@/features/job/components/PreferredRequestBanner";
 import { ProofImagesSection } from "@/features/job/components/ProofImagesSection";
 import { ServiceDetailReadOnly } from "@/features/job/components/ServiceDetailReadOnly";
 import { useJobDetail } from "@/features/job/hooks/useJobDetail";
@@ -63,15 +69,21 @@ export default function JobDetailScreen() {
           paddingBottom: (job.hasOpenSessions ? 120 : 40) + insets.bottom,
         }}
       >
-        {!job.isMine && (job.isPackage ? job.visibleSessions : [item]).filter((session) => session.invitation).map((session) => (
-          <AdminInvitationBanner key={session.id} invitation={session.invitation!} bookingId={session.booking_id} scheduleId={session.id} sequenceNo={session.sequence_no} />
-        ))}
+        {!job.isMine &&
+          (job.isPackage ? job.visibleSessions : [item])
+            .filter((session) => session.invitation)
+            .map((session) => (
+              <AdminInvitationBanner
+                key={session.id}
+                invitation={session.invitation!}
+                bookingId={session.booking_id}
+                scheduleId={session.id}
+                sequenceNo={session.sequence_no}
+                inlineActions={job.isPackage}
+              />
+            ))}
         {!job.isMine && item.is_preferred_for_me && item.preferred_until ? (
-          <PreferredRequestBanner
-            bookingId={item.booking_id}
-            until={item.preferred_until}
-            onDeclined={job.goBack}
-          />
+          <PreferredRequestBanner until={item.preferred_until} />
         ) : null}
         <FadeInView>
           <JobInfoCard
@@ -107,6 +119,7 @@ export default function JobDetailScreen() {
             fields={item.form_schema?.fields}
             values={item.service_data}
             taskChecklist={item.form_schema?.task_checklist}
+            hideSchedule={!job.isPackage}
           />
         </FadeInView>
 
@@ -123,13 +136,31 @@ export default function JobDetailScreen() {
           </FadeInView>
         ) : null}
 
-        {!(item.invitation?.status === "PENDING" && !job.isMine && !job.isPackage) && <JobActions
-          isMine={job.isMine}
-          isPackage={job.isPackage}
-          item={item}
-          mineItem={mineItem}
-          actions={actions}
-        />}
+        {!job.isMine &&
+        !job.isPackage &&
+        item.invitation?.status === "PENDING" ? (
+          <InvitationActions
+            invitation={item.invitation}
+            bookingId={item.booking_id}
+            scheduleId={item.id}
+          />
+        ) : (
+          <JobActions
+            isMine={job.isMine}
+            isPackage={job.isPackage}
+            item={item}
+            mineItem={mineItem}
+            actions={actions}
+          />
+        )}
+
+        {!job.isMine && item.is_preferred_for_me && item.preferred_until ? (
+          <PreferredDeclineButton
+            bookingId={item.booking_id}
+            until={item.preferred_until}
+            onDeclined={job.goBack}
+          />
+        ) : null}
       </ScrollView>
 
       {job.hasOpenSessions ? <PackageClaimBar actions={actions} /> : null}

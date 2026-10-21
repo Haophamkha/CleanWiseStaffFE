@@ -65,6 +65,7 @@ export type WalletTopup = {
 
 export type WalletTransaction = {
   id: number;
+  code: string | null;
   type: "PAYMENT" | "REFUND" | "WITHDRAW" | "TOPUP" | "ADJUSTMENT" | "EARNING";
   type_display: string;
   amount: string;
@@ -76,7 +77,6 @@ export type WalletTransaction = {
   created_at: string;
   direction: "CREDIT" | "DEBIT";
 };
-
 const unwrapResponse = (response: any) =>
   response?.data?.data ?? response?.data ?? response;
 
@@ -120,20 +120,29 @@ export const earningsApi = baseApi.injectEndpoints({
         amount: number;
         paymentMethodId?: number | null;
         idempotencyKey: string;
+        otp?: string;
       }
     >({
-      query: ({ amount, paymentMethodId, idempotencyKey }) => ({
+      query: ({ amount, paymentMethodId, idempotencyKey, otp }) => ({
         url: "/api/worker/wallet/withdraw/",
         method: "POST",
         data: {
           amount,
           ...(paymentMethodId ? { payment_method_id: paymentMethodId } : {}),
+          ...(otp ? { otp } : {}),
         },
         headers: { "Idempotency-Key": idempotencyKey },
         timeout: MONEY_TIMEOUT_MS,
       }),
       transformResponse: unwrapResponse,
       invalidatesTags: ["Wallet"],
+    }),
+
+    requestWithdrawOtp: builder.mutation<unknown, void>({
+      query: () => ({
+        url: "/api/worker/wallet/withdraw/otp/",
+        method: "POST",
+      }),
     }),
 
     getWithdraw: builder.query<WithdrawRecord, number>({
@@ -183,6 +192,7 @@ export const {
   useGetEarningsHistoryQuery,
   useGetWalletTransactionsQuery,
   useRequestWithdrawMutation,
+  useRequestWithdrawOtpMutation,
   useGetWithdrawQuery,
   useCreateTopupMutation,
   useGetTopupQuery,

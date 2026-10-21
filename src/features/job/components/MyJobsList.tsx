@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { COLORS } from "@/constants/theme";
 import { JobsListFooter } from "@/features/job/components/JobsListFooter";
 import { MyJobCard } from "@/features/job/components/MyJobCard";
@@ -161,6 +162,9 @@ export function MyJobsList({
 
   const showInitialError = state.isError && !state.hasItems;
 
+  // Hoàn thành / Đã hủy: bấm "Xem thêm" thay vì tự tải khi cuộn
+  const isHistory = tab === "completed" || tab === "cancelled";
+
   return (
     <FlatList
       data={rows}
@@ -176,20 +180,32 @@ export function MyJobsList({
       }
       onScrollBeginDrag={onScrollStart}
       onMomentumScrollBegin={onScrollStart}
-      onEndReached={onEndReached}
+      onEndReached={isHistory ? undefined : onEndReached}
       onEndReachedThreshold={0.4}
       initialNumToRender={6}
       maxToRenderPerBatch={8}
       windowSize={7}
       removeClippedSubviews
       ListFooterComponent={
-        <JobsListFooter
-          isLoadingMore={state.isLoadingMore}
-          isError={state.isError}
-          hasNext={state.hasNext}
-          hasItems={state.hasItems}
-          onRetry={() => state.retryMore()}
-        />
+        <>
+          <JobsListFooter
+            isLoadingMore={state.isLoadingMore}
+            isError={state.isError}
+            hasNext={state.hasNext}
+            hasItems={state.hasItems}
+            onRetry={() => state.retryMore()}
+          />
+          {isHistory && state.hasNext && !state.isLoadingMore ? (
+            <PressableScale
+              onPress={state.loadMore}
+              accessibilityRole="button"
+              className="items-center justify-center border border-line bg-surface rounded-full"
+              style={{ height: 44, marginTop: 4 }}
+            >
+              <Text className="text-ink-soft text-sm font-bold">Xem thêm</Text>
+            </PressableScale>
+          ) : null}
+        </>
       }
       ListEmptyComponent={
         <View className="flex-1 justify-center py-10">

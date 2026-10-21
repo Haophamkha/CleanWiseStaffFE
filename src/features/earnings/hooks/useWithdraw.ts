@@ -2,6 +2,7 @@ import {
   earningsApi,
   useGetWithdrawQuery,
   useRequestWithdrawMutation,
+  useRequestWithdrawOtpMutation,
 } from "@/features/earnings/api/earningsApi";
 import {
   errorMessage,
@@ -42,6 +43,16 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
 
   const [requestWithdraw, { isLoading }] = useRequestWithdrawMutation();
   const { getKey, resetKey } = useIntentKey();
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+  const [sendOtp, { isLoading: sendingOtp }] = useRequestWithdrawOtpMutation();
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   const { data: allMethods = [], isLoading: methodsLoading } =
     useGetPaymentMethodsQuery();
@@ -101,6 +112,9 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     setUncertain(false);
     setErrorText("");
     setPollDone(false);
+    setOtpStep(false);
+    setOtp("");
+    setCooldown(0);
   };
 
   const handleClose = () => {
@@ -114,14 +128,43 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     onClose();
   };
 
+  const requestOtp = async () => {
+    setErrorText("");
+    try {
+      await sendOtp().unwrap();
+      setOtpStep(true);
+      setOtp("");
+      setCooldown(60);
+    } catch (err: any) {
+      if (err?.status === 429) return;
+      setErrorText(errorMessage(err, "Không gửi được mã OTP, vui lòng thử lại."));
+    }
+  };
+
+  const backToForm = () => {
+    setOtpStep(false);
+    setOtp("");
+    setCooldown(0);
+    setErrorText("");
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || !selected) return;
     setErrorText("");
+    if (!otpStep) {
+      await requestOtp();
+      return;
+    }
+    if (otp.length !== 6) {
+      setErrorText("Vui lòng nhập đủ 6 số OTP.");
+      return;
+    }
     try {
       const res = await requestWithdraw({
         amount,
         paymentMethodId: selected.id,
         idempotencyKey: getKey(`${amount}:${selected.id}`),
+        otp,
       }).unwrap();
       resetKey();
       setUncertain(false);
@@ -139,6 +182,7 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
         );
       } else {
         resetKey();
+        setOtp("");
         setUncertain(false);
         setErrorText(
           errorMessage(
@@ -168,6 +212,14 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     status,
     submitted: withdrawId != null,
     submittedAmount: record ? Number(record.amount) : amount,
+    errorText,
+    otpStep,
+    otp,
+    setOtp,
+    cooldown,
+    sendingOtp,
+    resendOtp: requestOtp,
+    backToForm,
     handleChangeAmount: (t: string) => setRawInput(String(parseAmount(t))),
     handleMaxPress: () => setRawInput(String(maxWithdrawable)),
     handleClose,

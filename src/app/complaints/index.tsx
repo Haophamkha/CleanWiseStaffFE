@@ -84,14 +84,22 @@ export default function ComplaintListScreen() {
 
                   <View className="flex-1">
                     <Text className="text-ink-muted text-[11px] font-semibold mb-0.5">
-                      MÃ ĐƠN
+                      MÃ KHIẾU NẠI
                     </Text>
 
                     <Text
+                      selectable
                       className="text-ink text-sm font-extrabold"
                       numberOfLines={1}
                     >
-                      {item.booking_code}
+                      {item.code ?? `#${item.id}`}
+                    </Text>
+
+                    <Text
+                      className="text-ink-soft text-[11px] mt-0.5"
+                      numberOfLines={1}
+                    >
+                      Đơn {item.booking_code}
                     </Text>
                   </View>
                 </View>

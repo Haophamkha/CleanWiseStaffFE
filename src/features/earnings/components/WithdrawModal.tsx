@@ -1,3 +1,4 @@
+import { OtpInput } from "@/components/ui/OtpInput";
 import { COLORS } from "@/constants/theme";
 import {
   AmountField,
@@ -110,6 +111,55 @@ export default function WithdrawModal({
     );
   }
 
+  /* ---------- nhập OTP ---------- */
+  if (w.otpStep) {
+    return (
+      <WalletSheet visible={visible} onClose={w.handleClose}>
+        <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.ink }}>
+          Nhập mã OTP
+        </Text>
+        <Text
+          style={{
+            fontSize: 13,
+            marginTop: 4,
+            marginBottom: 16,
+            color: COLORS.inkMuted,
+          }}
+        >
+          Mã gồm 6 số đã gửi tới email của bạn để xác nhận rút{" "}
+          {formatVnd(w.submittedAmount)}.
+        </Text>
+
+        <OtpInput value={w.otp} onChange={w.setOtp} invalid={!!w.message} />
+        <ErrorBox text={w.message} />
+
+        <TouchableOpacity
+          onPress={w.resendOtp}
+          disabled={w.cooldown > 0 || w.sendingOtp}
+          style={{ alignSelf: "center", marginBottom: 16 }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "700",
+              color: w.cooldown > 0 ? COLORS.inkMuted : COLORS.primaryDark,
+            }}
+          >
+            {w.cooldown > 0 ? `Gửi lại mã (${w.cooldown}s)` : "Gửi lại mã"}
+          </Text>
+        </TouchableOpacity>
+
+        <SheetButton
+          label={w.uncertain ? "Gửi lại" : "Xác nhận rút tiền"}
+          onPress={w.handleSubmit}
+          loading={w.isLoading}
+          disabled={w.otp.length !== 6 && !w.uncertain}
+        />
+        <SheetButton label="Quay lại" onPress={w.backToForm} variant="soft" />
+      </WalletSheet>
+    );
+  }
+
   /* ---------- form ---------- */
   return (
     <WalletSheet visible={visible} onClose={w.handleClose}>
@@ -149,7 +199,11 @@ export default function WithdrawModal({
         <TouchableOpacity
           onPress={() => {
             w.handleClose();
-            router.push((w.hasUnverifiedMethods ? "/payment-methods" : "/payment-methods/add") as any);
+            router.push(
+              (w.hasUnverifiedMethods
+                ? "/payment-methods"
+                : "/payment-methods/add") as any,
+            );
           }}
           activeOpacity={0.8}
           style={{
@@ -163,7 +217,9 @@ export default function WithdrawModal({
           }}
         >
           <Text style={{ fontWeight: "700", color: COLORS.primaryDark }}>
-            {w.hasUnverifiedMethods ? "Xác minh tài khoản ngân hàng" : "+ Thêm tài khoản ngân hàng"}
+            {w.hasUnverifiedMethods
+              ? "Xác minh tài khoản ngân hàng"
+              : "+ Thêm tài khoản ngân hàng"}
           </Text>
           <Text style={{ fontSize: 12, marginTop: 2, color: COLORS.inkSoft }}>
             {w.hasUnverifiedMethods
@@ -248,10 +304,10 @@ export default function WithdrawModal({
       <ErrorBox text={w.message} />
 
       <SheetButton
-        label={w.uncertain ? "Gửi lại" : "Gửi yêu cầu"}
+        label="Gửi mã OTP"
         onPress={w.handleSubmit}
-        loading={w.isLoading}
-        disabled={!w.canSubmit && !w.uncertain}
+        loading={w.isLoading || w.sendingOtp}
+        disabled={!w.canSubmit}
       />
     </WalletSheet>
   );
