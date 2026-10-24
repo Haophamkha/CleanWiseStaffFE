@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { translate as tr, getLocale } from "@/features/language/i18n";
+import { useTranslation } from "react-i18next";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { type ThemeColors } from "@/constants/theme";
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import type { WorkerProfileResponse } from "@/features/profile-setup/types/WorkerProfile";
 import {
@@ -6,7 +9,7 @@ import {
     stepRoute,
 } from "@/features/profile-setup/utils/rejectionFlow";
 import {
-    STATUS_INFO,
+    getProfileStatusInfo,
     type ProfileStatusInfo,
 } from "@/features/profile/hooks/useProfile";
 import { resolveMediaUrl } from "@/utils/media";
@@ -21,29 +24,33 @@ export type ProfileImage = {
   note: string;
 };
 
-const GENDER_LABEL: Record<string, string> = {
-  MALE: "Nam",
-  FEMALE: "Nữ",
-  OTHER: "Khác",
-};
+function getLocalizedGenderLabel(): Record<string, string> {
+  return {
+    MALE: tr("Nam"),
+    FEMALE: tr("Nữ"),
+    OTHER: tr("Khác"),
+  };
+}
 
 // Nhãn hiển thị tiếng Việt cho từng key field mà admin có thể đánh dấu
 // là "cần sửa". Phải khớp với REJECTABLE_PROFILE_FIELDS ở backend.
-const REJECTED_FIELD_LABEL: Record<string, string> = {
-  first_name: "Tên",
-  last_name: "Họ và tên đệm",
-  phone_number: "Số điện thoại",
-  gender: "Giới tính",
-  birth_date: "Ngày sinh",
-  bio: "Giới thiệu",
-  experience_years: "Số năm kinh nghiệm",
-  identity_number: "Số CCCD/CMND",
-  service_id: "Dịch vụ đăng ký",
-  portrait: "Ảnh chân dung",
-  identity_front: "Ảnh CCCD/CMND mặt trước",
-  identity_back: "Ảnh CCCD/CMND mặt sau",
-  certificate_file: "Chứng chỉ",
-};
+function getLocalizedRejectedFieldLabel(): Record<string, string> {
+  return {
+    first_name: tr("Tên"),
+    last_name: tr("Họ và tên đệm"),
+    phone_number: tr("Số điện thoại"),
+    gender: tr("Giới tính"),
+    birth_date: tr("Ngày sinh"),
+    bio: tr("Giới thiệu"),
+    experience_years: tr("Số năm kinh nghiệm"),
+    identity_number: tr("Số CCCD/CMND"),
+    service_id: tr("Dịch vụ đăng ký"),
+    portrait: tr("Ảnh chân dung"),
+    identity_front: tr("Ảnh CCCD/CMND mặt trước"),
+    identity_back: tr("Ảnh CCCD/CMND mặt sau"),
+    certificate_file: tr("Chứng chỉ"),
+  };
+}
 
 /** "1995-03-01" -> "01/03/1995" (không qua Date để tránh lệch múi giờ) */
 function formatYmd(value: string) {
@@ -55,7 +62,7 @@ function formatYmd(value: string) {
 function formatIsoDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("vi-VN", {
+  return d.toLocaleDateString(getLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -70,7 +77,7 @@ function getUpdateRoute(profile: WorkerProfileResponse) {
   return "/(profile-setup)/portrait";
 }
 
-function buildView(profile: WorkerProfileResponse) {
+function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
   const approvalWasRevoked =
     profile.status === "DRAFT" && !!profile.rejection_reason;
   const isFieldRejected = (field: string) =>
@@ -92,14 +99,14 @@ function buildView(profile: WorkerProfileResponse) {
     };
   };
 
-  const baseStatusInfo: ProfileStatusInfo = STATUS_INFO[profile.status] ?? {
+  const baseStatusInfo: ProfileStatusInfo = getProfileStatusInfo(COLORS)[profile.status] ?? {
     label: profile.status,
     color: COLORS.inkSoft,
     bg: COLORS.accentLight,
     text: COLORS.inkSoft,
   };
   const statusInfo = approvalWasRevoked
-    ? { ...baseStatusInfo, label: "Đã thu hồi phê duyệt" }
+    ? { ...baseStatusInfo, label: tr("Đã thu hồi phê duyệt") }
     : baseStatusInfo;
 
   const rejection =
@@ -107,13 +114,13 @@ function buildView(profile: WorkerProfileResponse) {
     !!profile.rejection_reason
       ? {
           label: approvalWasRevoked
-            ? "Lý do thu hồi phê duyệt"
-            : "Lý do từ chối",
+            ? tr("Lý do thu hồi phê duyệt")
+            : tr("Lý do từ chối"),
           reason: profile.rejection_reason,
           fields: Object.entries(profile.rejected_fields ?? {}).map(
             ([key, note]) => ({
               key,
-              label: REJECTED_FIELD_LABEL[key] ?? key,
+              label: getLocalizedRejectedFieldLabel()[key] ?? key,
               note,
             }),
           ),
@@ -122,29 +129,29 @@ function buildView(profile: WorkerProfileResponse) {
 
   const missing =
     !profile.is_complete && profile.missing_fields.length > 0
-      ? profile.missing_fields.map((f) => REJECTED_FIELD_LABEL[f] ?? f)
+      ? profile.missing_fields.map((f) => getLocalizedRejectedFieldLabel()[f] ?? f)
       : [];
 
   const personalRows: InfoRowData[] = [
     {
-      label: "Họ tên",
+      label: tr("Họ tên"),
       value: `${profile.last_name} ${profile.first_name}`.trim(),
     },
-    { label: "Số điện thoại", value: profile.phone_number },
+    { label: tr("Số điện thoại"), value: profile.phone_number },
     { label: "Email", value: profile.email },
     {
-      label: "Giới tính",
-      value: GENDER_LABEL[profile.gender] ?? profile.gender,
+      label: tr("Giới tính"),
+      value: getLocalizedGenderLabel()[profile.gender] ?? profile.gender,
     },
-    { label: "Ngày sinh", value: formatYmd(profile.birth_date) },
-    { label: "Kinh nghiệm", value: `${profile.experience_years} năm` },
+    { label: tr("Ngày sinh"), value: formatYmd(profile.birth_date) },
+    { label: tr("Kinh nghiệm"), value: tr("{{value0}} năm", { value0: profile.experience_years, count: profile.experience_years }) },
   ];
 
   const documentRows: InfoRowData[] = [
-    { label: "Số CCCD/CMND", value: profile.identity_number },
+    { label: tr("Số CCCD/CMND"), value: profile.identity_number },
     {
-      label: "Dịch vụ đăng ký",
-      value: profile.registered_service?.name ?? "Chưa chọn",
+      label: tr("Dịch vụ đăng ký"),
+      value: profile.registered_service?.name ?? tr("Chưa chọn"),
     },
   ];
 
@@ -152,12 +159,12 @@ function buildView(profile: WorkerProfileResponse) {
     profile.status === "ACTIVE" && profile.approved_by
       ? [
           {
-            label: "Được duyệt bởi",
+            label: tr("Được duyệt bởi"),
             value:
               `${profile.approved_by.last_name} ${profile.approved_by.first_name}`.trim(),
           },
           {
-            label: "Ngày duyệt",
+            label: tr("Ngày duyệt"),
             value: profile.approved_at
               ? formatIsoDate(profile.approved_at)
               : "—",
@@ -183,16 +190,19 @@ function buildView(profile: WorkerProfileResponse) {
     certificate: buildImage(profile.certificate_file, "certificate_file"),
     approvalRows,
     canUpdate: profile.status === "DRAFT" || profile.status === "REJECTED",
-    updateLabel: approvalWasRevoked ? "Cập nhật và gửi lại" : "Cập nhật hồ sơ",
+    updateLabel: approvalWasRevoked ? tr("Cập nhật và gửi lại") : tr("Cập nhật hồ sơ"),
   };
 }
 
 export type MyProfileView = ReturnType<typeof buildView>;
 
 export function useMyProfile() {
+  const { i18n } = useTranslation();
+  const { COLORS } = useAppTheme();
+
   const { data: profile, isLoading } = useGetWorkerProfileQuery();
 
-  const view = useMemo(() => (profile ? buildView(profile) : null), [profile]);
+  const view = useMemo(() => (profile ? buildView(profile, COLORS) : null), [profile, COLORS, i18n.resolvedLanguage]);
 
   const handleUpdate = () => {
     if (profile) router.push(getUpdateRoute(profile));

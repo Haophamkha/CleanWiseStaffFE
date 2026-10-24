@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS, RADIUS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
@@ -19,11 +22,15 @@ export function DetailHeader({
   subtitle,
   right,
 }: DetailHeaderProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
 
   return (
     <View
-      className="bg-accent px-5 pb-5 flex-row items-center overflow-hidden"
+      className="bg-accent-fill px-5 pb-5 flex-row items-center overflow-hidden"
       style={{
         paddingTop: insets.top + 8,
         borderBottomLeftRadius: RADIUS.hero,
@@ -61,7 +68,7 @@ export function DetailHeader({
         onPress={onBack}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Quay lại"
+        accessibilityLabel={tr("Quay lại")}
         className="w-11 h-11 rounded-full bg-surface items-center justify-center"
         containerStyle={{ marginRight: 12 }}
       >

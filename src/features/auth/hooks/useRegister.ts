@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import { ROUTES } from "@/config/constants";
 import {
     saveTokens,
@@ -8,7 +10,7 @@ import { baseApi } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
 import { getErrorMessage } from "@/utils/apiError";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
-import { registerWorkerSchema } from "@/utils/validators";
+import { getLocalizedRegisterWorkerSchema } from "@/utils/validators";
 import type { Feather } from "@expo/vector-icons";
 import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
@@ -38,56 +40,64 @@ export type RegisterFieldConfig = {
   autoCapitalize?: "none" | "words";
 };
 
-export const PERSONAL_FIELDS: RegisterFieldConfig[] = [
-  {
-    key: "last_name",
-    label: "Họ và tên đệm",
-    icon: "user",
-    placeholder: "Nguyễn Thị",
-    autoCapitalize: "words",
-  },
-  {
-    key: "first_name",
-    label: "Tên",
-    icon: "user",
-    placeholder: "Lan",
-    autoCapitalize: "words",
-  },
-];
+export function getLocalizedPersonalFields(): RegisterFieldConfig[] {
+  return [
+    {
+      key: "last_name",
+      label: tr("Họ và tên đệm"),
+      icon: "user",
+      placeholder: "Nguyễn Thị",
+      autoCapitalize: "words",
+    },
+    {
+      key: "first_name",
+      label: tr("Tên"),
+      icon: "user",
+      placeholder: "Lan",
+      autoCapitalize: "words",
+    },
+  ];
+}
 
-export const ACCOUNT_FIELDS: RegisterFieldConfig[] = [
-  {
-    key: "username",
-    label: "Tên đăng nhập",
-    icon: "at-sign",
-    placeholder: "vd. lan.nguyen92",
-    autoCapitalize: "none",
-  },
-  {
-    key: "email",
-    label: "Email",
-    icon: "mail",
-    placeholder: "ban@email.com",
-    keyboardType: "email-address",
-    autoCapitalize: "none",
-  },
-  {
-    key: "phone_number",
-    label: "Số điện thoại",
-    icon: "phone",
-    placeholder: "090 123 4567",
-    keyboardType: "phone-pad",
-    autoCapitalize: "none",
-  },
-];
+export function getLocalizedAccountFields(): RegisterFieldConfig[] {
+  return [
+    {
+      key: "username",
+      label: tr("Tên đăng nhập"),
+      icon: "at-sign",
+      placeholder: "vd. lan.nguyen92",
+      autoCapitalize: "none",
+    },
+    {
+      key: "email",
+      label: "Email",
+      icon: "mail",
+      placeholder: "ban@email.com",
+      keyboardType: "email-address",
+      autoCapitalize: "none",
+    },
+    {
+      key: "phone_number",
+      label: tr("Số điện thoại"),
+      icon: "phone",
+      placeholder: "090 123 4567",
+      keyboardType: "phone-pad",
+      autoCapitalize: "none",
+    },
+  ];
+}
 
-export const GENDER_OPTIONS: { value: Gender; label: string }[] = [
-  { value: "MALE", label: "Nam" },
-  { value: "FEMALE", label: "Nữ" },
-  { value: "OTHER", label: "Khác" },
-];
+export function getLocalizedGenderOptions(): { value: Gender; label: string }[] {
+  return [
+    { value: "MALE", label: tr("Nam") },
+    { value: "FEMALE", label: tr("Nữ") },
+    { value: "OTHER", label: tr("Khác") },
+  ];
+}
 
 export function useRegister() {
+  const { t: tr } = useTranslation();
+
   const [form, setForm] = useState<RegisterForm>({
     username: "",
     email: "",
@@ -140,24 +150,24 @@ export function useRegister() {
   const handleRegister = async () => {
     setError("");
 
-    const validation = registerWorkerSchema.safeParse(form);
+    const validation = getLocalizedRegisterWorkerSchema().safeParse(form);
 
     if (!validation.success) {
       const message =
         validation.error.issues[0]?.message ??
-        "Thông tin đăng ký không hợp lệ.";
+        tr("Thông tin đăng ký không hợp lệ.");
 
       setError(message);
-      showErrorToast("Thông tin chưa hợp lệ", message);
+      showErrorToast(tr("Thông tin chưa hợp lệ"), message);
       return;
     }
 
     if (!agreedToTerms) {
       const message =
-        "Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách bảo mật để tiếp tục.";
+        tr("Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách bảo mật để tiếp tục.");
 
       setError(message);
-      showErrorToast("Chưa đồng ý điều khoản", message);
+      showErrorToast(tr("Chưa đồng ý điều khoản"), message);
       return;
     }
 
@@ -168,15 +178,15 @@ export function useRegister() {
       dispatch(baseApi.util.resetApiState());
       dispatch(setUser(res.user));
       showSuccessToast(
-        "Tạo tài khoản thành công",
-        "Hồ sơ của bạn đang ở trạng thái chờ hoàn thiện.",
+        tr("Tạo tài khoản thành công"),
+        tr("Hồ sơ của bạn đang ở trạng thái chờ hoàn thiện."),
       );
 
       router.replace(ROUTES.HOME);
     } catch (e: any) {
       const message = getErrorMessage(e);
       setError(message);
-      showErrorToast("Đăng ký thất bại", message);
+      showErrorToast(tr("Đăng ký thất bại"), message);
     }
   };
 

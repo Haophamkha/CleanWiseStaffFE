@@ -1,4 +1,6 @@
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { translate as tr, getLocale } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import type {
   AppNotification,
   NotificationType,
@@ -15,13 +17,7 @@ interface NotificationItemProps {
 type Tone = { bg: string; fg: string };
 
 /* Mỗi loại một màu nhẹ, lấy từ token */
-const TONES: Record<NotificationType, Tone> = {
-  BOOKING: { bg: COLORS.infoLight, fg: COLORS.info },
-  PAYMENT: { bg: COLORS.successLight, fg: COLORS.success },
-  ASSIGNMENT: { bg: COLORS.accentLight, fg: COLORS.accentDark },
-  COMPLAINT: { bg: COLORS.warningLight, fg: COLORS.warning },
-  SYSTEM: { bg: COLORS.primaryLight, fg: COLORS.primary },
-};
+
 
 function formatAgo(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -30,16 +26,26 @@ function formatAgo(iso: string) {
   const day = 24 * hour;
 
   if (diffMs < hour)
-    return `${Math.max(1, Math.floor(diffMs / minute))} phút trước`;
-  if (diffMs < day) return `${Math.floor(diffMs / hour)} giờ trước`;
-  if (diffMs < 7 * day) return `${Math.floor(diffMs / day)} ngày trước`;
-  return new Date(iso).toLocaleDateString("vi-VN");
+    return tr("{{value0}} phút trước", { value0: Math.max(1, Math.floor(diffMs / minute)) , count: Math.max(1, Math.floor(diffMs / minute))});
+  if (diffMs < day) return tr("{{value0}} giờ trước", { value0: Math.floor(diffMs / hour) , count: Math.floor(diffMs / hour)});
+  if (diffMs < 7 * day) return tr("{{value0}} ngày trước", { value0: Math.floor(diffMs / day) , count: Math.floor(diffMs / day)});
+  return new Date(iso).toLocaleDateString(getLocale());
 }
 
 export default function NotificationItem({
   notification,
   onPress,
 }: NotificationItemProps) {
+  const { COLORS } = useAppTheme();
+
+  const TONES: Record<NotificationType, Tone> = {
+    BOOKING: { bg: COLORS.infoLight, fg: COLORS.info },
+    PAYMENT: { bg: COLORS.successLight, fg: COLORS.success },
+    ASSIGNMENT: { bg: COLORS.accentLight, fg: COLORS.accentDark },
+    COMPLAINT: { bg: COLORS.warningLight, fg: COLORS.warning },
+    SYSTEM: { bg: COLORS.primaryLight, fg: COLORS.primary },
+  };
+
   const meta = getNotificationTypeMeta(notification.type);
   const tone = TONES[notification.type] ?? TONES.SYSTEM;
   const isUnread = !notification.is_read;
@@ -79,7 +85,7 @@ export default function NotificationItem({
           </Text>
           <View className="flex-row items-center">
             {isUnread && (
-              <View className="w-2 h-2 rounded-full bg-primary mr-1.5" />
+              <View className="w-2 h-2 rounded-full bg-primary-fill mr-1.5" />
             )}
             <Text className="text-ink-muted text-xs">
               {formatAgo(notification.created_at)}

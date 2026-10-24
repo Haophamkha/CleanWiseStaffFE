@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import { useGetWorkingAreasQuery } from "@/features/auth/api/authApi";
 import type {
     ProfileStatus,
@@ -21,54 +23,58 @@ type StatusConfig = {
   ctaRoute: StatusRoute;
 };
 
-const STATUS_CONFIG: Record<ProfileStatus, StatusConfig> = {
-  DRAFT: {
-    title: "Hoàn thiện hồ sơ để bắt đầu nhận việc",
-    description:
-      "Bạn cần cập nhật ảnh chân dung, CCCD, dịch vụ, khu vực hoạt động và kinh nghiệm.",
-    badge: "Chưa hoàn tất",
-    tone: "danger",
-    ctaLabel: "Cập nhật",
-    ctaRoute: "wizard",
-  },
-  REJECTED: {
-    title: "Hồ sơ bị từ chối, vui lòng cập nhật lại",
-    description:
-      "Vui lòng kiểm tra và chỉnh sửa thông tin theo phản hồi của quản trị viên.",
-    badge: "Bị từ chối",
-    tone: "danger",
-    ctaLabel: "Cập nhật",
-    ctaRoute: "wizard",
-  },
-  PENDING: {
-    title: "Hồ sơ đang chờ xét duyệt",
-    description: "Quản trị viên sẽ phản hồi trong vòng 24 - 48 giờ.",
-    badge: "Chờ duyệt",
-    tone: "warning",
-    ctaLabel: "Xem lại hồ sơ",
-    ctaRoute: "review",
-  },
-  ACTIVE: {
-    title: "",
-    description: "",
-    badge: "",
-    tone: "danger",
-    ctaLabel: null,
-    ctaRoute: null,
-  },
-  SUSPENDED: {
-    title: "Tài khoản đang bị tạm khóa",
-    description: "Vui lòng liên hệ quản trị viên để biết thêm chi tiết.",
-    badge: "Tạm khóa",
-    tone: "danger",
-    ctaLabel: null,
-    ctaRoute: null,
-  },
-};
+function getLocalizedStatusConfig(): Record<ProfileStatus, StatusConfig> {
+  return {
+    DRAFT: {
+      title: tr("Hoàn thiện hồ sơ để bắt đầu nhận việc"),
+      description:
+        tr("Bạn cần cập nhật ảnh chân dung, CCCD, dịch vụ, khu vực hoạt động và kinh nghiệm."),
+      badge: tr("Chưa hoàn tất"),
+      tone: "danger",
+      ctaLabel: tr("Cập nhật"),
+      ctaRoute: "wizard",
+    },
+    REJECTED: {
+      title: tr("Hồ sơ bị từ chối, vui lòng cập nhật lại"),
+      description:
+        tr("Vui lòng kiểm tra và chỉnh sửa thông tin theo phản hồi của quản trị viên."),
+      badge: tr("Bị từ chối"),
+      tone: "danger",
+      ctaLabel: tr("Cập nhật"),
+      ctaRoute: "wizard",
+    },
+    PENDING: {
+      title: tr("Hồ sơ đang chờ xét duyệt"),
+      description: tr("Quản trị viên sẽ phản hồi trong vòng 24 - 48 giờ."),
+      badge: tr("Chờ duyệt"),
+      tone: "warning",
+      ctaLabel: tr("Xem lại hồ sơ"),
+      ctaRoute: "review",
+    },
+    ACTIVE: {
+      title: "",
+      description: "",
+      badge: "",
+      tone: "danger",
+      ctaLabel: null,
+      ctaRoute: null,
+    },
+    SUSPENDED: {
+      title: tr("Tài khoản đang bị tạm khóa"),
+      description: tr("Vui lòng liên hệ quản trị viên để biết thêm chi tiết."),
+      badge: tr("Tạm khóa"),
+      tone: "danger",
+      ctaLabel: null,
+      ctaRoute: null,
+    },
+  };
+}
 
 const TOTAL_STEPS = 5;
 
 export function useProfileStatus(profile: WorkerProfileResponse) {
+  const { t: tr } = useTranslation();
+
   const { status } = profile;
 
   // Chỉ fetch khu vực khi hồ sơ chưa ACTIVE
@@ -79,14 +85,14 @@ export function useProfileStatus(profile: WorkerProfileResponse) {
   const approvalWasRevoked = status === "DRAFT" && !!profile.rejection_reason;
   const config: StatusConfig = approvalWasRevoked
     ? {
-        ...STATUS_CONFIG.DRAFT,
-        title: "Phê duyệt hồ sơ đã được thu hồi",
+        ...getLocalizedStatusConfig().DRAFT,
+        title: tr("Phê duyệt hồ sơ đã được thu hồi"),
         description:
-          "Vui lòng cập nhật hồ sơ nếu cần và gửi lại để quản trị viên xét duyệt.",
-        badge: "Đã thu hồi phê duyệt",
-        ctaLabel: "Cập nhật và gửi lại",
+          tr("Vui lòng cập nhật hồ sơ nếu cần và gửi lại để quản trị viên xét duyệt."),
+        badge: tr("Đã thu hồi phê duyệt"),
+        ctaLabel: tr("Cập nhật và gửi lại"),
       }
-    : STATUS_CONFIG[status];
+    : getLocalizedStatusConfig()[status];
 
   const stepsDone = [
     // Step 1: Ảnh chân dung

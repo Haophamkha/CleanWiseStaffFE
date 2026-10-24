@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import {
   Choice,
   SearchBox,
@@ -9,20 +12,24 @@ import { Feather } from "@expo/vector-icons";
 import { ActivityIndicator, Image, Text, View } from "react-native";
 
 export default function ServiceStep() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const s = useProfileSetup();
 
   return (
     <SetupScreen
       setup={s}
       step="service"
-      title="Loại dịch vụ"
-      subtitle="Chọn loại dịch vụ bạn muốn đăng ký thực hiện."
+      title={tr("Loại dịch vụ")}
+      subtitle={tr("Chọn loại dịch vụ bạn muốn đăng ký thực hiện.")}
       disabled={!s.serviceId}
       top={
         <SearchBox
           value={s.serviceSearch}
           onChangeText={s.setServiceSearch}
-          placeholder="Tìm dịch vụ..."
+          placeholder={tr("Tìm dịch vụ...")}
         />
       }
     >
@@ -60,8 +67,7 @@ export default function ServiceStep() {
           ))}
           {s.serviceGroups.length === 0 ? (
             <Text className="text-ink-muted text-center text-sm mt-6">
-              Không tìm thấy dịch vụ phù hợp.
-            </Text>
+              {tr("Không tìm thấy dịch vụ phù hợp.")}</Text>
           ) : null}
         </View>
       )}

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import * as Crypto from "expo-crypto";
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
@@ -16,6 +18,8 @@ import { mergePages, prependOlder } from "../utils/chatbotUtils";
 const PAGE_SIZE = 50;
 
 export function useChatbot() {
+  const { t: tr } = useTranslation();
+
   const dispatch = useAppDispatch();
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [messages, setMessages] = useState<DisplayChatbotMessage[]>([]);
@@ -46,7 +50,7 @@ export function useChatbot() {
       const prev = lastPage === 2 ? first : await get(lastPage - 1);
       return { items: mergePages(prev.results, last.results), olderPage: lastPage - 2 };
     },
-    [fetchMsgs],
+    [fetchMsgs, tr],
   );
 
   const send = useCallback(
@@ -89,7 +93,7 @@ export function useChatbot() {
         setSending(false);
       }
     },
-    [conversationId, sending, loading, closed, createConv, sendMsg, dispatch],
+    [conversationId, sending, loading, closed, createConv, sendMsg, dispatch, tr],
   );
 
   const retry = (m: DisplayChatbotMessage) => {
@@ -117,7 +121,7 @@ export function useChatbot() {
       setMessages(latest.items);
       setOlderPage(latest.olderPage);
     } catch {
-      Alert.alert("Không mở được hội thoại", "Vui lòng kiểm tra kết nối và thử lại.");
+      Alert.alert(tr("Không mở được hội thoại"), tr("Vui lòng kiểm tra kết nối và thử lại."));
     } finally {
       setLoading(false);
     }
@@ -131,7 +135,7 @@ export function useChatbot() {
       setMessages((cur) => prependOlder(page.results, cur));
       setOlderPage((p) => p - 1);
     } catch {
-      Alert.alert("Không tải được tin nhắn cũ", "Vui lòng thử lại.");
+      Alert.alert(tr("Không tải được tin nhắn cũ"), tr("Vui lòng thử lại."));
     } finally {
       setLoadingOlder(false);
     }
@@ -143,7 +147,7 @@ export function useChatbot() {
       const page = await fetchConvs({ page: 1 }, false).unwrap();
       setHistory(page.results);
     } catch {
-      Alert.alert("Không tải được lịch sử", "Vui lòng thử lại.");
+      Alert.alert(tr("Không tải được lịch sử"), tr("Vui lòng thử lại."));
     } finally {
       setHistoryLoading(false);
     }
@@ -156,7 +160,7 @@ export function useChatbot() {
       if (id === conversationId) newChat();
     } catch {
       // BE trả 409 khi hội thoại đang xử lý tin nhắn
-      Alert.alert("Không xoá được hội thoại", "Hội thoại có thể đang xử lý. Vui lòng thử lại sau.");
+      Alert.alert(tr("Không xoá được hội thoại"), tr("Hội thoại có thể đang xử lý. Vui lòng thử lại sau."));
     }
   };
 

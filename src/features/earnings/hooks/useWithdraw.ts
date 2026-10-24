@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { getLocale } from "@/features/language/i18n";
 import {
   earningsApi,
   useGetWithdrawQuery,
@@ -32,6 +34,8 @@ type Params = {
 };
 
 export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
+  const { t: tr } = useTranslation();
+
   const dispatch = useDispatch();
   const [rawInput, setRawInput] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -58,7 +62,7 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     useGetPaymentMethodsQuery();
   const methods = useMemo(
     () => allMethods.filter((m) => m.method_type === "BANK_ACCOUNT" && m.verification_status === "VERIFIED"),
-    [allMethods],
+    [allMethods, tr],
   );
   const hasUnverifiedMethods = allMethods.some(
     (m) => m.method_type === "BANK_ACCOUNT" && m.verification_status !== "VERIFIED",
@@ -97,9 +101,9 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     amount <= 0
       ? null
       : amount < WITHDRAW_MIN
-        ? `Số tiền rút tối thiểu là ${formatVnd(WITHDRAW_MIN)}.`
+        ? tr("Số tiền rút tối thiểu là {{value0}}.", { value0: formatVnd(WITHDRAW_MIN) })
         : amount > maxWithdrawable
-          ? `Ví ký quỹ phải còn tối thiểu ${formatVnd(MIN_ESCROW_BALANCE)}, mỗi lần rút tối đa ${formatVnd(WITHDRAW_MAX)}. Bạn có thể rút tối đa ${formatVnd(maxWithdrawable)}.`
+          ? tr("Ví ký quỹ phải còn tối thiểu {{value0}}, mỗi lần rút tối đa {{value1}}. Bạn có thể rút tối đa {{value2}}.", { value0: formatVnd(MIN_ESCROW_BALANCE), value1: formatVnd(WITHDRAW_MAX), value2: formatVnd(maxWithdrawable) })
           : null;
 
   const canSubmit = !!selected && amount > 0 && !validationError && !isLoading;
@@ -120,8 +124,8 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
   const handleClose = () => {
     if (uncertain) {
       Alert.alert(
-        "Chưa rõ kết quả",
-        "Yêu cầu rút trước đó có thể đã được gửi. Hãy kiểm tra lịch sử giao dịch trước khi rút lại.",
+        tr("Chưa rõ kết quả"),
+        tr("Yêu cầu rút trước đó có thể đã được gửi. Hãy kiểm tra lịch sử giao dịch trước khi rút lại."),
       );
     }
     reset();
@@ -137,7 +141,7 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
       setCooldown(60);
     } catch (err: any) {
       if (err?.status === 429) return;
-      setErrorText(errorMessage(err, "Không gửi được mã OTP, vui lòng thử lại."));
+      setErrorText(errorMessage(err, tr("Không gửi được mã OTP, vui lòng thử lại.")));
     }
   };
 
@@ -156,7 +160,7 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
       return;
     }
     if (otp.length !== 6) {
-      setErrorText("Vui lòng nhập đủ 6 số OTP.");
+      setErrorText(tr("Vui lòng nhập đủ 6 số OTP."));
       return;
     }
     try {
@@ -177,8 +181,8 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
         setUncertain(true);
         setErrorText(
           err?.status === 503
-            ? "Hệ thống tạm thời chưa xử lý được. Bấm Gửi lại sau ít giây, bạn sẽ không bị rút trùng."
-            : "Chưa rõ yêu cầu đã được gửi chưa. Bấm Gửi lại, bạn sẽ không bị rút trùng.",
+            ? tr("Hệ thống tạm thời chưa xử lý được. Bấm Gửi lại sau ít giây, bạn sẽ không bị rút trùng.")
+            : tr("Chưa rõ yêu cầu đã được gửi chưa. Bấm Gửi lại, bạn sẽ không bị rút trùng."),
         );
       } else {
         resetKey();
@@ -187,7 +191,7 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
         setErrorText(
           errorMessage(
             err,
-            "Không thể tạo yêu cầu rút tiền, vui lòng thử lại.",
+            tr("Không thể tạo yêu cầu rút tiền, vui lòng thử lại."),
           ),
         );
       }
@@ -199,9 +203,9 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     canSubmit,
     uncertain,
     message: validationError ?? errorText,
-    amountDisplay: rawInput ? Number(rawInput).toLocaleString("vi-VN") : "",
+    amountDisplay: rawInput ? Number(rawInput).toLocaleString(getLocale()) : "",
     balanceText: formatVnd(walletBalance),
-    hintText: `Ví ký quỹ phải giữ tối thiểu ${formatVnd(MIN_ESCROW_BALANCE)}. Bạn có thể rút tối đa ${formatVnd(maxWithdrawable)}.`,
+    hintText: tr("Ví ký quỹ phải giữ tối thiểu {{value0}}. Bạn có thể rút tối đa {{value1}}.", { value0: formatVnd(MIN_ESCROW_BALANCE), value1: formatVnd(maxWithdrawable) }),
     quickAmounts,
     methods,
     hasUnverifiedMethods,

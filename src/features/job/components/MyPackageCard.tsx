@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { Feather } from "@expo/vector-icons";
 import { memo } from "react";
 import { Text, View } from "react-native";
@@ -5,7 +8,7 @@ import { Text, View } from "react-native";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, TYPE } from "@/constants/theme";
 import { BookingCodeStrip } from "@/features/job/components/BookingCodeStrip";
 import type { OpenJob } from "@/features/job/types/jobNav";
 import type { WorkerMySchedule } from "@/features/schedule/types/Schedule";
@@ -27,6 +30,10 @@ export const MyPackageCard = memo(function MyPackageCard({
   onOpen: OpenJob;
   index?: number;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS, isDark } = useAppTheme();
+
   const first = sessions[0];
   const total = first.total_sessions ?? sessions.length;
   const price = formatCurrency(first.price);
@@ -56,12 +63,12 @@ export const MyPackageCard = memo(function MyPackageCard({
         : first.status;
 
   const highlightLabel = inProgress
-    ? "Đang thực hiện"
+    ? tr("Đang thực hiện")
     : pending.length > 0
-      ? "Buổi gần nhất"
+      ? tr("Buổi gần nhất")
       : topStatus === "COMPLETED"
-        ? "Buổi hoàn thành gần nhất"
-        : "Buổi đã hủy";
+        ? tr("Buổi hoàn thành gần nhất")
+        : tr("Buổi đã hủy");
 
   const progress = total > 0 ? Math.min(completed / total, 1) * 100 : 0;
 
@@ -70,7 +77,7 @@ export const MyPackageCard = memo(function MyPackageCard({
       <PressableScale
         onPress={() => onOpen(highlight.id, "mine", bookingId)}
         accessibilityRole="button"
-        accessibilityLabel={`Xem chi tiết ${first.service_name}`}
+        accessibilityLabel={tr("Xem chi tiết {{value0}}", { value0: first.service_name })}
         containerStyle={{ marginBottom: 12 }}
         className="bg-surface border border-line p-4"
         style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
@@ -85,8 +92,7 @@ export const MyPackageCard = memo(function MyPackageCard({
           <View className="flex-row items-center bg-accent-light rounded-full px-2.5 py-1 mr-2">
             <Feather name="repeat" size={11} color={COLORS.accentDark} />
             <Text className="text-accent-dark text-xs font-semibold ml-1">
-              Định kỳ
-            </Text>
+              {tr("Định kỳ")}</Text>
           </View>
           <StatusBadge status={topStatus} />
         </View>
@@ -97,7 +103,7 @@ export const MyPackageCard = memo(function MyPackageCard({
               {highlightLabel}
             </Text>
             <Text className="text-ink-muted text-xs">
-              Buổi {highlight.sequence_no}/{total}
+              {tr("Buổi")}{" "}{highlight.sequence_no}/{total}
             </Text>
           </View>
 
@@ -137,10 +143,9 @@ export const MyPackageCard = memo(function MyPackageCard({
         <View className="mb-4">
           <View className="flex-row items-center justify-between mb-1.5">
             <Text className="text-ink-soft text-xs font-semibold">
-              Hoàn thành {completed}/{total} buổi
-            </Text>
+              {tr("Hoàn thành")}{" "}{completed}/{total} {tr("buổi")}</Text>
             <Text className="text-ink-muted text-xs">
-              Đã nhận {accepted}/{total}
+              {tr("Đã nhận")}{" "}{accepted}/{total}
             </Text>
           </View>
           <View className="h-1.5 bg-accent-light rounded-full overflow-hidden">
@@ -154,19 +159,17 @@ export const MyPackageCard = memo(function MyPackageCard({
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-ink-muted text-xs mb-0.5">
-              Thu nhập / buổi
-            </Text>
+              {tr("Thu nhập / buổi")}</Text>
             <Text className="text-ink font-extrabold text-lg">
               {price ?? "—"}
             </Text>
           </View>
           <View
-            className="flex-row items-center bg-accent-dark rounded-full pl-5 pr-4"
+            className={`flex-row items-center rounded-full pl-5 pr-4 ${isDark ? "bg-accent-fill" : "bg-accent-dark"}`}
             style={{ height: 44 }}
           >
             <Text className="text-white text-xs" style={TYPE.button}>
-              CHI TIẾT
-            </Text>
+              {tr("CHI TIẾT")}</Text>
             <Feather
               name="arrow-right"
               size={16}

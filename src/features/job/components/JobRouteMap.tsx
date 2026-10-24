@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import {
   RouteMapWebView,
   type RouteMapHandle,
@@ -18,6 +21,10 @@ type JobRouteMapProps = {
 };
 
 export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const mapRef = useRef<RouteMapHandle>(null);
   const r = useJobRoute(destination);
   const blocked = r.permission === "blocked";
@@ -46,15 +53,14 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
           >
             <ActivityIndicator size="small" color={COLORS.primary} />
             <Text className="text-ink text-xs font-semibold ml-2">
-              Đang định vị...
-            </Text>
+              {tr("Đang định vị...")}</Text>
           </View>
         ) : null}
 
         <PressableScale
           onPress={() => mapRef.current?.recenter()}
           accessibilityRole="button"
-          accessibilityLabel="Căn bản đồ vừa khung"
+          accessibilityLabel={tr("Căn bản đồ vừa khung")}
           containerStyle={{ position: "absolute", top: 12, right: 12 }}
           className="w-11 h-11 rounded-full bg-surface items-center justify-center"
           style={SHADOWS.card}
@@ -69,8 +75,8 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
             <View className="flex-1 mr-3">
               <Text className="text-ink-muted text-xs">
                 {r.route.isEstimate
-                  ? "Đường chim bay từ vị trí của bạn"
-                  : "Từ vị trí của bạn"}
+                  ? tr("Đường chim bay từ vị trí của bạn")
+                  : tr("Từ vị trí của bạn")}
               </Text>
               <Text
                 className="text-ink text-xl font-extrabold"
@@ -80,8 +86,8 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
               </Text>
               <Text className="text-ink-soft text-xs" numberOfLines={1}>
                 {r.route.isEstimate
-                  ? "Chưa lấy được lộ trình, hãy dùng Google Maps"
-                  : `khoảng ${r.route.durationLabel}`}
+                  ? tr("Chưa lấy được lộ trình, hãy dùng Google Maps")
+                  : tr("khoảng {{value0}}", { value0: r.route.durationLabel })}
               </Text>
             </View>
 
@@ -89,7 +95,7 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
               onPress={r.locate}
               disabled={r.isLocating}
               accessibilityRole="button"
-              accessibilityLabel="Định vị lại"
+              accessibilityLabel={tr("Định vị lại")}
               containerStyle={{ marginRight: 8 }}
               className="w-11 h-11 rounded-full bg-accent-light items-center justify-center"
               style={{ opacity: r.isLocating ? 0.5 : 1 }}
@@ -100,27 +106,26 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
             <PressableScale
               onPress={onOpenMaps}
               accessibilityRole="button"
-              accessibilityLabel="Mở Google Maps"
-              className="flex-row items-center justify-center bg-ink rounded-full px-5"
+              accessibilityLabel={tr("Mở Google Maps")}
+              className="flex-row items-center justify-center bg-ink-panel rounded-full px-5"
               style={{ height: 44 }}
             >
               <Feather name="navigation" size={15} color={ON_DARK.text} />
               <Text className="text-white text-xs ml-2" style={TYPE.button}>
-                CHỈ ĐƯỜNG
-              </Text>
+                {tr("CHỈ ĐƯỜNG")}</Text>
             </PressableScale>
           </>
         ) : (
           <>
             <View className="flex-1 mr-3">
               <Text className="text-ink text-sm font-extrabold">
-                {blocked ? "Cần quyền vị trí" : "Xem đường đi tới nhà khách"}
+                {blocked ? tr("Cần quyền vị trí") : tr("Xem đường đi tới nhà khách")}
               </Text>
               <Text className="text-ink-muted text-xs mt-0.5" numberOfLines={2}>
                 {r.error ??
                   (blocked
-                    ? "Hãy bật quyền vị trí cho ứng dụng trong Cài đặt."
-                    : "Cho phép định vị để vẽ đường ngắn nhất.")}
+                    ? tr("Hãy bật quyền vị trí cho ứng dụng trong Cài đặt.")
+                    : tr("Cho phép định vị để vẽ đường ngắn nhất."))}
               </Text>
             </View>
 
@@ -128,7 +133,7 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
               onPress={blocked ? r.openSettings : r.locate}
               disabled={r.isLocating}
               accessibilityRole="button"
-              className="flex-row items-center justify-center bg-ink rounded-full px-5"
+              className="flex-row items-center justify-center bg-ink-panel rounded-full px-5"
               style={{ height: 44, opacity: r.isLocating ? 0.6 : 1 }}
             >
               {r.isLocating ? (
@@ -141,7 +146,7 @@ export function JobRouteMap({ destination, onOpenMaps }: JobRouteMapProps) {
                 />
               )}
               <Text className="text-white text-xs ml-2" style={TYPE.button}>
-                {blocked ? "CÀI ĐẶT" : "XEM ĐƯỜNG"}
+                {blocked ? tr("CÀI ĐẶT") : tr("XEM ĐƯỜNG")}
               </Text>
             </PressableScale>
           </>

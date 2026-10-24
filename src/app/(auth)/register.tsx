@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
@@ -11,15 +13,17 @@ import {
   TermsCheckbox,
 } from "@/features/auth/components/AuthKit";
 import {
-  ACCOUNT_FIELDS,
-  GENDER_OPTIONS,
-  PERSONAL_FIELDS,
+  getLocalizedAccountFields,
+  getLocalizedGenderOptions,
+  getLocalizedPersonalFields,
   useRegister,
   type RegisterFieldConfig,
 } from "@/features/auth/hooks/useRegister";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function RegisterScreen() {
+  const { t: tr } = useTranslation();
+
   const {
     form,
     update,
@@ -48,23 +52,23 @@ export default function RegisterScreen() {
 
   return (
     <AuthScreen
-      title="Đăng ký nhân viên"
-      subtitle="Tạo tài khoản để bắt đầu nhận việc cùng CleanWise."
+      title={tr("Đăng ký nhân viên")}
+      subtitle={tr("Tạo tài khoản để bắt đầu nhận việc cùng CleanWise.")}
       footer={
         <AuthFooter
-          prompt="Đã có tài khoản?"
-          linkLabel="Đăng nhập"
+          prompt={tr("Đã có tài khoản?")}
+          linkLabel={tr("Đăng nhập")}
           href="/(auth)/login"
         />
       }
     >
-      <SectionTitle icon="user" title="Thông tin cá nhân" />
-      {PERSONAL_FIELDS.map(renderField)}
+      <SectionTitle icon="user" title={tr("Thông tin cá nhân")} />
+      {getLocalizedPersonalFields().map(renderField)}
 
-      <FormField label="Ngày sinh" required>
+      <FormField label={tr("Ngày sinh")} required>
         <DateField
           value={form.birth_date}
-          placeholder="Chọn ngày sinh"
+          placeholder={tr("Chọn ngày sinh")}
           onPress={openBirthDatePicker}
         />
       </FormField>
@@ -83,32 +87,32 @@ export default function RegisterScreen() {
         />
       )}
 
-      <FormField label="Giới tính" required>
+      <FormField label={tr("Giới tính")} required>
         <SegmentedControl
-          options={GENDER_OPTIONS}
+          options={getLocalizedGenderOptions()}
           value={form.gender}
           onChange={(g) => update("gender", g)}
         />
       </FormField>
 
-      <SectionTitle icon="smartphone" title="Tài khoản và liên hệ" />
-      {ACCOUNT_FIELDS.map(renderField)}
+      <SectionTitle icon="smartphone" title={tr("Tài khoản và liên hệ")} />
+      {getLocalizedAccountFields().map(renderField)}
 
-      <SectionTitle icon="lock" title="Bảo mật" />
-      <FormField label="Mật khẩu" required>
+      <SectionTitle icon="lock" title={tr("Bảo mật")} />
+      <FormField label={tr("Mật khẩu")} required>
         <FormInput
           icon="lock"
           isPassword
-          placeholder="Tối thiểu 8 ký tự"
+          placeholder={tr("Tối thiểu 8 ký tự")}
           value={form.password}
           onChangeText={(v) => update("password", v)}
         />
       </FormField>
-      <FormField label="Xác nhận mật khẩu" required>
+      <FormField label={tr("Xác nhận mật khẩu")} required>
         <FormInput
           icon="lock"
           isPassword
-          placeholder="Nhập lại mật khẩu"
+          placeholder={tr("Nhập lại mật khẩu")}
           value={form.password_confirm}
           onChangeText={(v) => update("password_confirm", v)}
         />
@@ -119,10 +123,10 @@ export default function RegisterScreen() {
       <ErrorNotice message={error} />
 
       <PrimaryButton
-        label="Tạo tài khoản"
+        label={tr("Tạo tài khoản")}
         variant="dark"
         loading={isLoading}
-        loadingLabel="Đang tạo tài khoản..."
+        loadingLabel={tr("Đang tạo tài khoản...")}
         onPress={handleRegister}
       />
     </AuthScreen>

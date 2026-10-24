@@ -1,4 +1,7 @@
-import { COLORS, ON_DARK, RADIUS, TYPE } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { ON_DARK, RADIUS, TYPE } from "@/constants/theme";
 import type { WeekDayCell } from "@/features/schedule/hooks/useSchedule";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
@@ -27,6 +30,8 @@ function DayCell({
   day: WeekDayCell;
   onSelect: (date: Date) => void;
 }) {
+  const { COLORS } = useAppTheme();
+
   const selected = useRef(new Animated.Value(day.selected ? 1 : 0)).current;
 
   useEffect(() => {
@@ -79,7 +84,7 @@ function DayCell({
         style={{
           backgroundColor: day.hasJobs
             ? day.selected
-              ? COLORS.primary
+              ? COLORS.primaryFill
               : ON_DARK.textSoft
             : "transparent",
         }}
@@ -98,6 +103,10 @@ export function ScheduleHero({
   onNext,
   onSelect,
 }: ScheduleHeroProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const [trackWidth, setTrackWidth] = useState(0);
   const indicatorX = useRef(new Animated.Value(0)).current;
@@ -166,7 +175,7 @@ export function ScheduleHero({
           onPress={onBack}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Quay lại"
+          accessibilityLabel={tr("Quay lại")}
           className="w-11 h-11 rounded-full items-center justify-center mr-3"
           style={{ backgroundColor: ON_DARK.surface }}
         >
@@ -177,11 +186,9 @@ export function ScheduleHero({
             className="text-xl font-extrabold"
             style={{ color: ON_DARK.text }}
           >
-            Lịch làm việc
-          </Text>
+            {tr("Lịch làm việc")}</Text>
           <Text className="text-xs" style={{ color: ON_DARK.textSoft }}>
-            Theo dõi các ca làm của bạn
-          </Text>
+            {tr("Theo dõi các ca làm của bạn")}</Text>
         </View>
         <Pressable
           onPress={onToday}
@@ -194,8 +201,7 @@ export function ScheduleHero({
             className="text-xs ml-1.5"
             style={[TYPE.label, { color: ON_DARK.text }]}
           >
-            HÔM NAY
-          </Text>
+            {tr("HÔM NAY")}</Text>
         </Pressable>
       </View>
 
@@ -204,7 +210,7 @@ export function ScheduleHero({
           onPress={onPrev}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Tuần trước"
+          accessibilityLabel={tr("Tuần trước")}
           className="w-11 h-11 rounded-full items-center justify-center"
         >
           <Feather name="chevron-left" size={22} color={ON_DARK.text} />
@@ -224,7 +230,7 @@ export function ScheduleHero({
           onPress={onNext}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Tuần sau"
+          accessibilityLabel={tr("Tuần sau")}
           className="w-11 h-11 rounded-full items-center justify-center"
         >
           <Feather name="chevron-right" size={22} color={ON_DARK.text} />

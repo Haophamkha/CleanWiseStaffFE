@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { ChatAvatar } from "@/features/chat/components/ChatAvatar";
 import type { ChatInboxRow } from "@/features/chat/hooks/useChatInbox";
 import { useEffect, useRef } from "react";
@@ -16,6 +19,10 @@ export function ConversationItem({
   onPress,
   index = 0,
 }: ConversationItemProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const v = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -45,7 +52,7 @@ export function ConversationItem({
       <Pressable
         onPress={() => onPress(row.id)}
         accessibilityRole="button"
-        accessibilityLabel={`Mở cuộc trò chuyện với ${row.name}`}
+        accessibilityLabel={tr("Mở cuộc trò chuyện với {{value0}}", { value0: row.name })}
         style={({ pressed }) => ({
           backgroundColor: pressed ? COLORS.canvas : COLORS.surface,
         })}
@@ -98,7 +105,7 @@ export function ConversationItem({
                 {row.preview}
               </Text>
               {row.unread && (
-                <View className="min-w-5 h-5 rounded-full bg-ink px-1.5 items-center justify-center">
+                <View className="min-w-5 h-5 rounded-full bg-ink-panel px-1.5 items-center justify-center">
                   <Text className="text-white text-[11px] font-bold">
                     {row.unreadLabel}
                   </Text>

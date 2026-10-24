@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -14,6 +17,10 @@ type Props = {
 };
 
 export function SimpleHeader({ title, subtitle, onBack, backDisabled }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
 
   return (
@@ -26,7 +33,7 @@ export function SimpleHeader({ title, subtitle, onBack, backDisabled }: Props) {
         disabled={backDisabled}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Quay lại"
+        accessibilityLabel={tr("Quay lại")}
         className="items-center justify-center"
         style={{ width: 40, height: 44 }}
       >

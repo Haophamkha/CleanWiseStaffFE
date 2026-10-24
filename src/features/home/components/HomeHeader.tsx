@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { NotificationBellButton } from "@/components/common/NotificationBellButton";
-import { COLORS, ON_DARK, RADIUS } from "@/constants/theme";
+import { ON_DARK, RADIUS } from "@/constants/theme";
 import { formatDayLabel } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
 import { useMemo } from "react";
@@ -11,9 +14,13 @@ type HomeHeaderProps =
   | { variant: "greeting"; name: string; avatar: string | null };
 
 export function HomeHeader(props: HomeHeaderProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const isGreeting = props.variant === "greeting";
-  const today = useMemo(() => formatDayLabel(new Date().toISOString()), []);
+  const today = useMemo(() => formatDayLabel(new Date().toISOString()), [tr]);
 
   return (
     <View
@@ -86,8 +93,7 @@ export function HomeHeader(props: HomeHeaderProps) {
           </View>
           <View className="ml-3 flex-1">
             <Text className="text-xs" style={{ color: ON_DARK.textSoft }}>
-              Xin chào,
-            </Text>
+              {tr("Xin chào,")}</Text>
             <Text
               className="text-xl font-extrabold text-white"
               numberOfLines={1}
@@ -107,7 +113,7 @@ export function HomeHeader(props: HomeHeaderProps) {
         </View>
       ) : (
         <View className="flex-row items-center">
-          <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3">
+          <View className="w-10 h-10 rounded-full bg-primary-fill items-center justify-center mr-3">
             <Feather name="briefcase" size={18} color={COLORS.white} />
           </View>
           <Text
@@ -120,7 +126,7 @@ export function HomeHeader(props: HomeHeaderProps) {
       )}
 
       {/* Nền trắng để chuông (thiết kế cho nền sáng) vẫn rõ trên header tối */}
-      <View className="w-11 h-11 rounded-full bg-white items-center justify-center overflow-hidden">
+      <View className="w-11 h-11 rounded-full bg-surface items-center justify-center overflow-hidden">
         <NotificationBellButton />
       </View>
     </View>

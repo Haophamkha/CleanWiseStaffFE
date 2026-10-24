@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, OVERLAY, RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, type ComponentProps, type ReactNode } from "react";
 import {
@@ -30,33 +33,12 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
-const TONES = {
-  primary: {
-    circle: "bg-primary-soft",
-    icon: COLORS.primary,
-    variant: "primary" as const,
-    color: undefined as string | undefined,
-  },
-  dark: {
-    circle: "bg-accent-light",
-    icon: COLORS.ink,
-    variant: "dark" as const,
-    color: undefined as string | undefined,
-  },
-  danger: {
-    circle: "bg-danger-light",
-    icon: COLORS.danger,
-    variant: "primary" as const,
-    color: COLORS.danger as string | undefined,
-  },
-};
-
 export function ConfirmModal({
   visible,
   title,
   message,
-  confirmLabel = "Xác nhận",
-  cancelLabel = "Kiểm tra lại",
+  confirmLabel = tr("Xác nhận"),
+  cancelLabel = tr("Kiểm tra lại"),
   loading,
   tone = "primary",
   icon = "help-circle",
@@ -64,6 +46,30 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  useTranslation();
+  const { COLORS, SHADOWS, OVERLAY } = useAppTheme();
+
+  const TONES = {
+    primary: {
+      circle: "bg-primary-soft",
+      icon: COLORS.primary,
+      variant: "primary" as const,
+      color: undefined as string | undefined,
+    },
+    dark: {
+      circle: "bg-accent-light",
+      icon: COLORS.ink,
+      variant: "dark" as const,
+      color: undefined as string | undefined,
+    },
+    danger: {
+      circle: "bg-danger-light",
+      icon: COLORS.danger,
+      variant: "primary" as const,
+      color: COLORS.dangerFill as string | undefined,
+    },
+  };
+
   const t = TONES[tone];
   const enter = useRef(new Animated.Value(0)).current;
 

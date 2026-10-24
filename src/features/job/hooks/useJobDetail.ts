@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import { useJobActions } from "@/features/job/hooks/useJobActions";
 import { useJobDetailData } from "@/features/job/hooks/useJobDetailData";
 import type { PaymentStatus } from "@/features/schedule/types/Schedule";
@@ -19,11 +21,13 @@ import { Alert, Linking } from "react-native";
 
 const HIDE_TAKEN_SESSIONS = true;
 
-const PAYMENT_METHOD_LABEL: Record<string, string> = {
-  CASH: "Tiền mặt, thu trực tiếp từ khách",
-  BANK_TRANSFER: "Chuyển khoản online",
-  WALLET: "Ví CleanWise",
-};
+function getLocalizedPaymentMethodLabel(): Record<string, string> {
+  return {
+    CASH: tr("Tiền mặt, thu trực tiếp từ khách"),
+    BANK_TRANSFER: tr("Chuyển khoản online"),
+    WALLET: tr("Ví CleanWise"),
+  };
+}
 
 export type InfoRowData = {
   icon: ComponentProps<typeof Feather>["name"];
@@ -47,6 +51,8 @@ export type JobSummary = {
 export type JobActionsState = ReturnType<typeof useJobActions>;
 
 export function useJobDetail() {
+  const { t: tr } = useTranslation();
+
   const {
     id,
     source,
@@ -97,7 +103,7 @@ export function useJobDetail() {
       return null;
     }
     return { latitude: lat, longitude: lng };
-  }, [item?.address_latitude, item?.address_longitude]);
+  }, [item?.address_latitude, item?.address_longitude, tr]);
 
   const distanceKm = useDistanceToAddress(destination);
 
@@ -123,7 +129,7 @@ export function useJobDetail() {
     if (!item?.address_latitude || !item?.address_longitude) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${item.address_latitude},${item.address_longitude}`;
     Linking.openURL(url).catch(() =>
-      Alert.alert("Không thể mở bản đồ", "Vui lòng thử lại sau."),
+      Alert.alert(tr("Không thể mở bản đồ"), tr("Vui lòng thử lại sau.")),
     );
   };
 
@@ -133,66 +139,66 @@ export function useJobDetail() {
     if (!isPackage) {
       rows.push({
         icon: "calendar",
-        label: "Thời gian",
+        label: tr("Thời gian"),
         value: `${formatDayLabel(item.scheduled_start)}, ${formatTime(item.scheduled_start)} - ${formatTime(item.scheduled_end)} (${formatDuration(item.scheduled_start, item.scheduled_end)})`,
       });
     }
     rows.push({
       icon: "map-pin",
-      label: "Khu vực",
+      label: tr("Khu vực"),
       value: `${item.address_ward ? item.address_ward + ", " : ""}${item.address_city}`,
     });
     if (distanceKm !== null) {
       rows.push({
         icon: "navigation",
-        label: "Cách vị trí của bạn",
+        label: tr("Cách vị trí của bạn"),
         value: formatDistance(distanceKm),
       });
     }
     if (item.payment_method) {
       rows.push({
         icon: "credit-card",
-        label: "Hình thức thanh toán",
-        value: PAYMENT_METHOD_LABEL[item.payment_method] ?? item.payment_method,
+        label: tr("Hình thức thanh toán"),
+        value: getLocalizedPaymentMethodLabel()[item.payment_method] ?? item.payment_method,
       });
     }
     if (item.cash_to_collect) {
       rows.push({
         icon: "dollar-sign",
-        label: "Cần thu từ khách",
+        label: tr("Cần thu từ khách"),
         value: formatCurrency(item.cash_to_collect) ?? item.cash_to_collect,
       });
     }
     if (item.platform_fee) {
       rows.push({
         icon: "percent",
-        label: "Phí nền tảng",
-        value: `${formatCurrency(item.platform_fee) ?? item.platform_fee}, trừ vào ví khi nhận việc`,
+        label: tr("Phí nền tảng"),
+        value: tr("{{value0}}, trừ vào ví khi nhận việc", { value0: formatCurrency(item.platform_fee) ?? item.platform_fee }),
       });
     }
     if (mineItem) {
       rows.push(
         {
           icon: "home",
-          label: "Địa chỉ chi tiết",
+          label: tr("Địa chỉ chi tiết"),
           value: mineItem.address_line,
         },
         {
           icon: "user",
-          label: "Tên liên hệ",
+          label: tr("Tên liên hệ"),
           value: mineItem.receiver_name,
         },
         {
           icon: "phone",
-          label: "SĐT liên hệ",
+          label: tr("SĐT liên hệ"),
           value: mineItem.receiver_phone,
         },
       );
       if (mineItem.status === "PENDING" && mineItem.can_cancel) {
         rows.push({
           icon: "x-circle",
-          label: "Hạn hủy nhận việc",
-          value: `Trước ${formatDateTime(mineItem.cancel_deadline)}`,
+          label: tr("Hạn hủy nhận việc"),
+          value: tr("Trước {{value0}}", { value0: formatDateTime(mineItem.cancel_deadline) }),
         });
       }
     }
@@ -201,14 +207,14 @@ export function useJobDetail() {
     if (item.booking_note) {
       noteRows.push({
         icon: "file-text",
-        label: "Ghi chú đơn",
+        label: tr("Ghi chú đơn"),
         value: item.booking_note,
       });
     }
     if (mineItem?.note) {
       noteRows.push({
         icon: "edit-3",
-        label: "Ghi chú buổi làm",
+        label: tr("Ghi chú buổi làm"),
         value: mineItem.note,
       });
     }
@@ -219,21 +225,21 @@ export function useJobDetail() {
     ) {
       noteRows.push({
         icon: "info",
-        label: "Lý do hủy buổi",
+        label: tr("Lý do hủy buổi"),
         value: mineItem.cancel_reason,
       });
     }
 
     summary = {
       codeLine: isPackage
-        ? `${item.booking_code} · Gói ${totalSessions} buổi`
-        : `${item.booking_code} · Buổi ${item.sequence_no}/${item.total_sessions}`,
+        ? tr("{{value0}} · Gói {{value1}} buổi", { value0: item.booking_code, value1: totalSessions })
+        : tr("{{value0}} · Buổi {{value1}}/{{value2}}", { value0: item.booking_code, value1: item.sequence_no, value2: item.total_sessions }),
       status: item.status,
       countBadge: isPackage
-        ? `Còn ${openSessions.length}/${totalSessions} buổi`
+        ? tr("Còn {{value0}}/{{value1}} buổi", { value0: openSessions.length, value1: totalSessions })
         : null,
       service: item.service_name,
-      priceCaption: isPackage ? "Thu nhập / buổi" : "Thu nhập",
+      priceCaption: isPackage ? tr("Thu nhập / buổi") : tr("Thu nhập"),
       priceLabel: formatCurrency(item.price) ?? "—",
       payment: item.payment_status,
       rows,
@@ -257,11 +263,11 @@ export function useJobDetail() {
     canEditImages,
     actions,
     missingTitle: isMine
-      ? "Không tìm thấy buổi làm"
-      : "Đơn này không còn buổi trống",
+      ? tr("Không tìm thấy buổi làm")
+      : tr("Đơn này không còn buổi trống"),
     missingMessage: isMine
       ? undefined
-      : "Có thể các buổi đã được nhân viên khác nhận.",
+      : tr("Có thể các buổi đã được nhân viên khác nhận."),
     openDirections,
     destination,
     showRouteMap: destination !== null && !isSingleSessionView,

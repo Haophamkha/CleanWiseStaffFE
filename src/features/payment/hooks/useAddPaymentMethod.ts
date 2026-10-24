@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import {
     useCreateBankPaymentMethodMutation,
     useGetBankCatalogQuery,
@@ -38,10 +40,12 @@ const getFirstError = (error: any) => {
     const first = Object.values(errors).flat().find(Boolean);
     if (typeof first === "string") return first;
   }
-  return error?.data?.message || "Không thể lưu tài khoản. Vui lòng thử lại.";
+  return error?.data?.message || tr("Không thể lưu tài khoản. Vui lòng thử lại.");
 };
 
 export function useAddPaymentMethod() {
+  const { t: tr } = useTranslation();
+
   const [step, setStep] = useState<Step>("options");
   const [selectedBank, setSelectedBank] = useState<BankCatalogItem | null>(
     null,
@@ -78,15 +82,15 @@ export function useAddPaymentMethod() {
       options.length
         ? options
         : [
-            { code: "MOMO", name: "Ví MoMo", status: "COMING_SOON" },
+            { code: "MOMO", name: tr("Ví MoMo"), status: "COMING_SOON" },
             { code: "VNPAY", name: "VNPAY", status: "COMING_SOON" },
             {
               code: "BANK_ACCOUNT",
-              name: "Tài khoản ngân hàng",
+              name: tr("Tài khoản ngân hàng"),
               status: "AVAILABLE",
             },
           ],
-    [options],
+    [options, tr],
   );
 
   const optionViews = useMemo<OptionView[]>(
@@ -97,10 +101,10 @@ export function useAddPaymentMethod() {
           option,
           icon: optionIcon(option.code),
           available,
-          statusLabel: available ? "Có thể thêm ngay" : "Sắp hỗ trợ",
+          statusLabel: available ? tr("Có thể thêm ngay") : tr("Sắp hỗ trợ"),
         };
       }),
-    [visibleOptions],
+    [visibleOptions, tr],
   );
 
   const handleBack = () => {
@@ -119,8 +123,8 @@ export function useAddPaymentMethod() {
       return;
     }
     Alert.alert(
-      "Sắp hỗ trợ",
-      `CleanWise đang hoàn thiện tính năng liên kết ${option.name}.`,
+      tr("Sắp hỗ trợ"),
+      tr("CleanWise đang hoàn thiện tính năng liên kết {{value0}}.", { value0: option.name }),
     );
   };
 
@@ -144,18 +148,18 @@ export function useAddPaymentMethod() {
 
   const handleSubmit = async () => {
     const normalizedAccount = accountNumber.replace(/\s/g, "");
-    if (!selectedBank) return setError("Vui lòng chọn ngân hàng.");
+    if (!selectedBank) return setError(tr("Vui lòng chọn ngân hàng."));
     if (!/^\d{6,19}$/.test(normalizedAccount)) {
-      return setError("Số tài khoản phải gồm từ 6 đến 19 chữ số.");
+      return setError(tr("Số tài khoản phải gồm từ 6 đến 19 chữ số."));
     }
     if (accountHolderName.trim().length < 2) {
-      return setError("Vui lòng nhập tên chủ tài khoản.");
+      return setError(tr("Vui lòng nhập tên chủ tài khoản."));
     }
     if (!/^\d{9,14}$/.test(identity)) {
-      return setError("CCCD/CMND Sandbox phải gồm từ 9 đến 14 chữ số.");
+      return setError(tr("CCCD/CMND Sandbox phải gồm từ 9 đến 14 chữ số."));
     }
     if (!/^0\d{9}$/.test(mobile)) {
-      return setError("Số điện thoại Sandbox phải gồm 10 chữ số và bắt đầu bằng 0.");
+      return setError(tr("Số điện thoại Sandbox phải gồm 10 chữ số và bắt đầu bằng 0."));
     }
 
     setError("");
@@ -169,7 +173,7 @@ export function useAddPaymentMethod() {
         display_name: displayName.trim() || undefined,
         is_default: isDefault,
       }).unwrap();
-      showSuccessToast("Đã thêm tài khoản ngân hàng");
+      showSuccessToast(tr("Đã thêm tài khoản ngân hàng"));
       try {
         const result = await startVerification({ id: method.id, identity, mobile }).unwrap();
         if (result.requires_otp) {
@@ -178,8 +182,8 @@ export function useAddPaymentMethod() {
         }
       } catch (verificationError: any) {
         showSuccessToast(
-          "Tài khoản đã được lưu",
-          verificationError?.data?.message ?? "Bạn có thể thử lại trong danh sách tài khoản.",
+          tr("Tài khoản đã được lưu"),
+          verificationError?.data?.message ?? tr("Bạn có thể thử lại trong danh sách tài khoản."),
         );
         router.back();
         return;
@@ -194,18 +198,18 @@ export function useAddPaymentMethod() {
     if (!otpMethodId) return;
     try {
       await confirmVerification({ id: otpMethodId, otp }).unwrap();
-      showSuccessToast("Xác minh Sandbox TINGEE thành công");
+      showSuccessToast(tr("Xác minh Sandbox TINGEE thành công"));
       setOtpMethodId(null);
       router.back();
     } catch (verificationError: any) {
-      showErrorToast("OTP chưa hợp lệ", verificationError?.data?.message ?? "Vui lòng thử lại.");
+      showErrorToast(tr("OTP chưa hợp lệ"), verificationError?.data?.message ?? tr("Vui lòng thử lại."));
     }
   };
 
   return {
     step,
     headerTitle:
-      step === "options" ? "Thêm phương thức" : "Thêm tài khoản ngân hàng",
+      step === "options" ? tr("Thêm phương thức") : tr("Thêm tài khoản ngân hàng"),
     isSaving: isBusy,
     error,
     handleBack,
@@ -219,8 +223,8 @@ export function useAddPaymentMethod() {
     // Bước 2: form ngân hàng
     banks,
     bankLabel: isLoadingBanks
-      ? "Đang tải ngân hàng..."
-      : selectedBank?.short_name || "Chọn ngân hàng",
+      ? tr("Đang tải ngân hàng...")
+      : selectedBank?.short_name || tr("Chọn ngân hàng"),
     hasBank: !!selectedBank,
     bankDisabled: isLoadingBanks || isBankError,
     isBankError,

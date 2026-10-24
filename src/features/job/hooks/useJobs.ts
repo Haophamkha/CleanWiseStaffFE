@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   useGetAvailableJobsPagedQuery,
   useGetMyJobCountsQuery,
@@ -38,6 +39,7 @@ export type JobsListState<T> = {
 };
 
 export function useJobs() {
+  const { t: tr } = useTranslation();
   const { tab: initialTab } = useLocalSearchParams<{ tab?: Tab }>();
 
   // Tab chính: available / mine
@@ -67,7 +69,7 @@ export function useJobs() {
 
   const [day, setDay] = useState<string | null>(null);
 
-  const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT), []);
+  const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT), [tr]);
 
   const availableFilters = useMemo<AvailableFilters>(
     () =>

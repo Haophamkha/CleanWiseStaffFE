@@ -1,19 +1,14 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import type { ScheduleRow } from "@/features/schedule/hooks/useSchedule";
 import { Feather } from "@expo/vector-icons";
 import { memo, useEffect, useRef } from "react";
 import { Animated, Easing, Text, View } from "react-native";
-
-const DOT_COLOR: Record<string, string> = {
-  PENDING: COLORS.warning,
-  IN_PROGRESS: COLORS.info,
-  COMPLETED: COLORS.success,
-  CANCELLED: COLORS.inkMuted,
-  MISSED: COLORS.danger,
-};
 
 /** Chấm mốc trên timeline; ca đang thực hiện có vòng sóng lan ra. */
 function StatusDot({ color, pulse }: { color: string; pulse: boolean }) {
@@ -89,6 +84,18 @@ export const ScheduleTimelineItem = memo(function ScheduleTimelineItem({
   onPress,
   index = 0,
 }: ScheduleTimelineItemProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS } = useAppTheme();
+
+  const DOT_COLOR: Record<string, string> = {
+    PENDING: COLORS.warning,
+    IN_PROGRESS: COLORS.info,
+    COMPLETED: COLORS.success,
+    CANCELLED: COLORS.inkMuted,
+    MISSED: COLORS.danger,
+  };
+
   const dotColor = DOT_COLOR[row.status] ?? COLORS.warning;
 
   return (
@@ -152,8 +159,7 @@ export const ScheduleTimelineItem = memo(function ScheduleTimelineItem({
             <View className="pt-3 border-t border-line flex-row items-center justify-between">
               <View>
                 <Text className="text-ink-muted text-[11px] mb-0.5">
-                  Thu nhập
-                </Text>
+                  {tr("Thu nhập")}</Text>
                 <Text className="text-ink font-extrabold text-base">
                   {row.priceLabel}
                 </Text>

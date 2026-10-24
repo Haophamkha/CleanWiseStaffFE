@@ -1,4 +1,7 @@
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { translate as tr, getLocale } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import type {
   ConditionalOptionGroup,
   FieldOption,
@@ -15,15 +18,17 @@ type ServiceDetailReadOnlyProps = {
   hideSchedule?: boolean;
 };
 
-const WEEKDAY_LABELS: Record<string, string> = {
-  MON: "Thứ 2",
-  TUE: "Thứ 3",
-  WED: "Thứ 4",
-  THU: "Thứ 5",
-  FRI: "Thứ 6",
-  SAT: "Thứ 7",
-  SUN: "Chủ nhật",
-};
+function getLocalizedWeekdayLabels(): Record<string, string> {
+  return {
+    MON: tr("Thứ 2"),
+    TUE: tr("Thứ 3"),
+    WED: tr("Thứ 4"),
+    THU: tr("Thứ 5"),
+    FRI: tr("Thứ 6"),
+    SAT: tr("Thứ 7"),
+    SUN: tr("Chủ nhật"),
+  };
+}
 
 function isEmptyValue(raw: unknown): boolean {
   if (raw === null || raw === undefined) return true;
@@ -70,7 +75,7 @@ function optionLabel(options: FieldOption[], raw: unknown): string {
 function formatDateValue(raw: unknown): string {
   const d = new Date(String(raw));
   if (Number.isNaN(d.getTime())) return String(raw);
-  return d.toLocaleDateString("vi-VN", {
+  return d.toLocaleDateString(getLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -82,7 +87,7 @@ function formatTimeValue(raw: unknown): string {
   if (/^\d{1,2}:\d{2}/.test(str)) return str.slice(0, 5);
   const d = new Date(str);
   if (!Number.isNaN(d.getTime())) {
-    return d.toLocaleTimeString("vi-VN", {
+    return d.toLocaleTimeString(getLocale(), {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -125,6 +130,8 @@ function FieldRow({
   label: string;
   children: React.ReactNode;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="flex-row items-start mb-3">
       <View className="w-8 h-8 rounded-full bg-accent-light items-center justify-center mr-3">
@@ -151,7 +158,7 @@ function formatSimpleValue(
         .map((v) =>
           options.length > 0
             ? optionLabel(options, v)
-            : (WEEKDAY_LABELS[String(v)] ?? String(v)),
+            : (getLocalizedWeekdayLabels()[String(v)] ?? String(v)),
         )
         .join(", ");
     }
@@ -160,7 +167,7 @@ function formatSimpleValue(
     case "TEXTAREA":
       return String(raw);
     case "BOOLEAN":
-      return raw ? "Có" : "Không";
+      return raw ? tr("Có") : tr("Không");
     case "DATE":
       return formatDateValue(raw);
     case "TIME":
@@ -171,6 +178,10 @@ function formatSimpleValue(
 }
 
 function TaskChecklistBlock({ label, text }: { label: string; text: string }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const items = text
     .split("\n")
     .map((s) => s.trim())
@@ -180,7 +191,7 @@ function TaskChecklistBlock({ label, text }: { label: string; text: string }) {
   return (
     <View className="mb-3">
       <Text className="text-ink-muted text-xs mb-1.5">
-        {label || "Công việc bao gồm"}
+        {label || tr("Công việc bao gồm")}
       </Text>
       {items.map((line, idx) => (
         <View key={idx} className="flex-row items-start mb-1">
@@ -368,6 +379,8 @@ export function ServiceDetailReadOnly({
   taskChecklist,
   hideSchedule = false,
 }: ServiceDetailReadOnlyProps) {
+  const { t: tr } = useTranslation();
+
   if (!fields || fields.length === 0) return null;
   const scope = values ?? {};
   const hasVisible = fields.some((f) => {
@@ -384,8 +397,7 @@ export function ServiceDetailReadOnly({
       style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <Text className="text-ink text-base font-extrabold mb-3">
-        Thông tin dịch vụ
-      </Text>
+        {tr("Thông tin dịch vụ")}</Text>
       <FieldList
         fields={fields}
         values={scope}

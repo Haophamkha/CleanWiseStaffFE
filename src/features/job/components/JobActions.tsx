@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { ComplaintAction } from "@/features/complaint/components/ComplaintAction";
 import { CancelReasonChips } from "@/features/job/components/CancelReasonChips";
 import type { JobActionsState } from "@/features/job/hooks/useJobDetail";
@@ -54,7 +57,7 @@ function HeroAction({
       accessibilityLabel={title}
       containerStyle={{ marginBottom: 12 }}
       className={`flex-row items-center px-4 py-3.5 ${
-        tone === "primary" ? "bg-primary" : "bg-ink"
+        tone === "primary" ? "bg-primary-fill" : "bg-ink-panel"
       }`}
       style={[
         {
@@ -108,6 +111,8 @@ function NoticeCard({
   message: string;
   tone: "warning" | "danger";
 }) {
+  const { COLORS } = useAppTheme();
+
   const isWarning = tone === "warning";
   return (
     <FadeInView>
@@ -151,22 +156,24 @@ function CheckInBlock({
   item: WorkerSchedule;
   actions: JobActionsState;
 }) {
+  const { t: tr } = useTranslation();
+
   const availability = getCheckInAvailability(item.scheduled_start);
 
   if (availability.canStart) {
     return (
       <FadeInView delay={60}>
         <HeroAction
-          title="Bắt đầu công việc"
+          title={tr("Bắt đầu công việc")}
           subtitle={
             item.address_ward
-              ? `Tại ${item.address_ward}`
-              : "Chạm để bắt đầu buổi làm"
+              ? tr("Tại {{value0}}", { value0: item.address_ward })
+              : tr("Chạm để bắt đầu buổi làm")
           }
           icon="play"
           tone="primary"
           loading={actions.isCheckingIn}
-          loadingLabel="Đang xử lý..."
+          loadingLabel={tr("Đang xử lý...")}
           onPress={actions.handleCheckIn}
         />
       </FadeInView>
@@ -178,8 +185,8 @@ function CheckInBlock({
     return (
       <NoticeCard
         icon="alert-triangle"
-        title="Đã quá giờ check-in"
-        message="Vui lòng liên hệ CleanWise để được hỗ trợ."
+        title={tr("Đã quá giờ check-in")}
+        message={tr("Vui lòng liên hệ CleanWise để được hỗ trợ.")}
         tone="danger"
       />
     );
@@ -188,14 +195,18 @@ function CheckInBlock({
   return (
     <NoticeCard
       icon="clock"
-      title="Chưa đến giờ bắt đầu"
-      message={`Có thể bắt đầu từ ${availability.availableAtLabel}`}
+      title={tr("Chưa đến giờ bắt đầu")}
+      message={tr("Có thể bắt đầu từ {{value0}}", { value0: availability.availableAtLabel })}
       tone="warning"
     />
   );
 }
 
 function CheckOutBlock({ actions }: { actions: JobActionsState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const loading = actions.isCheckingOut;
   const [visible, setVisible] = useState(false);
   const [note, setNote] = useState("");
@@ -221,12 +232,12 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
     <>
       <FadeInView delay={60}>
         <HeroAction
-          title="Hoàn thành công việc"
-          subtitle="Xác nhận đã làm xong buổi này"
+          title={tr("Hoàn thành công việc")}
+          subtitle={tr("Xác nhận đã làm xong buổi này")}
           icon="check-circle"
           tone="dark"
           loading={loading}
-          loadingLabel="Đang xử lý..."
+          loadingLabel={tr("Đang xử lý...")}
           onPress={open}
         />
       </FadeInView>
@@ -235,22 +246,21 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
         visible={visible}
         tone="dark"
         icon="check-circle"
-        title="Hoàn thành buổi làm"
-        message="Xác nhận bạn đã hoàn thành công việc"
-        confirmLabel="Hoàn thành"
-        cancelLabel="Để sau"
+        title={tr("Hoàn thành buổi làm")}
+        message={tr("Xác nhận bạn đã hoàn thành công việc")}
+        confirmLabel={tr("Hoàn thành")}
+        cancelLabel={tr("Để sau")}
         loading={loading}
         onConfirm={confirm}
         onCancel={close}
       >
         <Text className="text-ink text-sm font-semibold mb-2">
-          Ghi chú hoàn thành
-          <Text className="text-ink-muted font-normal"> (không bắt buộc)</Text>
+          {tr("Ghi chú hoàn thành")}<Text className="text-ink-muted font-normal">  {tr("(không bắt buộc)")}</Text>
         </Text>
-        <TextInput
+        <TextInput keyboardAppearance={themeMode}
           value={note}
           onChangeText={setNote}
-          placeholder="Ví dụ: Đã vệ sinh đầy đủ các khu vực theo yêu cầu..."
+          placeholder={tr("Ví dụ: Đã vệ sinh đầy đủ các khu vực theo yêu cầu...")}
           placeholderTextColor={COLORS.inkMuted}
           multiline
           maxLength={1000}
@@ -267,18 +277,20 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
 }
 
 function CashBlock({ actions }: { actions: JobActionsState }) {
+  const { t: tr } = useTranslation();
+
   const [visible, setVisible] = useState(false);
   const loading = actions.isConfirmingCash;
   return (
     <>
       <FadeInView delay={60}>
         <HeroAction
-          title="Xác nhận đã thu tiền mặt"
-          subtitle="Bấm sau khi nhận đủ tiền từ khách"
+          title={tr("Xác nhận đã thu tiền mặt")}
+          subtitle={tr("Bấm sau khi nhận đủ tiền từ khách")}
           icon="dollar-sign"
           tone="primary"
           loading={loading}
-          loadingLabel="Đang xử lý..."
+          loadingLabel={tr("Đang xử lý...")}
           onPress={() => setVisible(true)}
         />
       </FadeInView>
@@ -286,10 +298,10 @@ function CashBlock({ actions }: { actions: JobActionsState }) {
         visible={visible}
         tone="dark"
         icon="dollar-sign"
-        title="Đã thu tiền mặt?"
-        message="Chỉ xác nhận khi bạn đã nhận đủ tiền từ khách. Nếu không xác nhận, hệ thống sẽ tự xác nhận sau 24 giờ."
-        confirmLabel="Đã thu đủ"
-        cancelLabel="Chưa"
+        title={tr("Đã thu tiền mặt?")}
+        message={tr("Chỉ xác nhận khi bạn đã nhận đủ tiền từ khách. Nếu không xác nhận, hệ thống sẽ tự xác nhận sau 24 giờ.")}
+        confirmLabel={tr("Đã thu đủ")}
+        cancelLabel={tr("Chưa")}
         loading={loading}
         onConfirm={async () => {
           await actions.handleConfirmCash();
@@ -303,6 +315,10 @@ function CashBlock({ actions }: { actions: JobActionsState }) {
 
 /** Liên hệ khách: thẻ trắng có icon tròn. */
 function ContactAction({ actions }: { actions: JobActionsState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const loading = actions.openingChat;
   return (
     <FadeInView delay={120}>
@@ -310,7 +326,7 @@ function ContactAction({ actions }: { actions: JobActionsState }) {
         onPress={actions.handleOpenChat}
         disabled={loading}
         accessibilityRole="button"
-        accessibilityLabel="Liên hệ khách hàng"
+        accessibilityLabel={tr("Liên hệ khách hàng")}
         containerStyle={{ marginBottom: 12 }}
         className="flex-row items-center bg-surface border border-line px-4 py-3"
         style={[
@@ -335,11 +351,10 @@ function ContactAction({ actions }: { actions: JobActionsState }) {
         </View>
         <View className="flex-1">
           <Text className="text-ink text-sm font-extrabold">
-            {loading ? "Đang mở trò chuyện..." : "Liên hệ khách hàng"}
+            {loading ? tr("Đang mở trò chuyện...") : tr("Liên hệ khách hàng")}
           </Text>
           <Text className="text-ink-muted text-xs mt-0.5">
-            Nhắn tin trao đổi trực tiếp với khách
-          </Text>
+            {tr("Nhắn tin trao đổi trực tiếp với khách")}</Text>
         </View>
         <Feather name="chevron-right" size={22} color={COLORS.ink} />
       </PressableScale>
@@ -354,6 +369,10 @@ function CancelBlock({
   mineItem: WorkerMySchedule;
   actions: JobActionsState;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   if (!mineItem.can_cancel) {
     return (
       <FadeInView delay={180}>
@@ -366,12 +385,9 @@ function CancelBlock({
           />
           <View className="flex-1 ml-3">
             <Text className="text-warning-dark text-sm font-bold mb-1">
-              Không thể tự hủy
-            </Text>
+              {tr("Không thể tự hủy")}</Text>
             <Text className="text-warning-dark text-xs leading-4">
-              Chỉ còn dưới 6 tiếng trước giờ làm. Vui lòng liên hệ quản trị viên
-              nếu cần hỗ trợ.
-            </Text>
+              {tr("Chỉ còn dưới 6 tiếng trước giờ làm. Vui lòng liên hệ quản trị viên nếu cần hỗ trợ.")}</Text>
           </View>
         </View>
       </FadeInView>
@@ -389,8 +405,7 @@ function CancelBlock({
         >
           <Feather name="x-circle" size={16} color={COLORS.danger} />
           <Text className="text-danger text-xs ml-2" style={TYPE.button}>
-            HỦY NHẬN VIỆC
-          </Text>
+            {tr("HỦY NHẬN VIỆC")}</Text>
         </PressableScale>
       </FadeInView>
     );
@@ -409,8 +424,7 @@ function CancelBlock({
             <Feather name="x-circle" size={16} color={COLORS.danger} />
           </View>
           <Text className="text-ink font-extrabold text-base flex-1">
-            Lý do hủy
-          </Text>
+            {tr("Lý do hủy")}</Text>
         </View>
 
         <CancelReasonChips
@@ -418,10 +432,10 @@ function CancelBlock({
           onSelect={actions.setReason}
         />
 
-        <TextInput
+        <TextInput keyboardAppearance={themeMode}
           value={actions.reason}
           onChangeText={actions.setReason}
-          placeholder="Hoặc nhập lý do khác..."
+          placeholder={tr("Hoặc nhập lý do khác...")}
           placeholderTextColor={COLORS.inkMuted}
           multiline
           className="border border-line bg-canvas rounded-2xl p-3 text-sm text-ink mb-3"
@@ -433,15 +447,14 @@ function CancelBlock({
           disabled={actions.isCancelling || reasonEmpty}
           accessibilityRole="button"
           containerStyle={{ marginBottom: 6 }}
-          className="bg-danger rounded-full items-center justify-center"
+          className="bg-danger-fill rounded-full items-center justify-center"
           style={{
             height: 48,
             opacity: actions.isCancelling || reasonEmpty ? 0.45 : 1,
           }}
         >
           <Text className="text-white text-xs" style={TYPE.button}>
-            XÁC NHẬN HỦY
-          </Text>
+            {tr("XÁC NHẬN HỦY")}</Text>
         </PressableScale>
         <PressableScale
           onPress={() => actions.setShowCancelForm(false)}
@@ -449,7 +462,7 @@ function CancelBlock({
           className="items-center justify-center"
           style={{ minHeight: 44 }}
         >
-          <Text className="text-ink-soft text-sm font-semibold">Đóng</Text>
+          <Text className="text-ink-soft text-sm font-semibold">{tr("Đóng")}</Text>
         </PressableScale>
       </View>
     </FadeInView>
@@ -463,14 +476,18 @@ export function JobActions({
   mineItem,
   actions,
 }: JobActionsProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   if (isPackage) return null;
 
   if (!isMine) {
     return item.claim_state === "OPEN" ? (
       <PrimaryButton
-        label={item.invitation ? "Nhận việc từ danh sách chung" : "Nhận việc"}
+        label={item.invitation ? tr("Nhận việc từ danh sách chung") : tr("Nhận việc")}
         loading={actions.isClaiming}
-        loadingLabel="Đang xử lý..."
+        loadingLabel={tr("Đang xử lý...")}
         onPress={actions.handleClaim}
         disabled={actions.isClaiming}
       />
@@ -483,8 +500,8 @@ export function JobActions({
         />
         <Text className="text-ink-soft font-semibold text-sm ml-2">
           {item.claim_state === "MINE"
-            ? "Bạn đã nhận buổi này."
-            : "Đã có nhân viên khác nhận buổi này."}
+            ? tr("Bạn đã nhận buổi này.")
+            : tr("Đã có nhân viên khác nhận buổi này.")}
         </Text>
       </View>
     );

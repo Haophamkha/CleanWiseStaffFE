@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ProfileStatusCard } from "@/components/common/ProfileStatusCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FadeInView } from "@/components/ui/FadeInView";
-import { COLORS } from "@/constants/theme";
+
 import { HomeHeader } from "@/features/home/components/HomeHeader";
 import { ScheduleShortcut } from "@/features/home/components/ScheduleShortcut";
 import { TodayScheduleCard } from "@/features/home/components/TodayScheduleCard";
@@ -10,6 +13,10 @@ import { useHomeData } from "@/features/home/hooks/useHomeData";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 export default function HomeScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const {
     profile,
     isLoading,
@@ -54,8 +61,7 @@ export default function HomeScreen() {
           <View className="px-5 pt-7 pb-8">
             <View className="flex-row items-center mb-4">
               <Text className="text-ink text-lg font-extrabold">
-                Công việc hôm nay
-              </Text>
+                {tr("Công việc hôm nay")}</Text>
               {todaySchedules.length > 0 && (
                 <View className="bg-accent-light rounded-full px-2.5 py-0.5 ml-2">
                   <Text className="text-ink text-xs font-bold">
@@ -72,9 +78,9 @@ export default function HomeScreen() {
             ) : todaySchedules.length === 0 ? (
               <EmptyState
                 icon="coffee"
-                title="Hôm nay bạn chưa có việc"
-                message='Sang tab "Công việc" để nhận thêm việc nhé'
-                actionLabel="Xem việc có thể nhận"
+                title={tr("Hôm nay bạn chưa có việc")}
+                message={tr("Sang tab \"Công việc\" để nhận thêm việc nhé")}
+                actionLabel={tr("Xem việc có thể nhận")}
                 onAction={goAvailableJobs}
               />
             ) : (

@@ -1,33 +1,35 @@
-import { SCHEDULE_STATUS } from "@/components/ui/StatusBadge";
-import { COLORS } from "@/constants/theme";
+import { translate as tr, getLocale } from "@/features/language/i18n";
+import type { ThemeColors } from "@/constants/theme";
+import { getScheduleStatus } from "@/components/ui/StatusBadge";
+
 import type {
   PaymentStatus,
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
 import { startOfDay } from "@/utils/format";
 
-export const STATUS_LABEL = SCHEDULE_STATUS;
+export const getStatusLabel = getScheduleStatus;
 
-export const PAYMENT_STATUS_MAP: Record<
+export function getPaymentStatusMap(COLORS: ThemeColors): Record<
   PaymentStatus,
   { label: string; bg: string; text: string }
-> = {
+> { return {
   UNPAID: {
-    label: "Chưa thanh toán",
+    label: tr("Chưa thanh toán"),
     bg: COLORS.warningLight,
     text: COLORS.warningDark,
   },
   PAID: {
-    label: "Đã thanh toán",
+    label: tr("Đã thanh toán"),
     bg: COLORS.successLight,
     text: COLORS.success,
   },
   REFUNDED: {
-    label: "Đã hoàn tiền",
+    label: tr("Đã hoàn tiền"),
     bg: COLORS.accentLight,
     text: COLORS.inkSoft,
   },
-};
+}; }
 
 // Đồng bộ 2 chiều với BE (CHECKIN_EARLY_MINUTES / CHECKIN_LATE_MINUTES
 // trong apps/worker/checkin_service.py).
@@ -42,8 +44,8 @@ type CheckInAvailability =
 function formatTimeLabel(date: Date) {
   const sameDay = startOfDay(date) === startOfDay(new Date());
   return sameDay
-    ? date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
-    : date.toLocaleString("vi-VN", {
+    ? date.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
+    : date.toLocaleString(getLocale(), {
         day: "2-digit",
         month: "2-digit",
         hour: "2-digit",

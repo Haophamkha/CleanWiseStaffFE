@@ -1,4 +1,7 @@
-import { COLORS, ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { ON_DARK, RADIUS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { Text, View } from "react-native";
@@ -26,10 +29,12 @@ function Stat({
   highlight?: boolean;
   flex?: number;
 }) {
+  const { COLORS, SHADOWS } = useAppTheme();
+
   return (
     <View
       className={`p-3.5 ${
-        highlight ? "bg-primary" : "bg-surface border border-line"
+        highlight ? "bg-primary-fill" : "bg-surface border border-line"
       }`}
       style={[{ flex, borderRadius: RADIUS.card }, SHADOWS.card]}
     >
@@ -71,6 +76,8 @@ export function DaySummary({
   hoursLabel,
   incomeLabel,
 }: DaySummaryProps) {
+  const { t: tr } = useTranslation();
+
   return (
     <View className="mb-6">
       <View className={count > 0 ? "mb-4" : ""}>
@@ -80,11 +87,11 @@ export function DaySummary({
 
       {count > 0 && (
         <View className="flex-row" style={{ gap: 10 }}>
-          <Stat icon="briefcase" label="ca làm" value={String(count)} />
-          <Stat icon="clock" label="thời gian" value={hoursLabel} />
+          <Stat icon="briefcase" label={tr("ca làm")} value={String(count)} />
+          <Stat icon="clock" label={tr("thời gian")} value={hoursLabel} />
           <Stat
             icon="trending-up"
-            label="thu nhập ngày"
+            label={tr("thu nhập ngày")}
             value={incomeLabel}
             highlight
             flex={1.6}

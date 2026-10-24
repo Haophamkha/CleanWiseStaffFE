@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
@@ -14,6 +15,8 @@ type Props = {
  * Bên dưới là 1 TextInput thật (trong suốt, phủ kín) nên dán mã / autofill SMS vẫn hoạt động.
  */
 export function OtpInput({ value, onChange, length = 6, invalid }: Props) {
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const [focused, setFocused] = useState(false);
   const activeIndex = Math.min(value.length, length - 1);
 
@@ -54,7 +57,7 @@ export function OtpInput({ value, onChange, length = 6, invalid }: Props) {
         })}
       </View>
 
-      <TextInput
+      <TextInput keyboardAppearance={themeMode}
         value={value}
         onChangeText={(t) => onChange(t.replace(/\D/g, "").slice(0, length))}
         keyboardType="number-pad"

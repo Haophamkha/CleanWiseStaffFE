@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, OVERLAY, RADIUS } from "@/constants/theme";
+import { OVERLAY, RADIUS } from "@/constants/theme";
 import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
 import { pickImage, takePhoto } from "@/utils/imagePicker";
 import { Feather } from "@expo/vector-icons";
@@ -79,6 +82,8 @@ function SourceOption({
   subtitle: string;
   onPress: () => void;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -110,6 +115,8 @@ function SourceSheet({
   onClose: () => void;
   onChoose: (source: Source) => void;
 }) {
+  const { t: tr } = useTranslation();
+
   const insets = useSafeAreaInsets();
   return (
     <Modal
@@ -136,24 +143,23 @@ function SourceSheet({
           <View className="w-10 h-1 rounded-full bg-line self-center mb-4" />
           <Text className="text-ink text-lg font-extrabold">{title}</Text>
           <Text className="text-ink-soft text-sm mt-1 mb-4">
-            Chọn cách thêm ảnh
-          </Text>
+            {tr("Chọn cách thêm ảnh")}</Text>
 
           <SourceOption
             icon="camera"
-            title="Chụp ảnh"
-            subtitle="Mở camera để chụp ngay"
+            title={tr("Chụp ảnh")}
+            subtitle={tr("Mở camera để chụp ngay")}
             onPress={() => onChoose("camera")}
           />
           <SourceOption
             icon="image"
-            title="Tải ảnh lên"
-            subtitle="Chọn ảnh có sẵn trong thư viện"
+            title={tr("Tải ảnh lên")}
+            subtitle={tr("Chọn ảnh có sẵn trong thư viện")}
             onPress={() => onChoose("library")}
           />
 
           <PrimaryButton
-            label="Hủy"
+            label={tr("Hủy")}
             variant="outline"
             onPress={onClose}
             style={{ marginTop: 4 }}
@@ -174,6 +180,10 @@ export function ImageUploadBox({
   frontCamera = false,
   sheetTitle,
 }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const isCircle = shape === "circle";
   const source = useImageSource(onChange, disabled, frontCamera, isCircle);
   const previewUri = value?.uri ?? existingUri ?? null;
@@ -215,7 +225,7 @@ export function ImageUploadBox({
             />
             <View
               className={`absolute bottom-2 right-2 flex-row items-center rounded-full ${
-                disabled ? "bg-ink-muted" : "bg-ink/90"
+                disabled ? "bg-ink-muted" : "bg-ink-panel/90"
               } ${isCircle ? "w-8 h-8 justify-center" : "px-3 h-8"}`}
             >
               <Feather
@@ -225,8 +235,7 @@ export function ImageUploadBox({
               />
               {!isCircle && !disabled ? (
                 <Text className="text-white text-xs font-bold ml-1.5">
-                  Đổi ảnh
-                </Text>
+                  {tr("Đổi ảnh")}</Text>
               ) : null}
             </View>
           </>
@@ -248,8 +257,7 @@ export function ImageUploadBox({
             </Text>
             {!isCircle && !disabled ? (
               <Text className="text-ink-muted text-xs mt-0.5 text-center">
-                Chụp ảnh hoặc tải ảnh lên
-              </Text>
+                {tr("Chụp ảnh hoặc tải ảnh lên")}</Text>
             ) : null}
           </View>
         )}

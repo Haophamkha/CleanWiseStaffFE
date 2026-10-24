@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -10,6 +13,10 @@ type Props = {
 };
 
 export function StepHeader({ step, totalSteps }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const progress = Math.min(step / totalSteps, 1);
 
@@ -20,7 +27,7 @@ export function StepHeader({ step, totalSteps }: Props) {
           onPress={() => router.back()}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Quay lại"
+          accessibilityLabel={tr("Quay lại")}
           className="items-center justify-center"
           style={{ width: 40, height: 44 }}
         >
@@ -36,7 +43,7 @@ export function StepHeader({ step, totalSteps }: Props) {
       </View>
       <View className="h-1.5 bg-accent-light mx-5 rounded-full mb-3 overflow-hidden">
         <View
-          className="h-full bg-ink rounded-full"
+          className="h-full bg-ink-panel rounded-full"
           style={{ width: `${progress * 100}%` }}
         />
       </View>

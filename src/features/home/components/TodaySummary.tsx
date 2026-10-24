@@ -1,4 +1,7 @@
-import { COLORS, ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { Text, View } from "react-native";
@@ -24,10 +27,12 @@ function StatBox({
   highlight?: boolean;
   flex?: number;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View
       className={`p-3.5 ${
-        highlight ? "bg-primary" : "bg-surface border border-line"
+        highlight ? "bg-primary-fill" : "bg-surface border border-line"
       }`}
       style={[{ flex, borderRadius: RADIUS.card }, SHADOWS.card]}
     >
@@ -64,14 +69,16 @@ function StatBox({
 
 // Kéo đè lên header (marginTop âm) để tạo chiều sâu
 export function TodaySummary({ count, hours, income }: TodaySummaryProps) {
+  const { t: tr } = useTranslation();
+
   return (
     <View className="flex-row px-5 -mt-14" style={{ gap: 10 }}>
-      <StatBox icon="briefcase" value={count} label="công việc" />
-      <StatBox icon="clock" value={hours} label="giờ làm" />
+      <StatBox icon="briefcase" value={count} label={tr("công việc")} />
+      <StatBox icon="clock" value={hours} label={tr("giờ làm")} />
       <StatBox
         icon="trending-up"
         value={income}
-        label="thu nhập dự kiến"
+        label={tr("thu nhập dự kiến")}
         highlight
         flex={1.6}
       />

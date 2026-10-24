@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS } from "@/constants/theme";
+
 import {
   DocumentImages,
   InfoRows,
@@ -12,6 +15,10 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MyProfileScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const p = useMyProfile();
   const v = p.view;
@@ -19,7 +26,7 @@ export default function MyProfileScreen() {
   if (p.isLoading || !v) {
     return (
       <View className="flex-1 bg-canvas">
-        <SimpleHeader title="Hồ sơ của tôi" />
+        <SimpleHeader title={tr("Hồ sơ của tôi")} />
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={COLORS.primary} />
         </View>
@@ -29,7 +36,7 @@ export default function MyProfileScreen() {
 
   return (
     <View className="flex-1 bg-canvas">
-      <SimpleHeader title="Hồ sơ của tôi" />
+      <SimpleHeader title={tr("Hồ sơ của tôi")} />
 
       <ScrollView
         className="flex-1"
@@ -42,17 +49,17 @@ export default function MyProfileScreen() {
       >
         <ProfileStatusPanel view={v} />
 
-        <Section title="Thông tin cá nhân">
+        <Section title={tr("Thông tin cá nhân")}>
           <InfoRows rows={v.personalRows} />
         </Section>
 
         {!!v.bio && (
-          <Section title="Giới thiệu">
+          <Section title={tr("Giới thiệu")}>
             <Text className="text-ink text-sm leading-5 py-4">{v.bio}</Text>
           </Section>
         )}
 
-        <Section title="Giấy tờ & dịch vụ">
+        <Section title={tr("Giấy tờ & dịch vụ")}>
           <InfoRows rows={v.documentRows} />
           <DocumentImages
             front={v.identityFront}
@@ -62,7 +69,7 @@ export default function MyProfileScreen() {
         </Section>
 
         {v.approvalRows && (
-          <Section title="Phê duyệt">
+          <Section title={tr("Phê duyệt")}>
             <InfoRows rows={v.approvalRows} />
           </Section>
         )}

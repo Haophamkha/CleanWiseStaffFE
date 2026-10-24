@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import {
     useConfirmBankAccountVerificationMutation,
     useStartBankAccountVerificationMutation,
@@ -12,6 +14,8 @@ import { AppState } from "react-native";
 import { useEffect, useState } from "react";
 
 export function usePaymentMethods() {
+  const { t: tr } = useTranslation();
+
   const {
     data: methods = [],
     isLoading,
@@ -53,12 +57,12 @@ export function usePaymentMethods() {
       const methodId = verifyMethodId;
       setVerifyMethodId(null);
       if (result.requires_otp) setOtpMethodId(methodId);
-      else showSuccessToast("Tài khoản đã được xác minh trên Sandbox TINGEE");
+      else showSuccessToast(tr("Tài khoản đã được xác minh trên Sandbox TINGEE"));
       await refetch();
     } catch (error: any) {
       showErrorToast(
-        "Không thể mở xác minh",
-        (error as any)?.data?.message ?? "Vui lòng thử lại sau.",
+        tr("Không thể mở xác minh"),
+        (error as any)?.data?.message ?? tr("Vui lòng thử lại sau."),
       );
     }
   };
@@ -69,10 +73,10 @@ export function usePaymentMethods() {
       await confirmVerification({ id: otpMethodId, otp }).unwrap();
       setOtpMethodId(null);
       setOtp("");
-      showSuccessToast("Xác minh Sandbox thành công");
+      showSuccessToast(tr("Xác minh Sandbox thành công"));
       await refetch();
     } catch (error: any) {
-      showErrorToast("OTP chưa hợp lệ", error?.data?.message ?? "Vui lòng thử lại.");
+      showErrorToast(tr("OTP chưa hợp lệ"), error?.data?.message ?? tr("Vui lòng thử lại."));
     }
   };
 
@@ -82,9 +86,9 @@ export function usePaymentMethods() {
   const handleSetDefault = async (method: PaymentMethod) => {
     try {
       await setDefault(method.id).unwrap();
-      showSuccessToast("Đã đặt làm tài khoản mặc định");
+      showSuccessToast(tr("Đã đặt làm tài khoản mặc định"));
     } catch {
-      showErrorToast("Không thể cập nhật", "Vui lòng thử lại sau.");
+      showErrorToast(tr("Không thể cập nhật"), tr("Vui lòng thử lại sau."));
     }
   };
 
@@ -102,14 +106,14 @@ export function usePaymentMethods() {
     if (!method) return;
     try {
       await deleteMethod(method.id).unwrap();
-      showSuccessToast("Đã gỡ tài khoản ngân hàng");
+      showSuccessToast(tr("Đã gỡ tài khoản ngân hàng"));
     } catch {
-      showErrorToast("Không thể gỡ", "Vui lòng thử lại sau.");
+      showErrorToast(tr("Không thể gỡ"), tr("Vui lòng thử lại sau."));
     }
   };
 
   const deleteMessage = deleteTarget
-    ? `Bạn có chắc muốn gỡ ${deleteTarget.bank_name} ${deleteTarget.account_number_masked}?`
+    ? tr("Bạn có chắc muốn gỡ {{value0}} {{value1}}?", { value0: deleteTarget.bank_name, value1: deleteTarget.account_number_masked })
     : "";
 
   const goAdd = () => router.push("/payment-methods/add");

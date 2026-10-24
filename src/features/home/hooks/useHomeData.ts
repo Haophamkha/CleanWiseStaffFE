@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { getLocale } from "@/features/language/i18n";
 import { ENV } from "@/config/env";
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
@@ -18,7 +20,7 @@ function formatCurrency(value: string | number | null | undefined) {
   if (value === null || value === undefined) return null;
   const num = Number(value);
   if (Number.isNaN(num)) return null;
-  return new Intl.NumberFormat("vi-VN", {
+  return new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency: "VND",
   }).format(num);
@@ -31,6 +33,8 @@ function formatHours(totalHours: number) {
 }
 
 export function useHomeData() {
+  const { t: tr } = useTranslation();
+
   const { data: profile, isLoading } = useGetWorkerProfileQuery();
   const isActive = profile?.status === "ACTIVE";
 
@@ -46,7 +50,7 @@ export function useHomeData() {
           new Date(a.scheduled_start).getTime() -
           new Date(b.scheduled_start).getTime(),
       );
-  }, [mySchedules]);
+  }, [mySchedules, tr]);
 
   const totalHoursToday = useMemo(
     () =>
@@ -56,7 +60,7 @@ export function useHomeData() {
           new Date(s.scheduled_start).getTime();
         return sum + ms / 3600000;
       }, 0),
-    [todaySchedules],
+    [todaySchedules, tr],
   );
 
   const totalIncomeToday = useMemo(
@@ -65,7 +69,7 @@ export function useHomeData() {
         const val = Number(s.price);
         return sum + (Number.isNaN(val) ? 0 : val);
       }, 0),
-    [todaySchedules],
+    [todaySchedules, tr],
   );
 
   const navigateOnce = useSingleNavigate();
@@ -85,8 +89,8 @@ export function useHomeData() {
   const workerName = profile
     ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
       profile.username ||
-      "bạn"
-    : "bạn";
+      tr("bạn")
+    : tr("bạn");
 
   const workerAvatar = profile?.portrait
     ? profile.portrait.startsWith("http")

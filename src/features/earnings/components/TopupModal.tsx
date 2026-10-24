@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import {
     AmountField,
     ErrorBox,
@@ -15,6 +18,10 @@ import { ActivityIndicator, Text, View } from "react-native";
 type Props = { visible: boolean; onClose: () => void };
 
 export default function TopupModal({ visible, onClose }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const t = useTopup(onClose);
 
   if (t.submitted) {
@@ -54,10 +61,10 @@ export default function TopupModal({ visible, onClose }: Props) {
             }}
           >
             {waiting
-              ? "Đang chờ thanh toán"
+              ? tr("Đang chờ thanh toán")
               : success
-                ? "Nạp ký quỹ thành công"
-                : "Liên kết đã hết hạn hoặc bị hủy"}
+                ? tr("Nạp ký quỹ thành công")
+                : tr("Liên kết đã hết hạn hoặc bị hủy")}
           </Text>
           <Text
             style={{
@@ -80,19 +87,19 @@ export default function TopupModal({ visible, onClose }: Props) {
             }}
           >
             {waiting
-              ? "Hoàn tất chuyển khoản ở trang thanh toán. Sau khi thanh toán, quay lại app, số dư sẽ tự cập nhật."
+              ? tr("Hoàn tất chuyển khoản ở trang thanh toán. Sau khi thanh toán, quay lại app, số dư sẽ tự cập nhật.")
               : success
-                ? "Số dư ví ký quỹ đã được cộng."
-                : "Nếu bạn đã chuyển tiền, số dư sẽ được cộng khi hệ thống nhận được xác nhận. Nếu chưa, hãy tạo lệnh nạp mới."}
+                ? tr("Số dư ví ký quỹ đã được cộng.")
+                : tr("Nếu bạn đã chuyển tiền, số dư sẽ được cộng khi hệ thống nhận được xác nhận. Nếu chưa, hãy tạo lệnh nạp mới.")}
           </Text>
         </View>
 
         {waiting && !!t.checkoutUrl && (
-          <SheetButton label="Mở trang thanh toán" onPress={t.openCheckout} />
+          <SheetButton label={tr("Mở trang thanh toán")} onPress={t.openCheckout} />
         )}
         {waiting && t.mockPay && (
           <SheetButton
-            label="[DEV] Giả lập đã thanh toán"
+            label={tr("[DEV] Giả lập đã thanh toán")}
             onPress={t.mockPay}
             loading={t.mockLoading}
             variant="soft"
@@ -100,7 +107,7 @@ export default function TopupModal({ visible, onClose }: Props) {
         )}
         <ErrorBox text={t.errorText} />
         <SheetButton
-          label={waiting ? "Đóng, kiểm tra sau" : "Đóng"}
+          label={waiting ? tr("Đóng, kiểm tra sau") : tr("Đóng")}
           onPress={t.close}
           variant="soft"
         />
@@ -111,8 +118,7 @@ export default function TopupModal({ visible, onClose }: Props) {
   return (
     <WalletSheet visible={visible} onClose={t.close}>
       <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.ink }}>
-        Nạp tiền ký quỹ
-      </Text>
+        {tr("Nạp tiền ký quỹ")}</Text>
       <Text
         style={{
           fontSize: 13,
@@ -121,9 +127,7 @@ export default function TopupModal({ visible, onClose }: Props) {
           color: COLORS.inkMuted,
         }}
       >
-        Tối thiểu {formatVnd(TOPUP_MIN)}, tối đa {formatVnd(TOPUP_MAX)}/lần. Bạn
-        sẽ được chuyển sang trang thanh toán để chuyển khoản.
-      </Text>
+        {tr("Tối thiểu")}{" "}{formatVnd(TOPUP_MIN)}{tr(", tối đa")} {formatVnd(TOPUP_MAX)}{tr("/lần. Bạn sẽ được chuyển sang trang thanh toán để chuyển khoản.")}</Text>
 
       <AmountField
         value={t.amountDisplay}
@@ -140,7 +144,7 @@ export default function TopupModal({ visible, onClose }: Props) {
       <ErrorBox text={t.errorText} />
 
       <SheetButton
-        label={t.uncertain ? "Thử lại" : "Tiếp tục thanh toán"}
+        label={t.uncertain ? tr("Thử lại") : tr("Tiếp tục thanh toán")}
         onPress={t.submit}
         loading={t.isLoading}
       />

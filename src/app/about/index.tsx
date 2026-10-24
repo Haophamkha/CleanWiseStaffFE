@@ -1,10 +1,17 @@
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AboutScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
 
   return (
@@ -15,7 +22,7 @@ export default function AboutScreen() {
             onPress={() => router.back()}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Quay lại"
+            accessibilityLabel={tr("Quay lại")}
             className="items-center justify-center"
             style={{ width: 40, height: 44 }}
           >
@@ -25,8 +32,7 @@ export default function AboutScreen() {
             className="flex-1 text-center text-ink text-base font-extrabold"
             style={{ letterSpacing: 0.3 }}
           >
-            Về CleanWise
-          </Text>
+            {tr("Về CleanWise")}</Text>
           <View style={{ width: 40 }} />
         </View>
       </View>
@@ -45,7 +51,7 @@ export default function AboutScreen() {
           style={[{ borderRadius: RADIUS.hero }, SHADOWS.card]}
         >
           <View
-            className="bg-ink items-center justify-center"
+            className="bg-ink-panel items-center justify-center"
             style={{ width: 72, height: 72, borderRadius: 24 }}
           >
             <Feather name="home" size={30} color={COLORS.white} />
@@ -53,10 +59,9 @@ export default function AboutScreen() {
           <Text className="text-ink text-xl font-extrabold mt-4">
             CleanWise Staff
           </Text>
-          <Text className="text-ink-muted text-sm mt-1">Phiên bản 1.0.0</Text>
+          <Text className="text-ink-muted text-sm mt-1">{tr("Phiên bản 1.0.0")}</Text>
           <Text className="text-ink-soft text-sm leading-5 text-center mt-4">
-            Thông tin giới thiệu về CleanWise sẽ được cập nhật sớm.
-          </Text>
+            {tr("Thông tin giới thiệu về CleanWise sẽ được cập nhật sớm.")}</Text>
         </View>
 
         <View
@@ -64,17 +69,16 @@ export default function AboutScreen() {
           style={{ borderRadius: RADIUS.card }}
         >
           <Text className="text-ink font-extrabold text-base">
-            Điều khoản & chính sách
-          </Text>
-          <Text className="text-ink-muted text-sm mt-1">Sắp ra mắt.</Text>
+            {tr("Điều khoản & chính sách")}</Text>
+          <Text className="text-ink-muted text-sm mt-1">{tr("Sắp ra mắt.")}</Text>
         </View>
 
         <View
           className="bg-surface border border-line mt-3 px-5 py-4"
           style={{ borderRadius: RADIUS.card }}
         >
-          <Text className="text-ink font-extrabold text-base">Liên hệ</Text>
-          <Text className="text-ink-muted text-sm mt-1">Sắp ra mắt.</Text>
+          <Text className="text-ink font-extrabold text-base">{tr("Liên hệ")}</Text>
+          <Text className="text-ink-muted text-sm mt-1">{tr("Sắp ra mắt.")}</Text>
         </View>
       </ScrollView>
     </View>

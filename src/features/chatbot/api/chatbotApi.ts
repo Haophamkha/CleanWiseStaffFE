@@ -1,4 +1,5 @@
 import { baseApi } from "@/store/baseApi";
+import { i18n } from "@/features/language/i18n";
 import type { ChatbotConversation, ChatbotMessage, ChatbotPage, ChatbotReply, HelpArticle } from "../types/chatbot";
 
 const unwrap = <T>(response: { data: T }): T => response.data;
@@ -37,7 +38,7 @@ export const chatbotApi = baseApi.injectEndpoints({
     }),
     sendChatbotMessage: builder.mutation<ChatbotReply, { conversationId: number; text: string; client_message_id: string }>({
       query: ({ conversationId, ...data }) => ({
-        url: `/api/chatbot/conversations/${conversationId}/messages/`, method: "POST", data, timeout: 130000,
+        url: `/api/chatbot/conversations/${conversationId}/messages/`, method: "POST", data: { ...data, language: i18n.resolvedLanguage ?? "vi" }, timeout: 130000,
       }),
       transformResponse: unwrap<ChatbotReply>,
     }),

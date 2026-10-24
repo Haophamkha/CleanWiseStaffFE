@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { OtpInput } from "@/components/ui/OtpInput";
-import { COLORS } from "@/constants/theme";
+
 import {
   AmountField,
   ErrorBox,
@@ -26,6 +29,10 @@ export default function WithdrawModal({
   walletBalance,
   onSuccess,
 }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const w = useWithdraw({ walletBalance, onClose, onSuccess });
 
   /* ---------- kết quả ---------- */
@@ -66,10 +73,10 @@ export default function WithdrawModal({
             }}
           >
             {processing
-              ? "Đang xử lý yêu cầu rút"
+              ? tr("Đang xử lý yêu cầu rút")
               : success
-                ? "Rút tiền thành công"
-                : "Rút tiền thất bại"}
+                ? tr("Rút tiền thành công")
+                : tr("Rút tiền thất bại")}
           </Text>
           <Text
             style={{
@@ -99,14 +106,14 @@ export default function WithdrawModal({
             }}
           >
             {processing
-              ? "Tiền sẽ về tài khoản trong ít phút. Bạn có thể đóng cửa sổ này, trạng thái sẽ cập nhật trong lịch sử giao dịch."
+              ? tr("Tiền sẽ về tài khoản trong ít phút. Bạn có thể đóng cửa sổ này, trạng thái sẽ cập nhật trong lịch sử giao dịch.")
               : success
-                ? "Tiền đã được chuyển về tài khoản ngân hàng của bạn."
+                ? tr("Tiền đã được chuyển về tài khoản ngân hàng của bạn.")
                 : w.record?.failure_reason ||
-                  "Giao dịch không thành công. Tiền đã được hoàn vào ví."}
+                  tr("Giao dịch không thành công. Tiền đã được hoàn vào ví.")}
           </Text>
         </View>
-        <SheetButton label="Đóng" onPress={w.handleClose} variant="soft" />
+        <SheetButton label={tr("Đóng")} onPress={w.handleClose} variant="soft" />
       </WalletSheet>
     );
   }
@@ -116,8 +123,7 @@ export default function WithdrawModal({
     return (
       <WalletSheet visible={visible} onClose={w.handleClose}>
         <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.ink }}>
-          Nhập mã OTP
-        </Text>
+          {tr("Nhập mã OTP")}</Text>
         <Text
           style={{
             fontSize: 13,
@@ -126,7 +132,7 @@ export default function WithdrawModal({
             color: COLORS.inkMuted,
           }}
         >
-          Mã gồm 6 số đã gửi tới email của bạn để xác nhận rút{" "}
+          {tr("Mã gồm 6 số đã gửi tới email của bạn để xác nhận rút")}{" "}
           {formatVnd(w.submittedAmount)}.
         </Text>
 
@@ -145,17 +151,17 @@ export default function WithdrawModal({
               color: w.cooldown > 0 ? COLORS.inkMuted : COLORS.primaryDark,
             }}
           >
-            {w.cooldown > 0 ? `Gửi lại mã (${w.cooldown}s)` : "Gửi lại mã"}
+            {w.cooldown > 0 ? tr("Gửi lại mã ({{value0}}s)", { value0: w.cooldown }) : tr("Gửi lại mã")}
           </Text>
         </TouchableOpacity>
 
         <SheetButton
-          label={w.uncertain ? "Gửi lại" : "Xác nhận rút tiền"}
+          label={w.uncertain ? tr("Gửi lại") : tr("Xác nhận rút tiền")}
           onPress={w.handleSubmit}
           loading={w.isLoading}
           disabled={w.otp.length !== 6 && !w.uncertain}
         />
-        <SheetButton label="Quay lại" onPress={w.backToForm} variant="soft" />
+        <SheetButton label={tr("Quay lại")} onPress={w.backToForm} variant="soft" />
       </WalletSheet>
     );
   }
@@ -164,10 +170,9 @@ export default function WithdrawModal({
   return (
     <WalletSheet visible={visible} onClose={w.handleClose}>
       <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.ink }}>
-        Rút tiền về tài khoản
-      </Text>
+        {tr("Rút tiền về tài khoản")}</Text>
       <Text style={{ fontSize: 13, marginTop: 4, color: COLORS.inkMuted }}>
-        Số dư ví ký quỹ {w.balanceText}
+        {tr("Số dư ví ký quỹ")}{" "}{w.balanceText}
       </Text>
       <Text
         style={{
@@ -188,8 +193,7 @@ export default function WithdrawModal({
           color: COLORS.inkSoft,
         }}
       >
-        Tài khoản nhận tiền
-      </Text>
+        {tr("Tài khoản nhận tiền")}</Text>
       {w.methodsLoading ? (
         <ActivityIndicator
           color={COLORS.primary}
@@ -218,13 +222,13 @@ export default function WithdrawModal({
         >
           <Text style={{ fontWeight: "700", color: COLORS.primaryDark }}>
             {w.hasUnverifiedMethods
-              ? "Xác minh tài khoản ngân hàng"
-              : "+ Thêm tài khoản ngân hàng"}
+              ? tr("Xác minh tài khoản ngân hàng")
+              : tr("+ Thêm tài khoản ngân hàng")}
           </Text>
           <Text style={{ fontSize: 12, marginTop: 2, color: COLORS.inkSoft }}>
             {w.hasUnverifiedMethods
-              ? "Hãy xác minh tài khoản đã lưu trước khi rút tiền."
-              : "Bạn cần có tài khoản ngân hàng để rút tiền."}
+              ? tr("Hãy xác minh tài khoản đã lưu trước khi rút tiền.")
+              : tr("Bạn cần có tài khoản ngân hàng để rút tiền.")}
           </Text>
         </TouchableOpacity>
       ) : (
@@ -262,7 +266,7 @@ export default function WithdrawModal({
                     numberOfLines={1}
                   >
                     {m.account_holder_name}
-                    {m.is_default ? " · Mặc định" : ""}
+                    {m.is_default ? tr(" · Mặc định") : ""}
                   </Text>
                 </View>
                 {active && (
@@ -297,14 +301,13 @@ export default function WithdrawModal({
         <Text
           style={{ fontSize: 13, fontWeight: "700", color: COLORS.primaryDark }}
         >
-          Rút tối đa
-        </Text>
+          {tr("Rút tối đa")}</Text>
       </TouchableOpacity>
 
       <ErrorBox text={w.message} />
 
       <SheetButton
-        label="Gửi mã OTP"
+        label={tr("Gửi mã OTP")}
         onPress={w.handleSubmit}
         loading={w.isLoading || w.sendingOtp}
         disabled={!w.canSubmit}

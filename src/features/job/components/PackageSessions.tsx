@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+import { getLocale } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { CancelReasonChips } from "@/features/job/components/CancelReasonChips";
 import type { JobActionsState } from "@/features/job/hooks/useJobDetail";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
@@ -26,6 +29,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function SelectDot({ checked }: { checked: boolean }) {
+  const { COLORS } = useAppTheme();
+
   const pop = useRef(new Animated.Value(checked ? 1 : 0)).current;
 
   useEffect(() => {
@@ -45,7 +50,7 @@ function SelectDot({ checked }: { checked: boolean }) {
   return (
     <View
       className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
-        checked ? "bg-ink border-ink" : "bg-surface border-line"
+        checked ? "bg-ink-panel border-ink" : "bg-surface border-line"
       }`}
     >
       <Animated.View style={{ opacity: pop, transform: [{ scale }] }}>
@@ -57,6 +62,8 @@ function SelectDot({ checked }: { checked: boolean }) {
 
 /** Mũi tên xoay 180° khi mở rộng. */
 function ExpandChevron({ expanded }: { expanded: boolean }) {
+  const { COLORS } = useAppTheme();
+
   const turn = useRef(new Animated.Value(expanded ? 1 : 0)).current;
 
   useEffect(() => {
@@ -94,6 +101,10 @@ function SessionRow({
   actions,
   index,
 }: SessionRowProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const interaction = getSessionInteraction(session);
   const isExpanded = actions.expandedSessionId === session.id;
   const checked = actions.validSelected.includes(session.id);
@@ -101,7 +112,7 @@ function SessionRow({
   const start = new Date(session.scheduled_start);
   const dayNum = String(start.getDate()).padStart(2, "0");
   const monthLabel = `Th${start.getMonth() + 1}`;
-  const weekday = start.toLocaleDateString("vi-VN", { weekday: "long" });
+  const weekday = start.toLocaleDateString(getLocale(), { weekday: "long" });
   const dayChip = relativeDayLabel(session.scheduled_start);
 
   const isMineSession = session.claim_state === "MINE";
@@ -143,7 +154,7 @@ function SessionRow({
         >
           <View
             className={`w-14 h-14 rounded-2xl items-center justify-center mr-3 ${
-              highlighted ? "bg-ink" : "bg-accent-light"
+              highlighted ? "bg-ink-panel" : "bg-accent-light"
             }`}
           >
             <Text
@@ -188,33 +199,29 @@ function SessionRow({
 
             <View className="flex-row items-center mt-1.5 flex-wrap">
               <Text className="text-ink-muted text-[11px] mr-2">
-                Buổi {session.sequence_no}/{total}
+                {tr("Buổi")}{" "}{session.sequence_no}/{total}
               </Text>
               {showStatus ? (
                 <StatusBadge status={session.status} />
               ) : readyToCheckIn ? (
                 <View className="px-2 py-0.5 rounded-full bg-success-light">
                   <Text className="text-success text-[10px] font-bold">
-                    Sẵn sàng check-in
-                  </Text>
+                    {tr("Sẵn sàng check-in")}</Text>
                 </View>
               ) : isMineSession ? (
                 <View className="px-2 py-0.5 rounded-full bg-accent-light">
                   <Text className="text-ink text-[10px] font-bold">
-                    Bạn đã nhận
-                  </Text>
+                    {tr("Bạn đã nhận")}</Text>
                 </View>
               ) : isTaken ? (
                 <View className="px-2 py-0.5 rounded-full bg-accent-light">
                   <Text className="text-ink-soft text-[10px] font-bold">
-                    Đã có nhân viên nhận
-                  </Text>
+                    {tr("Đã có nhân viên nhận")}</Text>
                 </View>
               ) : isConflict ? (
                 <View className="px-2 py-0.5 rounded-full bg-danger-light">
                   <Text className="text-danger text-[10px] font-bold">
-                    Trùng lịch của bạn
-                  </Text>
+                    {tr("Trùng lịch của bạn")}</Text>
                 </View>
               ) : null}
             </View>
@@ -238,8 +245,7 @@ function SessionRow({
                 <Feather name="x-circle" size={15} color={COLORS.danger} />
               </View>
               <Text className="text-ink text-sm font-extrabold flex-1">
-                Hủy nhận buổi này
-              </Text>
+                {tr("Hủy nhận buổi này")}</Text>
             </View>
 
             <CancelReasonChips
@@ -247,10 +253,10 @@ function SessionRow({
               onSelect={actions.setSessionCancelReason}
             />
 
-            <TextInput
+            <TextInput keyboardAppearance={themeMode}
               value={actions.sessionCancelReason}
               onChangeText={actions.setSessionCancelReason}
-              placeholder="Hoặc nhập lý do khác..."
+              placeholder={tr("Hoặc nhập lý do khác...")}
               placeholderTextColor={COLORS.inkMuted}
               multiline
               className="border border-line bg-surface rounded-2xl p-3 text-sm text-ink mb-3"
@@ -261,15 +267,14 @@ function SessionRow({
               onPress={() => actions.requestCancelSession(session)}
               disabled={actions.isCancelling || reasonEmpty}
               accessibilityRole="button"
-              className="bg-danger rounded-full items-center justify-center"
+              className="bg-danger-fill rounded-full items-center justify-center"
               style={{
                 height: 46,
                 opacity: actions.isCancelling || reasonEmpty ? 0.45 : 1,
               }}
             >
               <Text className="text-white text-xs" style={TYPE.button}>
-                HỦY NHẬN BUỔI NÀY
-              </Text>
+                {tr("HỦY NHẬN BUỔI NÀY")}</Text>
             </PressableScale>
           </View>
         ) : null}
@@ -297,7 +302,7 @@ function SelectionBar({ ratio }: { ratio: number }) {
 
   return (
     <View className="h-2 bg-accent-light rounded-full overflow-hidden">
-      <Animated.View className="h-full bg-ink rounded-full" style={{ width }} />
+      <Animated.View className="h-full bg-ink-panel rounded-full" style={{ width }} />
     </View>
   );
 }
@@ -315,6 +320,10 @@ export function PackageSessionsCard({
   openSessions,
   actions,
 }: PackageSessionsCardProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const hasOpen = openSessions.length > 0;
   const selectedCount = actions.validSelected.length;
 
@@ -329,8 +338,7 @@ export function PackageSessionsCard({
             <Feather name="layers" size={16} color={COLORS.accentDark} />
           </View>
           <Text className="text-ink text-base font-extrabold">
-            Các buổi trong gói
-          </Text>
+            {tr("Các buổi trong gói")}</Text>
         </View>
         {hasOpen ? (
           <PressableScale
@@ -346,23 +354,22 @@ export function PackageSessionsCard({
               color={COLORS.ink}
             />
             <Text className="text-ink text-xs font-bold ml-1.5">
-              {actions.allSelected ? "Bỏ chọn" : "Chọn tất cả"}
+              {actions.allSelected ? tr("Bỏ chọn") : tr("Chọn tất cả")}
             </Text>
           </PressableScale>
         ) : null}
       </View>
       <Text className="text-ink-muted text-xs mb-4 leading-4">
         {hasOpen
-          ? "Chạm vào buổi bạn đã nhận để hủy (nếu còn sớm) hoặc bắt đầu làm (nếu tới giờ)."
-          : "Tất cả các buổi trong gói đã có người nhận. Chạm vào buổi bạn đã nhận để xem chi tiết."}
+          ? tr("Chạm vào buổi bạn đã nhận để hủy (nếu còn sớm) hoặc bắt đầu làm (nếu tới giờ).")
+          : tr("Tất cả các buổi trong gói đã có người nhận. Chạm vào buổi bạn đã nhận để xem chi tiết.")}
       </Text>
 
       {hasOpen ? (
         <View className="mb-4">
           <View className="flex-row items-center justify-between mb-1.5">
             <Text className="text-ink-soft text-xs font-medium">
-              Đã chọn {selectedCount}/{openSessions.length} buổi trống
-            </Text>
+              {tr("Đã chọn")}{" "}{selectedCount}/{openSessions.length} {tr("buổi trống")}</Text>
             {actions.selectedIncome !== null && selectedCount > 0 ? (
               <Text className="text-ink text-xs font-extrabold">
                 {formatCurrency(actions.selectedIncome)}
@@ -391,6 +398,8 @@ type PackageClaimBarProps = { actions: JobActionsState };
 
 /** Thanh nhận việc cố định đáy màn hình (đặt ngoài ScrollView). */
 export function PackageClaimBar({ actions }: PackageClaimBarProps) {
+  const { t: tr } = useTranslation();
+
   const insets = useSafeAreaInsets();
   const count = actions.validSelected.length;
 
@@ -409,16 +418,16 @@ export function PackageClaimBar({ actions }: PackageClaimBarProps) {
       >
         <View className="flex-1 mr-3">
           <Text className="text-ink-muted text-xs">
-            {count > 0 ? `Đã chọn ${count} buổi` : "Chưa chọn buổi nào"}
+            {count > 0 ? tr("Đã chọn {{value0}} buổi", { value0: count , count: count}) : tr("Chưa chọn buổi nào")}
           </Text>
           <Text className="text-ink font-extrabold text-lg">
             {count > 0 ? (formatCurrency(actions.selectedIncome) ?? "—") : "—"}
           </Text>
         </View>
         <PrimaryButton
-          label={count > 0 ? `Nhận ${count} buổi` : "Nhận việc"}
+          label={count > 0 ? tr("Nhận {{value0}} buổi", { value0: count , count: count}) : tr("Nhận việc")}
           loading={actions.isClaimingPackage}
-          loadingLabel="Đang xử lý..."
+          loadingLabel={tr("Đang xử lý...")}
           onPress={actions.handleClaimSelected}
           disabled={count === 0 || actions.isClaimingPackage}
         />

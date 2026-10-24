@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { getLocale } from "@/features/language/i18n";
 import {
     earningsApi,
     useCreateTopupMutation,
@@ -23,6 +25,8 @@ const parseAmount = (raw: string) => {
 };
 
 export function useTopup(onClose: () => void) {
+  const { t: tr } = useTranslation();
+
   const dispatch = useDispatch();
   const [rawInput, setRawInput] = useState("");
   const [topupId, setTopupId] = useState<number | null>(null);
@@ -89,7 +93,7 @@ export function useTopup(onClose: () => void) {
     const link = target ?? url;
     if (!link) return;
     Linking.openURL(link).catch(() =>
-      Alert.alert("Không mở được trang thanh toán", "Vui lòng thử lại."),
+      Alert.alert(tr("Không mở được trang thanh toán"), tr("Vui lòng thử lại.")),
     );
   };
 
@@ -97,12 +101,12 @@ export function useTopup(onClose: () => void) {
     setErrorText("");
     if (!amount || amount < TOPUP_MIN) {
       setErrorText(
-        `Số tiền nạp tối thiểu là ${TOPUP_MIN.toLocaleString("vi-VN")}đ.`,
+        tr("Số tiền nạp tối thiểu là {{value0}}đ.", { value0: TOPUP_MIN.toLocaleString(getLocale()) }),
       );
       return;
     }
     if (amount > TOPUP_MAX) {
-      setErrorText(`Mỗi lần nạp tối đa ${TOPUP_MAX.toLocaleString("vi-VN")}đ.`);
+      setErrorText(tr("Mỗi lần nạp tối đa {{value0}}đ.", { value0: TOPUP_MAX.toLocaleString(getLocale()) }));
       return;
     }
     try {
@@ -122,7 +126,7 @@ export function useTopup(onClose: () => void) {
       if (isUncertain(err)) {
         setUncertain(true);
         setErrorText(
-          "Chưa rõ yêu cầu đã được tạo chưa. Bấm thử lại, bạn sẽ không bị tạo trùng.",
+          tr("Chưa rõ yêu cầu đã được tạo chưa. Bấm thử lại, bạn sẽ không bị tạo trùng."),
         );
       } else {
         resetKey();
@@ -130,7 +134,7 @@ export function useTopup(onClose: () => void) {
         setErrorText(
           errorMessage(
             err,
-            "Không thể tạo liên kết nạp tiền, vui lòng thử lại.",
+            tr("Không thể tạo liên kết nạp tiền, vui lòng thử lại."),
           ),
         );
       }
@@ -143,12 +147,12 @@ export function useTopup(onClose: () => void) {
       await mockConfirm(topupId).unwrap();
       refetch();
     } catch (err: any) {
-      setErrorText(errorMessage(err, "Giả lập thanh toán thất bại."));
+      setErrorText(errorMessage(err, tr("Giả lập thanh toán thất bại.")));
     }
   };
 
   return {
-    amountDisplay: rawInput ? Number(rawInput).toLocaleString("vi-VN") : "",
+    amountDisplay: rawInput ? Number(rawInput).toLocaleString(getLocale()) : "",
     handleChangeAmount: (t: string) => setRawInput(String(parseAmount(t))),
     quickAmounts: QUICK_AMOUNTS,
     pickAmount: (v: number) => setRawInput(String(v)),

@@ -1,10 +1,13 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import { Image, View } from "react-native";
 
 type ChatAvatarProps = { uri?: string | null; size?: number };
 
 export function ChatAvatar({ uri, size = 32 }: ChatAvatarProps) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View
       className="rounded-full bg-accent-light items-center justify-center overflow-hidden"

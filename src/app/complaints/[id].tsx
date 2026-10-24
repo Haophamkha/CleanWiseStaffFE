@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { DetailHeader } from "@/components/common/DetailHeader";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { ENV } from "@/config/env";
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import {
   useCancelComplaintMutation,
   useGetComplaintDetailQuery,
@@ -40,6 +43,10 @@ function Section({
 }
 
 export default function ComplaintDetailScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const complaintId = Number(id);
@@ -53,10 +60,10 @@ export default function ComplaintDetailScreen() {
     try {
       await cancelComplaint(complaintId).unwrap();
       setConfirm(false);
-      showSuccessToast("Đã hủy khiếu nại");
+      showSuccessToast(tr("Đã hủy khiếu nại"));
     } catch (e) {
       setConfirm(false);
-      showErrorToast("Không hủy được", getErrorMessage(e));
+      showErrorToast(tr("Không hủy được"), getErrorMessage(e));
     }
   };
 
@@ -73,8 +80,8 @@ export default function ComplaintDetailScreen() {
       <View className="flex-1 items-center justify-center bg-canvas px-5">
         <EmptyState
           icon="alert-circle"
-          title="Không tìm thấy khiếu nại"
-          actionLabel="Quay lại"
+          title={tr("Không tìm thấy khiếu nại")}
+          actionLabel={tr("Quay lại")}
           onAction={() => router.back()}
         />
       </View>
@@ -88,7 +95,7 @@ export default function ComplaintDetailScreen() {
   return (
     <View className="flex-1 bg-canvas">
       <DetailHeader
-        title="Chi tiết khiếu nại"
+        title={tr("Chi tiết khiếu nại")}
         subtitle={data.code ?? `#${data.id}`}
         onBack={() => router.back()}
       />
@@ -100,17 +107,17 @@ export default function ComplaintDetailScreen() {
           paddingBottom: 40 + insets.bottom,
         }}
       >
-        <Section title="Loại sự cố">
+        <Section title={tr("Loại sự cố")}>
           <Text className="text-ink text-base font-extrabold mb-1">
             {data.issue_type_name}
           </Text>
 
           <Text className="text-ink-soft text-xs mb-3">
             {data.booking_code
-              ? `Đơn ${data.booking_code}`
-              : `Đơn #${data.booking}`}
+              ? tr("Đơn {{value0}}", { value0: data.booking_code })
+              : tr("Đơn #{{value0}}", { value0: data.booking })}
             {data.schedule_sequence_no
-              ? ` · Buổi ${data.schedule_sequence_no}`
+              ? tr(" · Buổi {{value0}}", { value0: data.schedule_sequence_no })
               : ""}
           </Text>
 
@@ -127,13 +134,13 @@ export default function ComplaintDetailScreen() {
         </Section>
 
         {data.content ? (
-          <Section title="Mô tả">
+          <Section title={tr("Mô tả")}>
             <Text className="text-ink text-sm leading-5">{data.content}</Text>
           </Section>
         ) : null}
 
         {data.attachments?.length ? (
-          <Section title={`Ảnh minh chứng (${data.attachments.length})`}>
+          <Section title={tr("Ảnh minh chứng ({{value0}})", { value0: data.attachments.length })}>
             <View className="flex-row flex-wrap" style={{ gap: 10 }}>
               {data.attachments.map((a) => (
                 <Image
@@ -147,7 +154,7 @@ export default function ComplaintDetailScreen() {
         ) : null}
 
         {data.resolution_note ? (
-          <Section title="Phản hồi từ CleanWise">
+          <Section title={tr("Phản hồi từ CleanWise")}>
             <Text className="text-ink text-sm leading-5">
               {data.resolution_note}
             </Text>
@@ -161,7 +168,7 @@ export default function ComplaintDetailScreen() {
         ) : null}
 
         {showAmount ? (
-          <Section title="Kết quả xử lý">
+          <Section title={tr("Kết quả xử lý")}>
             <Text
               className={`text-base font-extrabold ${
                 amount > 0 ? "text-success" : "text-danger"
@@ -173,8 +180,8 @@ export default function ComplaintDetailScreen() {
 
             <Text className="text-ink-muted text-xs mt-1">
               {amount > 0
-                ? "Đã cộng vào ví của bạn."
-                : "Đã trừ khỏi ví của bạn."}
+                ? tr("Đã cộng vào ví của bạn.")
+                : tr("Đã trừ khỏi ví của bạn.")}
             </Text>
           </Section>
         ) : null}
@@ -189,8 +196,7 @@ export default function ComplaintDetailScreen() {
             <Feather name="x-circle" size={16} color={COLORS.danger} />
 
             <Text className="text-danger text-xs ml-2 font-extrabold">
-              HỦY KHIẾU NẠI
-            </Text>
+              {tr("HỦY KHIẾU NẠI")}</Text>
           </PressableScale>
         ) : null}
       </ScrollView>
@@ -199,10 +205,10 @@ export default function ComplaintDetailScreen() {
         visible={confirm}
         tone="danger"
         icon="alert-triangle"
-        title="Hủy khiếu nại?"
-        message="Bạn không thể khôi phục sau khi hủy."
-        confirmLabel="Hủy khiếu nại"
-        cancelLabel="Giữ lại"
+        title={tr("Hủy khiếu nại?")}
+        message={tr("Bạn không thể khôi phục sau khi hủy.")}
+        confirmLabel={tr("Hủy khiếu nại")}
+        cancelLabel={tr("Giữ lại")}
         loading={cancelling}
         onConfirm={onCancel}
         onCancel={() => setConfirm(false)}

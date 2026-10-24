@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useChatbotReveal } from "../hooks/useChatbotReveal";
@@ -15,6 +18,10 @@ type Props = {
 };
 
 export function ChatbotMessageBubble({ message, animate, onRevealDone, onRetry, onOpenCard }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const isUser = message.role === "user";
   const formatted = formatChatbotText(message.text);
   const reveal = useChatbotReveal(formatted, message.cards.length, animate, onRevealDone);
@@ -23,13 +30,13 @@ export function ChatbotMessageBubble({ message, animate, onRevealDone, onRetry, 
     const failed = message.status === "LOCAL_FAILED";
     return (
       <View className="px-4 py-1.5 items-end">
-        <View className="bg-ink rounded-3xl rounded-br-md px-4 py-2.5 max-w-[85%]">
+        <View className="bg-ink-panel rounded-3xl rounded-br-md px-4 py-2.5 max-w-[85%]">
           <Text className="text-white text-[15px] leading-[22px]">{message.text}</Text>
         </View>
         {failed && (
           <TouchableOpacity onPress={onRetry} className="flex-row items-center mt-1" accessibilityRole="button">
             <Feather name="alert-circle" size={13} color={COLORS.danger} />
-            <Text className="text-danger text-xs ml-1 font-semibold">Gửi thất bại · Thử lại</Text>
+            <Text className="text-danger text-xs ml-1 font-semibold">{tr("Gửi thất bại · Thử lại")}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -44,7 +51,7 @@ export function ChatbotMessageBubble({ message, animate, onRevealDone, onRetry, 
       <View className="flex-1 max-w-[88%]">
         <View className="bg-surface border border-line rounded-3xl rounded-tl-md px-4 py-2.5">
           <Text className="text-ink text-[15px] leading-[22px]">
-            {reveal.text || (message.status === "FAILED" ? "Trợ lý chưa trả lời được. Bạn thử lại sau nhé." : "")}
+            {reveal.text || (message.status === "FAILED" ? tr("Trợ lý chưa trả lời được. Bạn thử lại sau nhé.") : "")}
           </Text>
         </View>
         {message.cards.slice(0, reveal.cardCount).map((card) => (

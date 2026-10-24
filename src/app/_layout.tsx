@@ -1,6 +1,10 @@
+import { AppLanguageProvider } from "@/features/language/LanguageProvider";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { AppThemeProvider } from "@/features/theme/ThemeProvider";
+import * as SplashScreen from "expo-splash-screen";
 import { NetworkBanner } from "@/components/common/NetworkBanner";
 import { toastConfig } from "@/config/toastConfig";
-import { COLORS } from "@/constants/theme";
+
 import { useAuthGuard } from "@/features/auth/hooks/useAuthGuard";
 import { store } from "@/store/store";
 import { Stack } from "expo-router";
@@ -13,7 +17,11 @@ import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import "../global.css";
 
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 function RootNavigator() {
+  const { COLORS } = useAppTheme();
+
   const { ready } = useAuthGuard();
   const insets = useSafeAreaInsets();
 
@@ -42,7 +50,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <Provider store={store}>
-        <RootNavigator />
+        <AppLanguageProvider><AppThemeProvider><RootNavigator /></AppThemeProvider></AppLanguageProvider>
       </Provider>
     </SafeAreaProvider>
   );

@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import {
   useGetEarningsHistoryQuery,
   useGetEarningsSummaryQuery,
@@ -41,12 +44,18 @@ export type WalletTxRowView = {
   statusText: string | null;
 };
 
-const PERIOD_TABS: PeriodTab[] = [
-  { key: "week", label: "Tuần này" },
-  { key: "month", label: "Tháng này" },
-];
+function getLocalizedPeriodTabs(): PeriodTab[] {
+  return [
+    { key: "week", label: tr("Tuần này") },
+    { key: "month", label: tr("Tháng này") },
+  ];
+}
 
 export function useEarnings() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const [period, setPeriod] = useState<EarningPeriod>("week");
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
@@ -104,9 +113,7 @@ export function useEarnings() {
       pending,
       serviceName: item.service_name,
       metaText: `${item.booking_code} · ${formatEarningDateTime(item.completed_at)}`,
-      methodText: `${
-        isCash ? "Tiền mặt · hoa hồng đã trừ ví" : "Online · app chuyển bạn"
-      } · đơn ${formatVnd(item.gross_amount)}`,
+      methodText: tr("{{value0}} · đơn {{value1}}", { value0: isCash ? tr("Tiền mặt · hoa hồng đã trừ ví") : tr("Online · app chuyển bạn"), value1: formatVnd(item.gross_amount) }),
       amountText: isCash
         ? `-${formatVnd(item.commission_amount)}`
         : `+${formatVnd(item.worker_amount)}`,
@@ -143,7 +150,7 @@ export function useEarnings() {
   return {
     period,
     setPeriod,
-    periodTabs: PERIOD_TABS,
+    periodTabs: getLocalizedPeriodTabs(),
     isLoading: summaryQuery.isLoading,
     isError: summaryQuery.isError || !data,
     isRefreshing,

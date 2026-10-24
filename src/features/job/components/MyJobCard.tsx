@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { Feather } from "@expo/vector-icons";
 import { memo } from "react";
 import { Text, View } from "react-native";
@@ -5,7 +8,7 @@ import { Text, View } from "react-native";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, TYPE } from "@/constants/theme";
 import { BookingCodeStrip } from "@/features/job/components/BookingCodeStrip";
 import type { OpenJob } from "@/features/job/types/jobNav";
 import type { WorkerMySchedule } from "@/features/schedule/types/Schedule";
@@ -27,6 +30,10 @@ export const MyJobCard = memo(function MyJobCard({
   onOpen: OpenJob;
   index?: number;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS, isDark } = useAppTheme();
+
   const price = formatCurrency(item.price);
   const live = item.status === "PENDING" || item.status === "IN_PROGRESS";
   const dayChip = live ? relativeDayLabel(item.scheduled_start) : null;
@@ -37,7 +44,7 @@ export const MyJobCard = memo(function MyJobCard({
       <PressableScale
         onPress={() => onOpen(item.id, "mine", item.booking_id)}
         accessibilityRole="button"
-        accessibilityLabel={`Xem chi tiết ${item.service_name}`}
+        accessibilityLabel={tr("Xem chi tiết {{value0}}", { value0: item.service_name })}
         containerStyle={{ marginBottom: 12 }}
         className="bg-surface border border-line p-4"
         style={[
@@ -96,7 +103,7 @@ export const MyJobCard = memo(function MyJobCard({
               style={{ marginTop: 2 }}
             />
             <Text className="text-ink-soft text-xs ml-2 flex-1 leading-4">
-              <Text className="font-bold">Lý do: </Text>
+              <Text className="font-bold">{tr("Lý do:")} </Text>
               {item.cancel_reason}
             </Text>
           </View>
@@ -104,18 +111,17 @@ export const MyJobCard = memo(function MyJobCard({
 
         <View className="flex-row items-center justify-between mt-4">
           <View>
-            <Text className="text-ink-muted text-xs mb-0.5">Thu nhập</Text>
+            <Text className="text-ink-muted text-xs mb-0.5">{tr("Thu nhập")}</Text>
             <Text className="text-ink font-extrabold text-lg">
               {price ?? "—"}
             </Text>
           </View>
           <View
-            className="flex-row items-center bg-accent-dark rounded-full pl-5 pr-4"
+            className={`flex-row items-center rounded-full pl-5 pr-4 ${isDark ? "bg-accent-fill" : "bg-accent-dark"}`}
             style={{ height: 44 }}
           >
             <Text className="text-white text-xs" style={TYPE.button}>
-              CHI TIẾT
-            </Text>
+              {tr("CHI TIẾT")}</Text>
             <Feather
               name="arrow-right"
               size={16}

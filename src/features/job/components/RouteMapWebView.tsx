@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { type ThemeColors } from "@/constants/theme";
 import {
     forwardRef,
     useCallback,
@@ -23,7 +24,7 @@ type RouteMapWebViewProps = {
   routeCoords: [number, number][] | null;
 };
 
-function buildHtml(dest: LatLng) {
+function buildHtml(dest: LatLng, COLORS: ThemeColors) {
   return `
 <!DOCTYPE html>
 <html>
@@ -181,6 +182,8 @@ function buildHtml(dest: LatLng) {
 
 export const RouteMapWebView = forwardRef<RouteMapHandle, RouteMapWebViewProps>(
   function RouteMapWebView({ destination, user, routeCoords }, ref) {
+  const { COLORS } = useAppTheme();
+
     const webviewRef = useRef<WebView>(null);
     const loadedRef = useRef(false);
 
@@ -210,11 +213,11 @@ export const RouteMapWebView = forwardRef<RouteMapHandle, RouteMapWebViewProps>(
     const source = useMemo(
       () => ({
         baseUrl: "https://localhost",
-        html: buildHtml(destination),
+        html: buildHtml(destination, COLORS),
       }),
       // Ghim cố định theo địa chỉ đơn; vị trí/đường đi được đẩy vào sau
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [destination.latitude, destination.longitude],
+      [destination.latitude, destination.longitude, COLORS],
     );
 
     return (

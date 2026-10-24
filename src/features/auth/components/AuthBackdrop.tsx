@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { useEffect, useRef } from "react";
 import { Animated, Easing, View, useWindowDimensions } from "react-native";
 
@@ -92,6 +93,8 @@ function Blob({
 const HEIGHT = 240;
 
 export function AuthBackdrop() {
+  const { COLORS } = useAppTheme();
+
   const { width } = useWindowDimensions();
 
   const big = width * 1.25;

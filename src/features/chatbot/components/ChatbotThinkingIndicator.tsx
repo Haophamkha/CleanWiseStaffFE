@@ -1,9 +1,16 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
 
 export function ChatbotThinkingIndicator() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const dots = useRef([new Animated.Value(0), new Animated.Value(0), new Animated.Value(0)]).current;
   useEffect(() => {
     const anims = dots.map((d, i) =>
@@ -22,8 +29,8 @@ export function ChatbotThinkingIndicator() {
       <View className="w-8 h-8 rounded-xl bg-primary-light items-center justify-center mr-2">
         <MaterialCommunityIcons name="robot-happy-outline" size={21} color={COLORS.primaryDark} />
       </View>
-      <View accessible accessibilityLabel="Đang suy nghĩ" className="flex-row items-center rounded-2xl bg-surface border border-line px-4 py-3">
-        <Text className="text-ink-soft text-xs mr-2">Đang suy nghĩ</Text>
+      <View accessible accessibilityLabel={tr("Đang suy nghĩ")} className="flex-row items-center rounded-2xl bg-surface border border-line px-4 py-3">
+        <Text className="text-ink-soft text-xs mr-2">{tr("Đang suy nghĩ")}</Text>
         {dots.map((d, i) => (
           <Animated.View key={i} style={{
             width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.inkMuted, marginHorizontal: 2,

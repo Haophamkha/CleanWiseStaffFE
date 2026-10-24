@@ -1,4 +1,7 @@
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import type {
     InfoRowData,
     MyProfileView,
@@ -19,6 +22,10 @@ export function ProfileStatusPanel({
     "portrait" | "statusInfo" | "completionPercent" | "rejection" | "missing"
   >;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const { portrait, statusInfo, completionPercent, rejection, missing } = view;
 
   return (
@@ -69,11 +76,10 @@ export function ProfileStatusPanel({
             <Text className="text-ink text-sm font-extrabold">
               {completionPercent}%
             </Text>{" "}
-            hoàn thiện
-          </Text>
+            {tr("hoàn thiện")}</Text>
           <View className="h-2 bg-accent-light rounded-full overflow-hidden">
             <View
-              className="h-full bg-ink rounded-full"
+              className="h-full bg-ink-panel rounded-full"
               style={{ width: `${completionPercent}%` }}
             />
           </View>
@@ -106,8 +112,7 @@ export function ProfileStatusPanel({
           {rejection.fields.length > 0 && (
             <View className="mt-3">
               <Text className="text-danger text-xs mb-2" style={TYPE.label}>
-                Các mục cần sửa lại
-              </Text>
+                {tr("Các mục cần sửa lại")}</Text>
               {rejection.fields.map((f) => (
                 <View key={f.key} className="flex-row items-start mb-1.5">
                   <Feather
@@ -130,8 +135,7 @@ export function ProfileStatusPanel({
       {missing.length > 0 && (
         <View className="mt-4 bg-warning-light rounded-2xl p-3.5">
           <Text className="text-warning-dark text-xs mb-1" style={TYPE.label}>
-            Thông tin còn thiếu
-          </Text>
+            {tr("Thông tin còn thiếu")}</Text>
           {missing.map((label) => (
             <Text key={label} className="text-warning-dark text-sm leading-5">
               • {label}
@@ -199,6 +203,8 @@ function ProfileImageTile({
   label: string;
   image: ProfileImage;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View>
       <Text className="text-ink-soft text-xs mb-1.5" style={TYPE.label}>
@@ -242,25 +248,27 @@ export function DocumentImages({
   back: ProfileImage | null;
   certificate: ProfileImage | null;
 }) {
+  const { t: tr } = useTranslation();
+
   return (
     <>
       {(front || back) && (
         <View className="flex-row pt-1 pb-4" style={{ gap: 12 }}>
           {front && (
             <View className="flex-1">
-              <ProfileImageTile label="Mặt trước" image={front} />
+              <ProfileImageTile label={tr("Mặt trước")} image={front} />
             </View>
           )}
           {back && (
             <View className="flex-1">
-              <ProfileImageTile label="Mặt sau" image={back} />
+              <ProfileImageTile label={tr("Mặt sau")} image={back} />
             </View>
           )}
         </View>
       )}
       {certificate && (
         <View className="pt-1 pb-4">
-          <ProfileImageTile label="Chứng chỉ / bằng cấp" image={certificate} />
+          <ProfileImageTile label={tr("Chứng chỉ / bằng cấp")} image={certificate} />
         </View>
       )}
     </>
