@@ -1,3 +1,4 @@
+import { translate as tr } from "@/features/language/i18n";
 import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
 import { clearAuth } from "@/features/auth/stores/authSlice";
@@ -205,10 +206,10 @@ const showRateLimitToast = (retryAfter?: string) => {
   if (now - lastRateLimitToastAt < 3000) return; // tránh spam toast
   lastRateLimitToastAt = now;
   showErrorToast(
-    "Thao tác quá nhanh",
+    tr("Thao tác quá nhanh"),
     retryAfter
-      ? `Vui lòng thử lại sau ${retryAfter} giây.`
-      : "Vui lòng thử lại sau ít giây.",
+      ? tr("Vui lòng thử lại sau {{value0}} giây.", { value0: retryAfter })
+      : tr("Vui lòng thử lại sau ít giây."),
   );
 };
 

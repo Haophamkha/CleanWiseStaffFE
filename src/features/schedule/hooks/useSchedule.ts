@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr, getLocale } from "@/features/language/i18n";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
 import type {
   ScheduleStatus,
@@ -9,15 +11,17 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 
 const WEEKDAY_SHORT = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-const WEEKDAY_FULL = [
-  "Thứ Hai",
-  "Thứ Ba",
-  "Thứ Tư",
-  "Thứ Năm",
-  "Thứ Sáu",
-  "Thứ Bảy",
-  "Chủ Nhật",
-];
+function getLocalizedWeekdayFull() {
+  return [
+    tr("Thứ Hai"),
+    tr("Thứ Ba"),
+    tr("Thứ Tư"),
+    tr("Thứ Năm"),
+    tr("Thứ Sáu"),
+    tr("Thứ Bảy"),
+    tr("Chủ Nhật"),
+  ];
+}
 
 export type WeekDayCell = {
   key: string;
@@ -73,8 +77,8 @@ function formatLength(startIso: string, endIso: string) {
   const total = minutesBetween(startIso, endIso);
   const h = Math.floor(total / 60);
   const m = total % 60;
-  if (h === 0) return `${m} phút`;
-  if (m === 0) return `${h} giờ`;
+  if (h === 0) return tr("{{value0}} phút", { value0: m });
+  if (m === 0) return tr("{{value0}} giờ", { value0: h });
   return `${h}h${m}`;
 }
 
@@ -87,6 +91,8 @@ function formatTotalHours(minutes: number) {
 }
 
 export function useSchedule() {
+  const { t: tr } = useTranslation();
+
   const navigateOnce = useSingleNavigate();
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -94,11 +100,11 @@ export function useSchedule() {
   const { data, isLoading, isFetching, refetch } =
     useGetMySchedulesQuery(undefined);
 
-  const schedules = useMemo(() => (data ?? []) as WorkerMySchedule[], [data]);
+  const schedules = useMemo(() => (data ?? []) as WorkerMySchedule[], [data, tr]);
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    [weekStart],
+    [weekStart, tr],
   );
 
   const schedulesByDay = useMemo(
@@ -112,7 +118,7 @@ export function useSchedule() {
               new Date(b.scheduled_start).getTime(),
           ),
       ),
-    [weekDays, schedules],
+    [weekDays, schedules, tr],
   );
 
   const selectedIndex = weekDays.findIndex((d) => isSameDay(d, selectedDate));
@@ -123,13 +129,13 @@ export function useSchedule() {
     return weekDays.map((date, i) => ({
       key: date.toISOString(),
       date,
-      weekday: WEEKDAY_SHORT[i],
+      weekday: getLocale() === "en-US" ? date.toLocaleDateString(getLocale(), { weekday: "short" }) : WEEKDAY_SHORT[i],
       dayNumber: date.getDate(),
       selected: isSameDay(date, selectedDate),
       isToday: isSameDay(date, today),
       hasJobs: schedulesByDay[i].length > 0,
     }));
-  }, [weekDays, schedulesByDay, selectedDate]);
+  }, [weekDays, schedulesByDay, selectedDate, tr]);
 
   const rows = useMemo<ScheduleRow[]>(
     () =>
@@ -144,7 +150,7 @@ export function useSchedule() {
         priceLabel: formatCurrency(s.price) ?? "—",
         isLast: index === selectedList.length - 1,
       })),
-    [selectedList],
+    [selectedList, tr],
   );
 
   const totalMinutes = selectedList.reduce(
@@ -177,10 +183,10 @@ export function useSchedule() {
     isLoading,
     isRefreshing: isFetching,
     refresh: refetch,
-    monthLabel: `Tháng ${weekStart.getMonth() + 1}`,
+    monthLabel: tr("Tháng {{value0}}", { value0: weekStart.getMonth() + 1 }),
     yearLabel: String(weekStart.getFullYear()),
     days,
-    dayTitle: WEEKDAY_FULL[selectedIndex >= 0 ? selectedIndex : 0],
+    dayTitle: getLocalizedWeekdayFull()[selectedIndex >= 0 ? selectedIndex : 0],
     dateLabel: `${pad2(selectedDate.getDate())}/${pad2(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`,
     rows,
     summary: {

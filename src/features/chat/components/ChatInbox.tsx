@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { TabHeader } from "@/components/common/TabHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { COLORS } from "@/constants/theme";
+
 import { ConversationItem } from "@/features/chat/components/ConversationItem";
 import { useChatInbox } from "@/features/chat/hooks/useChatInbox";
 import { useEffect, useRef } from "react";
@@ -55,16 +58,20 @@ function InboxSkeleton() {
 }
 
 export function ChatInbox(_props: { staff?: boolean }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const inbox = useChatInbox();
 
   return (
     <View className="flex-1 bg-surface">
-      <TabHeader title="Tin nhắn" subtitle={inbox.subtitle} />
+      <TabHeader title={tr("Tin nhắn")} subtitle={inbox.subtitle} />
       <View className="h-px bg-line" />
 
       {inbox.status === "guest" ? (
         <View className="flex-1 justify-center px-5">
-          <EmptyState icon="lock" title="Đăng nhập để xem tin nhắn" />
+          <EmptyState icon="lock" title={tr("Đăng nhập để xem tin nhắn")} />
         </View>
       ) : inbox.status === "loading" ? (
         <InboxSkeleton />
@@ -72,8 +79,8 @@ export function ChatInbox(_props: { staff?: boolean }) {
         <View className="flex-1 justify-center px-5">
           <EmptyState
             icon="alert-circle"
-            title="Không tải được tin nhắn"
-            actionLabel="Thử lại"
+            title={tr("Không tải được tin nhắn")}
+            actionLabel={tr("Thử lại")}
             onAction={() => {
               void inbox.refresh();
             }}
@@ -111,7 +118,7 @@ export function ChatInbox(_props: { staff?: boolean }) {
             <View className="flex-1 justify-center">
               <EmptyState
                 icon="message-circle"
-                title="Chưa có cuộc trò chuyện nào"
+                title={tr("Chưa có cuộc trò chuyện nào")}
               />
             </View>
           }

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import {
   useGetActiveServicesQuery,
   useGetWorkerProfileQuery,
@@ -74,11 +76,15 @@ const IDENTITY_NUMBER_REGEX = /^(\d{12}|\d{9})$/;
 const MAX_EXPERIENCE_YEARS = 60;
 
 // Tên hiển thị tuỳ chỉnh cho nhóm dịch vụ gồm nhiều service cùng làm được.
-const SECTION_DISPLAY_NAME: Record<string, string> = {
-  HOME_CLEANING: "Dọn dẹp nhà (ca lẻ & định kỳ)",
-};
+function getLocalizedSectionDisplayName(): Record<string, string> {
+  return {
+    HOME_CLEANING: tr("Dọn dẹp nhà (ca lẻ & định kỳ)"),
+  };
+}
 
 export function useProfileSetup() {
+  const { t: tr } = useTranslation();
+
   const dispatch = useDispatch<AppDispatch>();
   const draft = useSelector((s: RootState) => s.profileDraft);
 
@@ -168,12 +174,12 @@ export function useProfileSetup() {
         sectionCode,
         representativeId: rep.id,
         memberIds: sorted.map((s) => s.id),
-        name: SECTION_DISPLAY_NAME[sectionCode] ?? rep.name,
+        name: getLocalizedSectionDisplayName()[sectionCode] ?? rep.name,
         description: rep.description,
         image: rep.primary_image,
       };
     });
-  }, [servicesQuery.data, serviceSearch]);
+  }, [servicesQuery.data, serviceSearch, tr]);
 
   const selectService = (representativeId: number) =>
     update({ serviceId: representativeId });
@@ -271,8 +277,8 @@ export function useProfileSetup() {
   const isFinalStep = (step: SetupStep) => nextTarget(step) === "submit";
 
   const ctaLabel = (step: SetupStep) => {
-    if (!isFinalStep(step)) return "Tiếp tục";
-    return isRejected ? "Hoàn tất & gửi lại" : "Gửi hồ sơ";
+    if (!isFinalStep(step)) return tr("Tiếp tục");
+    return isRejected ? tr("Hoàn tất & gửi lại") : tr("Gửi hồ sơ");
   };
 
   // ---------- Gửi dữ liệu (chỉ field đang mở) ----------
@@ -341,7 +347,7 @@ export function useProfileSetup() {
     for (const s of steps) {
       const message = validate(s);
       if (message) {
-        showErrorToast("Thiếu thông tin", message);
+        showErrorToast(tr("Thiếu thông tin"), tr(message));
         router.push(ROUTES[s]);
         return;
       }
@@ -353,7 +359,7 @@ export function useProfileSetup() {
       await submitProfile().unwrap();
       dispatch(resetDraft(userId));
       router.replace(SUCCESS_ROUTE);
-    }, "Gửi hồ sơ thất bại");
+    }, tr("Gửi hồ sơ thất bại"));
     // Thành công: giữ khóa cho tới khi rời màn hình.
     if (!ok) return;
   };
@@ -375,7 +381,7 @@ export function useProfileSetup() {
     // Bước sửa lỗi kế tiếp là màn "thông tin cá nhân" (có luồng gửi riêng):
     // lưu dữ liệu nháp lên server trước để không bị mất.
     if (isRejected && target === stepRoute("personal-info")) {
-      const ok = await run(saveProfileFields, "Lưu hồ sơ thất bại");
+      const ok = await run(saveProfileFields, tr("Lưu hồ sơ thất bại"));
       if (!ok) return;
       release();
     }
@@ -387,7 +393,7 @@ export function useProfileSetup() {
     isLoading: profileQuery.isLoading || servicesQuery.isLoading,
     isLoadingProfile: profileQuery.isLoading,
     isBusy: working,
-    error,
+    error: error ? tr(error) : "",
 
     // luồng
     isRejected,

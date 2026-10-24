@@ -1,5 +1,5 @@
 import { NotificationBellButton } from "@/components/common/NotificationBellButton";
-import { SHADOWS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +19,7 @@ export function TabHeader({
   right,
   showBell = true,
 }: TabHeaderProps) {
+  const { SHADOWS } = useAppTheme();
   const insets = useSafeAreaInsets();
 
   return (

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
@@ -13,6 +15,8 @@ import { Link } from "expo-router";
 import { View } from "react-native";
 
 export default function LoginScreen() {
+  const { t: tr } = useTranslation();
+
   const {
     phone,
     setPhone,
@@ -29,20 +33,20 @@ export default function LoginScreen() {
   return (
     <>
       <AuthScreen
-        title="Nhân viên đăng nhập"
-        subtitle="Đăng nhập để xem lịch làm việc và nhận đơn mới."
+        title={tr("Nhân viên đăng nhập")}
+        subtitle={tr("Đăng nhập để xem lịch làm việc và nhận đơn mới.")}
         footer={
           <AuthFooter
-            prompt="Chưa có tài khoản?"
-            linkLabel="Đăng ký"
+            prompt={tr("Chưa có tài khoản?")}
+            linkLabel={tr("Đăng ký")}
             href="/(auth)/register"
           />
         }
       >
-        <FormField label="Số điện thoại">
+        <FormField label={tr("Số điện thoại")}>
           <FormInput
             icon="phone"
-            placeholder="Nhập số điện thoại"
+            placeholder={tr("Nhập số điện thoại")}
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
@@ -50,17 +54,17 @@ export default function LoginScreen() {
         </FormField>
 
         <FormField
-          label="Mật khẩu"
+          label={tr("Mật khẩu")}
           right={
             <Link href="/(auth)/forgot-password">
-              <LinkText>Quên mật khẩu?</LinkText>
+              <LinkText>{tr("Quên mật khẩu?")}</LinkText>
             </Link>
           }
         >
           <FormInput
             icon="lock"
             isPassword
-            placeholder="Nhập mật khẩu của bạn"
+            placeholder={tr("Nhập mật khẩu của bạn")}
             value={password}
             onChangeText={setPassword}
           />
@@ -70,10 +74,10 @@ export default function LoginScreen() {
 
         <View className="mt-1">
           <PrimaryButton
-            label="Đăng nhập"
+            label={tr("Đăng nhập")}
             variant="dark"
             loading={isLoading}
-            loadingLabel="Đang đăng nhập..."
+            loadingLabel={tr("Đang đăng nhập...")}
             icon="arrow-right"
             onPress={handleLogin}
           />

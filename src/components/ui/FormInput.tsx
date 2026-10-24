@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -24,6 +25,8 @@ export function FormInput({
   style,
   ...props
 }: FormInputProps) {
+  const { COLORS, mode: themeMode, isDark } = useAppTheme();
+
   const [showPassword, setShowPassword] = useState(false);
   const [focused, setFocused] = useState(false);
   const active = focused && !locked;
@@ -37,10 +40,10 @@ export function FormInput({
         backgroundColor: locked
           ? COLORS.canvas
           : active
-            ? COLORS.white
-            : COLORS.accentLight,
+            ? COLORS.surface
+            : isDark ? COLORS.surfaceMuted : COLORS.accentLight,
         borderWidth: 1.5,
-        borderColor: active ? COLORS.ink : COLORS.line,
+        borderColor: active ? (isDark ? COLORS.primary : COLORS.ink) : COLORS.line,
       }}
     >
       {!!icon && (
@@ -52,7 +55,7 @@ export function FormInput({
         />
       )}
 
-      <TextInput
+      <TextInput keyboardAppearance={themeMode}
         className={`flex-1 text-[15px] ${icon ? "ml-3" : ""} ${
           locked ? "text-ink-muted" : "text-ink"
         }`}

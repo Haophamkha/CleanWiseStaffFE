@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import {
   useMarkNotificationReadMutation,
   useRegisterPushTokenMutation,
@@ -14,6 +16,8 @@ const isExpoGo =
   Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 export function usePushNotifications(enabled: boolean) {
+  const { t: tr } = useTranslation();
+
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [registerToken] = useRegisterPushTokenMutation();
   const registeredRef = useRef(false);
@@ -48,7 +52,7 @@ export function usePushNotifications(enabled: boolean) {
       if (cancelled) return;
       if (Platform.OS === "android") {
         await Notifications.setNotificationChannelAsync("default", {
-          name: "Thông báo chung",
+          name: tr("Thông báo chung"),
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: "#AE525C",
@@ -65,7 +69,7 @@ export function usePushNotifications(enabled: boolean) {
       cancelled = true;
       sub?.remove();
     };
-  }, [enabled]);
+  }, [enabled, tr]);
 
   return { expoPushToken };
 }

@@ -1,4 +1,7 @@
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import { ChatAvatar } from "@/features/chat/components/ChatAvatar";
 import type { ChatListItem } from "@/features/chat/hooks/useChatRoom";
 import { Feather } from "@expo/vector-icons";
@@ -89,6 +92,10 @@ export function MessageItem({
   onToggleMeta,
   onRetry,
 }: MessageItemProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   if (item.kind === "day") {
     return (
       <View className="items-center my-4">
@@ -174,7 +181,7 @@ export function MessageItem({
               onPress={() => onRetry(item.id, item.text)}
               hitSlop={10}
               accessibilityRole="button"
-              accessibilityLabel="Gửi lại tin nhắn"
+              accessibilityLabel={tr("Gửi lại tin nhắn")}
               className="self-center mr-2"
             >
               <Feather name="alert-circle" size={20} color={COLORS.danger} />
@@ -185,7 +192,7 @@ export function MessageItem({
             activeOpacity={0.85}
             onPress={() => onToggleMeta(item.id)}
             className={`max-w-[78%] px-4 py-2.5 ${
-              item.mine ? "bg-ink" : "bg-surface border border-line"
+              item.mine ? "bg-ink-panel" : "bg-surface border border-line"
             }`}
             style={[corners, item.failed ? { opacity: 0.8 } : null]}
           >

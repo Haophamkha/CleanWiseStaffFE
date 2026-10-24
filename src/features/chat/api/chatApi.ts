@@ -51,7 +51,7 @@ export const chatApi = baseApi.injectEndpoints({
     }),
     sendChatMessage: builder.mutation<
       ChatMessage,
-      { conversation_id: number; message: string }
+      { conversation_id: number; message: string; client_message_id?: string }
     >({
       query: (data) => ({
         url: "/api/chat/messages/send/",

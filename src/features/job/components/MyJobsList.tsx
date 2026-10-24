@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS } from "@/constants/theme";
+
 import { JobsListFooter } from "@/features/job/components/JobsListFooter";
 import { MyJobCard } from "@/features/job/components/MyJobCard";
 import { MyPackageCard } from "@/features/job/components/MyPackageCard";
@@ -33,24 +36,26 @@ type Row =
   | { kind: "header"; key: string; label: string; running: boolean }
   | { kind: "item"; key: string; item: MyDisplayItem };
 
-const EMPTY: Record<MyJobsTab, { title: string; message: string }> = {
-  upcoming: {
-    title: "Chưa có buổi sắp tới",
-    message: "Vào tab Khả dụng để nhận việc",
-  },
-  today: {
-    title: "Hôm nay bạn không có buổi nào",
-    message: "Kéo xuống để làm mới",
-  },
-  completed: {
-    title: "Chưa có buổi nào hoàn thành",
-    message: "Các buổi đã làm xong sẽ hiện ở đây",
-  },
-  cancelled: {
-    title: "Không có buổi nào bị hủy",
-    message: "Kéo xuống để làm mới",
-  },
-};
+function getLocalizedEmpty(): Record<MyJobsTab, { title: string; message: string }> {
+  return {
+    upcoming: {
+      title: tr("Chưa có buổi sắp tới"),
+      message: tr("Vào tab Khả dụng để nhận việc"),
+    },
+    today: {
+      title: tr("Hôm nay bạn không có buổi nào"),
+      message: tr("Kéo xuống để làm mới"),
+    },
+    completed: {
+      title: tr("Chưa có buổi nào hoàn thành"),
+      message: tr("Các buổi đã làm xong sẽ hiện ở đây"),
+    },
+    cancelled: {
+      title: tr("Không có buổi nào bị hủy"),
+      message: tr("Kéo xuống để làm mới"),
+    },
+  };
+}
 
 /** Buổi đại diện của 1 thẻ: đang làm > buổi chờ gần nhất > buổi đầu. */
 function anchorOf(item: MyDisplayItem): WorkerMySchedule {
@@ -84,7 +89,7 @@ function buildRows(items: MyDisplayItem[]): Row[] {
       rows.push({
         kind: "header",
         key: `h-${rows.length}`,
-        label: running ? "Đang thực hiện" : rel ? `${rel} · ${day}` : day,
+        label: running ? tr("Đang thực hiện") : rel ? `${rel} · ${day}` : day,
         running,
       });
     }
@@ -100,6 +105,8 @@ function buildRows(items: MyDisplayItem[]): Row[] {
 }
 
 function DayHeader({ label, running }: { label: string; running: boolean }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="flex-row items-center mt-2 mb-3">
       <View
@@ -107,7 +114,7 @@ function DayHeader({ label, running }: { label: string; running: boolean }) {
         style={{
           width: 8,
           height: 8,
-          backgroundColor: running ? COLORS.primary : COLORS.inkMuted,
+          backgroundColor: running ? COLORS.primaryFill : COLORS.inkMuted,
         }}
       />
       <Text
@@ -130,7 +137,11 @@ export function MyJobsList({
   onScrollStart,
   onEndReached,
 }: MyJobsListProps) {
-  const rows = useMemo(() => buildRows(state.items), [state.items]);
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
+  const rows = useMemo(() => buildRows(state.items), [state.items, tr]);
 
   const renderItem = useCallback(
     ({ item: row, index }: { item: Row; index: number }) => {
@@ -149,7 +160,7 @@ export function MyJobsList({
         <MyJobCard item={item.item} onOpen={onOpen} index={index} />
       );
     },
-    [onOpen],
+    [onOpen, tr],
   );
 
   if (state.isLoading) {
@@ -202,7 +213,7 @@ export function MyJobsList({
               className="items-center justify-center border border-line bg-surface rounded-full"
               style={{ height: 44, marginTop: 4 }}
             >
-              <Text className="text-ink-soft text-sm font-bold">Xem thêm</Text>
+              <Text className="text-ink-soft text-sm font-bold">{tr("Xem thêm")}</Text>
             </PressableScale>
           ) : null}
         </>
@@ -212,8 +223,8 @@ export function MyJobsList({
           {showInitialError ? (
             <EmptyState
               icon="wifi-off"
-              title="Không tải được danh sách"
-              actionLabel="Thử lại"
+              title={tr("Không tải được danh sách")}
+              actionLabel={tr("Thử lại")}
               onAction={() => {
                 state.retryMore();
               }}
@@ -221,8 +232,8 @@ export function MyJobsList({
           ) : (
             <EmptyState
               icon="clipboard"
-              title={EMPTY[tab].title}
-              message={EMPTY[tab].message}
+              title={getLocalizedEmpty()[tab].title}
+              message={getLocalizedEmpty()[tab].message}
             />
           )}
         </View>

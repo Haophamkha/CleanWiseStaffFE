@@ -1,4 +1,7 @@
-import { COLORS, TYPE } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { TYPE } from "@/constants/theme";
 import NotificationItem from "@/features/notification/components/NotificationItem";
 import { NotificationsHeader } from "@/features/notification/components/NotificationsHeader";
 import { useNotifications } from "@/features/notification/hooks/useNotifications";
@@ -12,6 +15,10 @@ import {
 } from "react-native";
 
 export default function NotificationsScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const n = useNotifications();
 
   return (
@@ -34,7 +41,7 @@ export default function NotificationsScreen() {
             refreshing={n.isLoading}
             onRefresh={n.handleRefresh}
             tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
+            colors={[COLORS.primaryFill]}
           />
         }
         onEndReachedThreshold={0.4}
@@ -66,11 +73,9 @@ export default function NotificationsScreen() {
                 <Feather name="bell-off" size={30} color={COLORS.accentDark} />
               </View>
               <Text className="text-ink text-lg font-extrabold mt-5">
-                Chưa có thông báo
-              </Text>
+                {tr("Chưa có thông báo")}</Text>
               <Text className="text-ink-soft text-sm text-center mt-1.5 leading-5">
-                Thông báo về đơn việc, thanh toán và hệ thống sẽ hiện ở đây.
-              </Text>
+                {tr("Thông báo về đơn việc, thanh toán và hệ thống sẽ hiện ở đây.")}</Text>
             </View>
           ) : null
         }

@@ -1,9 +1,9 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import type { ThemeColors } from "@/constants/theme";
+
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
-import {
-  useGetNotificationPreferencesQuery,
-  useUpdateNotificationPreferencesMutation,
-} from "@/features/notification/api/notificationApi";
 import type { ProfileStatus } from "@/features/profile-setup/types/WorkerProfile";
 import { performLogout } from "@/store/baseApi";
 import { resolveMediaUrl } from "@/utils/media";
@@ -28,91 +28,95 @@ export type MenuItem = {
 
 export type MenuGroup = {
   title: string;
+  layout: "list" | "shortcuts" | "support";
   items: MenuItem[];
 };
 
-export const STATUS_INFO: Record<ProfileStatus, ProfileStatusInfo> = {
+export function getProfileStatusInfo(COLORS: ThemeColors): Record<ProfileStatus, ProfileStatusInfo> { return {
   DRAFT: {
-    label: "Chưa hoàn tất hồ sơ",
+    label: tr("Chưa hoàn tất hồ sơ"),
     color: COLORS.danger,
     bg: COLORS.dangerLight,
     text: COLORS.danger,
   },
   PENDING: {
-    label: "Đang chờ duyệt",
+    label: tr("Đang chờ duyệt"),
     color: COLORS.warning,
     bg: COLORS.warningLight,
     text: COLORS.warningDark,
   },
   ACTIVE: {
-    label: "Đang làm việc",
+    label: tr("Đang làm việc"),
     color: COLORS.success,
     bg: COLORS.successLight,
     text: COLORS.success,
   },
   REJECTED: {
-    label: "Hồ sơ bị từ chối",
+    label: tr("Hồ sơ bị từ chối"),
     color: COLORS.danger,
     bg: COLORS.dangerLight,
     text: COLORS.danger,
   },
   SUSPENDED: {
-    label: "Tạm khóa",
+    label: tr("Tạm khóa"),
     color: COLORS.danger,
     bg: COLORS.dangerLight,
     text: COLORS.danger,
   },
-};
+}; }
 
-function buildMenuGroups(openSettings: () => void): MenuGroup[] {
+function buildMenuGroups(): MenuGroup[] {
   return [
     {
-      title: "Tài khoản",
+      title: tr("Tài khoản & công việc"),
+      layout: "list",
       items: [
         {
           icon: "user",
-          label: "Thông tin cá nhân",
+          label: tr("Thông tin cá nhân"),
           onPress: () => router.push("/(profile-setup)/personal-info"),
         },
         {
           icon: "map-pin",
-          label: "Khu vực hoạt động",
+          label: tr("Khu vực hoạt động"),
           onPress: () => router.push("/(profile-setup)/working-areas"),
         },
         {
           icon: "folder",
-          label: "Hồ sơ của tôi",
+          label: tr("Hồ sơ của tôi"),
           onPress: () => router.push("/(profile-setup)/my-profile"),
         },
-      ],
-    },
-    {
-      title: "Tài chính",
-      items: [
-        {
-          icon: "credit-card",
-          label: "Tài khoản ngân hàng",
-          onPress: () => router.push("/payment-methods" as any),
-        },
-        {
-          icon: "dollar-sign",
-          label: "Thu nhập",
-          onPress: () => router.push("/earnings" as any),
-        },
-      ],
-    },
-    {
-      title: "Khác",
-      items: [
         {
           icon: "alert-circle",
-          label: "Khiếu nại của tôi",
+          label: tr("Khiếu nại của tôi"),
           onPress: () => router.push("/complaints" as any),
         },
-        { icon: "settings", label: "Cài đặt", onPress: openSettings },
+      ],
+    },
+    {
+      title: tr("Tài chính"),
+      layout: "shortcuts",
+      items: [
+        {
+          icon: "trending-up",
+          label: tr("Thu nhập"),
+          onPress: () => router.push("/earnings" as any),
+        },
+        {
+          icon: "credit-card",
+          label: tr("Tài khoản ngân hàng"),
+          onPress: () => router.push("/payment-methods" as any),
+        },
+      ],
+    },
+    {
+      title: tr("Ứng dụng"),
+      layout: "support",
+      items: [
+        { icon: "settings", label: tr("Cài đặt"), onPress: () => router.push("/settings" as any) },
         {
           icon: "info",
-          label: "Về CleanWise",
+          label: tr("Về CleanWise"),
           onPress: () => router.push("/about" as any),
         },
       ],
@@ -121,11 +125,11 @@ function buildMenuGroups(openSettings: () => void): MenuGroup[] {
 }
 
 export function useProfile() {
-  const { data: pref } = useGetNotificationPreferencesQuery();
-  const [updatePref, { isLoading: isUpdatingPref }] =
-    useUpdateNotificationPreferencesMutation();
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const { data: profile, isLoading, isError } = useGetWorkerProfileQuery();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
 
   const fullName = profile
@@ -138,7 +142,7 @@ export function useProfile() {
   const rating = profile?.average_rating ? Number(profile.average_rating) : 0;
 
   const statusInfo: ProfileStatusInfo | null = profile
-    ? (STATUS_INFO[profile.status] ?? {
+    ? (getProfileStatusInfo(COLORS)[profile.status] ?? {
         label: profile.status,
         color: COLORS.inkSoft,
         bg: COLORS.accentLight,
@@ -159,28 +163,16 @@ export function useProfile() {
     handleLogout();
   };
 
-  const handleTogglePush = (value: boolean) => {
-    void updatePref({ push_enabled: value });
-  };
-
-  const openSettings = () => setSettingsOpen(true);
-  const closeSettings = () => setSettingsOpen(false);
-
   return {
     isLoading,
     isError,
-    fullName: fullName || "Nhân viên",
+    fullName: fullName || tr("Nhân viên"),
     phone: profile?.phone_number ?? "",
     avatarUri,
     ratingText: rating.toFixed(1),
     totalJobs: profile?.total_completed_jobs ?? 0,
     statusInfo,
-    menuGroups: buildMenuGroups(openSettings),
-    settingsOpen,
-    closeSettings,
-    pushEnabled: pref?.push_enabled ?? true,
-    pushDisabled: !pref || isUpdatingPref,
-    handleTogglePush,
+    menuGroups: buildMenuGroups(),
     handleLogout,
     logoutConfirmVisible,
     requestLogout,

@@ -119,7 +119,7 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "GET",
       }),
 
-      transformResponse: (res: { data: NotificationPreference }) => res.data,
+      transformResponse: unwrapResponse,
     }),
 
     updateNotificationPreferences: builder.mutation<
@@ -132,7 +132,7 @@ export const notificationApi = baseApi.injectEndpoints({
         data: body,
       }),
 
-      transformResponse: (res: { data: NotificationPreference }) => res.data,
+      transformResponse: unwrapResponse,
 
       async onQueryStarted(body, { dispatch, queryFulfilled }) {
         const patch = dispatch(

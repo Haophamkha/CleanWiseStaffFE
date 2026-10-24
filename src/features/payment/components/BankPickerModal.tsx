@@ -1,4 +1,7 @@
-import { COLORS, RADIUS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS } from "@/constants/theme";
 import type { BankCatalogItem } from "@/features/payment/types/PaymentMethod";
 import { Feather } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -26,6 +29,10 @@ export default function BankPickerModal({
   onClose,
   onSelect,
 }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const [keyword, setKeyword] = useState("");
   const filteredBanks = useMemo(() => {
     const query = keyword.trim().toLocaleLowerCase("vi");
@@ -35,7 +42,7 @@ export default function BankPickerModal({
         .toLocaleLowerCase("vi")
         .includes(query),
     );
-  }, [banks, keyword]);
+  }, [banks, keyword, tr]);
 
   const close = () => {
     setKeyword("");
@@ -50,15 +57,14 @@ export default function BankPickerModal({
             onPress={close}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Đóng"
+            accessibilityLabel={tr("Đóng")}
             className="items-center justify-center"
             style={{ width: 44, height: 44 }}
           >
             <Feather name="x" size={24} color={COLORS.ink} />
           </TouchableOpacity>
           <Text className="flex-1 text-ink text-[22px] font-extrabold ml-1">
-            Chọn ngân hàng
-          </Text>
+            {tr("Chọn ngân hàng")}</Text>
         </View>
 
         <View
@@ -66,11 +72,11 @@ export default function BankPickerModal({
           style={{ height: 48, borderRadius: RADIUS.pill }}
         >
           <Feather name="search" size={17} color={COLORS.inkMuted} />
-          <TextInput
+          <TextInput keyboardAppearance={themeMode}
             className="flex-1 ml-3 text-ink text-[15px]"
             value={keyword}
             onChangeText={setKeyword}
-            placeholder="Tìm theo tên ngân hàng"
+            placeholder={tr("Tìm theo tên ngân hàng")}
             placeholderTextColor={COLORS.inkMuted}
             autoCapitalize="none"
           />
@@ -78,7 +84,7 @@ export default function BankPickerModal({
             <TouchableOpacity
               onPress={() => setKeyword("")}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityLabel="Xóa từ khóa tìm kiếm"
+              accessibilityLabel={tr("Xóa từ khóa tìm kiếm")}
             >
               <Feather name="x" size={17} color={COLORS.inkMuted} />
             </TouchableOpacity>
@@ -130,8 +136,7 @@ export default function BankPickerModal({
             <View className="items-center pt-20">
               <Feather name="search" size={34} color={COLORS.inkMuted} />
               <Text className="text-ink-muted mt-3">
-                Không tìm thấy ngân hàng
-              </Text>
+                {tr("Không tìm thấy ngân hàng")}</Text>
             </View>
           }
         />

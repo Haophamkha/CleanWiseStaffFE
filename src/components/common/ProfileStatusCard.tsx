@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, TYPE } from "@/constants/theme";
 import { useProfileStatus } from "@/features/profile-setup/hooks/useProfileStatus";
 import type {
   ProfileStatus,
@@ -23,20 +26,24 @@ const STATUS_ICON: Record<ProfileStatus, FeatherName> = {
   SUSPENDED: "lock",
 };
 
-const TONE = {
-  danger: {
-    color: COLORS.danger,
-    bg: COLORS.dangerLight,
-    text: COLORS.danger,
-  },
-  warning: {
-    color: COLORS.warning,
-    bg: COLORS.warningLight,
-    text: COLORS.warningDark,
-  },
-} as const;
-
 export function ProfileStatusCard({ profile }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS } = useAppTheme();
+
+  const TONE = {
+    danger: {
+      color: COLORS.danger,
+      bg: COLORS.dangerLight,
+      text: COLORS.danger,
+    },
+    warning: {
+      color: COLORS.warning,
+      bg: COLORS.warningLight,
+      text: COLORS.warningDark,
+    },
+  } as const;
+
   const {
     status,
     approvalWasRevoked,
@@ -103,12 +110,12 @@ export function ProfileStatusCard({ profile }: Props) {
         {(status === "REJECTED" || approvalWasRevoked) &&
           !!profile.rejection_reason && (
           <View className="flex-row bg-danger-light rounded-2xl mt-4 overflow-hidden">
-            <View style={{ width: 4, backgroundColor: COLORS.danger }} />
+            <View style={{ width: 4, backgroundColor: COLORS.dangerFill }} />
             <View className="flex-1 p-3.5">
               <View className="flex-row items-center mb-1">
                 <Feather name="alert-circle" size={14} color={COLORS.danger} />
                 <Text className="text-danger text-xs ml-1.5" style={TYPE.label}>
-                  {approvalWasRevoked ? "Lý do thu hồi phê duyệt" : "Lý do từ chối"}
+                  {approvalWasRevoked ? tr("Lý do thu hồi phê duyệt") : tr("Lý do từ chối")}
                 </Text>
               </View>
               <Text className="text-danger text-sm leading-5">
@@ -129,12 +136,10 @@ export function ProfileStatusCard({ profile }: Props) {
                   {completionPercent}%
                 </Text>
                 <Text className="text-ink-muted text-sm ml-1.5">
-                  hoàn thành
-                </Text>
+                  {tr("hoàn thành")}</Text>
               </View>
               <Text className="text-ink-soft text-sm font-semibold">
-                {stepsDone}/{totalSteps} bước
-              </Text>
+                {stepsDone}/{totalSteps} {tr("bước")}</Text>
             </View>
 
             {segments.length > 0 ? (
@@ -143,7 +148,7 @@ export function ProfileStatusCard({ profile }: Props) {
                   <View
                     key={i}
                     className={`flex-1 rounded-full ${
-                      i < stepsDone ? "bg-ink" : "bg-accent-light"
+                      i < stepsDone ? "bg-ink-panel" : "bg-accent-light"
                     }`}
                     style={{ height: 6 }}
                   />
@@ -152,7 +157,7 @@ export function ProfileStatusCard({ profile }: Props) {
             ) : (
               <View className="h-1.5 bg-accent-light rounded-full overflow-hidden">
                 <View
-                  className="h-full rounded-full bg-ink"
+                  className="h-full rounded-full bg-ink-panel"
                   style={{ width: `${completionPercent}%` }}
                 />
               </View>

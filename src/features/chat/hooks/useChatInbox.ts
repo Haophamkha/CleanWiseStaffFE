@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr, getLocale } from "@/features/language/i18n";
 import {
     chatApi,
     useGetConversationsQuery,
@@ -27,12 +29,12 @@ function formatListTime(iso: string | null): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (date.toDateString() === new Date().toDateString()) {
-    return date.toLocaleTimeString("vi-VN", {
+    return date.toLocaleTimeString(getLocale(), {
       hour: "2-digit",
       minute: "2-digit",
     });
   }
-  return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+  return date.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" });
 }
 
 function toRow(item: ChatConversation): ChatInboxRow {
@@ -41,7 +43,7 @@ function toRow(item: ChatConversation): ChatInboxRow {
     name: item.other_user.name,
     avatar: item.other_user.avatar,
     bookingCode: item.latest_assignment?.booking_code ?? null,
-    preview: item.last_message || "Bắt đầu trò chuyện",
+    preview: item.last_message || tr("Bắt đầu trò chuyện"),
     timeLabel: formatListTime(item.last_message_at),
     unread: item.unread_count > 0,
     unreadLabel: item.unread_count > 99 ? "99+" : String(item.unread_count),
@@ -49,6 +51,8 @@ function toRow(item: ChatConversation): ChatInboxRow {
 }
 
 export function useChatInbox() {
+  const { t: tr } = useTranslation();
+
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const [page, setPage] = useState(1);
@@ -142,7 +146,7 @@ export function useChatInbox() {
     if (data?.next && !isFetching) setPage((value) => value + 1);
   };
 
-  const rows = useMemo(() => items.map(toRow), [items]);
+  const rows = useMemo(() => items.map(toRow), [items, tr]);
   const status: "guest" | "loading" | "error" | "ready" = !user
     ? "guest"
     : isLoading && !data
@@ -155,7 +159,7 @@ export function useChatInbox() {
   return {
     status,
     rows,
-    subtitle: totalUnread > 0 ? `${totalUnread} tin chưa đọc` : undefined,
+    subtitle: totalUnread > 0 ? tr("{{value0}} tin chưa đọc", { value0: totalUnread , count: totalUnread}) : undefined,
     refreshing,
     isFetchingMore: isFetching && page > 1,
     refresh,

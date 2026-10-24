@@ -1,4 +1,5 @@
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, TYPE } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
@@ -17,6 +18,8 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const { COLORS, SHADOWS } = useAppTheme();
+
   return (
     <View
       className="bg-surface px-6 py-8 items-center border border-line"
@@ -38,7 +41,7 @@ export function EmptyState({
       {actionLabel && onAction ? (
         <Pressable
           onPress={onAction}
-          className="flex-row items-center justify-center bg-ink rounded-full px-5 mt-5"
+          className="flex-row items-center justify-center bg-ink-panel rounded-full px-5 mt-5"
           style={{ height: 44 }}
         >
           <Text className="text-white text-xs" style={TYPE.button}>

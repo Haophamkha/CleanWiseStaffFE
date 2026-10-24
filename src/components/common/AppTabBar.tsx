@@ -1,4 +1,5 @@
-import { COLORS, SHADOWS, TYPE } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { TYPE } from "@/constants/theme";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
@@ -77,6 +78,8 @@ function TabItem({
   onLongPress,
   accessibilityLabel,
 }: ItemProps) {
+  const { COLORS } = useAppTheme();
+
   const active = useRef(new Animated.Value(focused ? 1 : 0)).current;
   const press = useRef(new Animated.Value(1)).current;
 
@@ -160,7 +163,7 @@ function TabItem({
               height: 18,
               paddingHorizontal: 4,
               borderRadius: 9,
-              backgroundColor: COLORS.primary,
+              backgroundColor: COLORS.primaryFill,
               alignItems: "center",
               justifyContent: "center",
               borderWidth: 1.5,
@@ -207,6 +210,8 @@ function CenterItem({
   onLongPress,
   accessibilityLabel,
 }: Omit<ItemProps, "badge" | "routeName">) {
+  const { COLORS, SHADOWS } = useAppTheme();
+
   const press = useRef(new Animated.Value(1)).current;
   const pop = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
@@ -256,7 +261,7 @@ function CenterItem({
             width: CIRCLE,
             height: CIRCLE,
             borderRadius: CIRCLE / 2,
-            backgroundColor: COLORS.primary,
+            backgroundColor: COLORS.primaryFill,
             alignItems: "center",
             justifyContent: "center",
             borderWidth: 3,
@@ -302,6 +307,8 @@ export default function AppTabBar({
   descriptors,
   navigation,
 }: BottomTabBarProps) {
+  const { COLORS, isDark } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const { width: barWidth } = useWindowDimensions();
   const [kb, setKb] = useState(false);
@@ -346,13 +353,13 @@ export default function AppTabBar({
           <Path
             d={path}
             fill={COLORS.ink}
-            fillOpacity={0.035}
+            fillOpacity={isDark ? 0 : 0.035}
             transform="translate(0,-4)"
           />
           <Path
             d={path}
             fill={COLORS.ink}
-            fillOpacity={0.05}
+            fillOpacity={isDark ? 0 : 0.05}
             transform="translate(0,-2)"
           />
           <Path d={path} fill={COLORS.surface} />

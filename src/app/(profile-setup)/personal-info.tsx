@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS } from "@/constants/theme";
+
 import { PersonalInfoForm } from "@/features/profile-setup/components/PersonalInfoForm";
 import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
 import { usePersonalInfo } from "@/features/profile-setup/hooks/usePersonalInfo";
@@ -14,13 +17,17 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PersonalInfoStep() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const form = usePersonalInfo();
 
   if (form.isLoadingProfile) {
     return (
       <View className="flex-1 bg-canvas">
-        <SimpleHeader title="Thông tin cá nhân" />
+        <SimpleHeader title={tr("Thông tin cá nhân")} />
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={COLORS.primary} />
         </View>
@@ -33,7 +40,7 @@ export default function PersonalInfoStep() {
       className="flex-1 bg-canvas"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <SimpleHeader title="Thông tin cá nhân" />
+      <SimpleHeader title={tr("Thông tin cá nhân")} />
 
       <ScrollView
         className="flex-1"
@@ -52,7 +59,7 @@ export default function PersonalInfoStep() {
           label={form.submitLabel}
           variant="primary"
           loading={form.isBusy}
-          loadingLabel="Đang xử lý..."
+          loadingLabel={tr("Đang xử lý...")}
           disabled={!form.canSubmit}
           onPress={form.handlePressSave}
         />
@@ -60,10 +67,10 @@ export default function PersonalInfoStep() {
 
       <ConfirmModal
         visible={form.confirmVisible}
-        title="Lưu thay đổi?"
-        message="Thông tin cá nhân của bạn sẽ được cập nhật theo nội dung vừa chỉnh sửa."
-        confirmLabel="Lưu thay đổi"
-        cancelLabel="Kiểm tra lại"
+        title={tr("Lưu thay đổi?")}
+        message={tr("Thông tin cá nhân của bạn sẽ được cập nhật theo nội dung vừa chỉnh sửa.")}
+        confirmLabel={tr("Lưu thay đổi")}
+        cancelLabel={tr("Kiểm tra lại")}
         onConfirm={form.handleConfirmSave}
         onCancel={form.handleCancelConfirm}
       />

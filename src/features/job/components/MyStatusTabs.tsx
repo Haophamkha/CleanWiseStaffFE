@@ -1,13 +1,18 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import type { MyJobsTab } from "@/features/schedule/types/Schedule";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-const TABS: { key: MyJobsTab; label: string }[] = [
-  { key: "today", label: "Hôm nay" },
-  { key: "upcoming", label: "Sắp tới" },
-  { key: "completed", label: "Hoàn thành" },
-  { key: "cancelled", label: "Đã hủy" },
-];
+function getLocalizedTabs(): { key: MyJobsTab; label: string }[] {
+  return [
+    { key: "today", label: tr("Hôm nay") },
+    { key: "upcoming", label: tr("Sắp tới") },
+    { key: "completed", label: tr("Hoàn thành") },
+    { key: "cancelled", label: tr("Đã hủy") },
+  ];
+}
 
 export function MyStatusTabs({
   value,
@@ -18,6 +23,10 @@ export function MyStatusTabs({
   onChange: (tab: MyJobsTab) => void;
   counts?: Partial<Record<MyJobsTab, number>>;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <ScrollView
       horizontal
@@ -25,7 +34,7 @@ export function MyStatusTabs({
       className="mt-3 -mx-5"
       contentContainerStyle={{ paddingHorizontal: 20 }}
     >
-      {TABS.map((t) => {
+      {getLocalizedTabs().map((t) => {
         const active = value === t.key;
         const count = counts?.[t.key] ?? 0;
         return (

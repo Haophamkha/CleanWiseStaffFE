@@ -1,3 +1,13 @@
+export type ChatModerationStatus = {
+  code?: string;
+  message?: string;
+  violation_count: number;
+  warning_limit: number;
+  window_days: number;
+  locked_until: string | null;
+  is_locked: boolean;
+};
+
 export type ChatAssignment = {
   assignment_id: number;
   assignment_status: string;
@@ -24,9 +34,12 @@ export type ChatConversation = {
   latest_assignment: ChatAssignment | null;
   unread_count: number;
   can_send: boolean;
+  moderation?: ChatModerationStatus;
 };
 
 export type ChatMessage = {
+  client_message_id?: string;
+  moderation?: ChatModerationStatus | null;
   id: number;
   conversation_id: number;
   sender_id: number | null;

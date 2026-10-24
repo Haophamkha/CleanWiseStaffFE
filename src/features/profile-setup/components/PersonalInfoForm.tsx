@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FormInput } from "@/components/ui/FormInput";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { DateInputBox } from "@/features/profile-setup/components/DateInputBox";
 import {
-    GENDER_OPTIONS,
+    getLocalizedGenderOptions,
     type PersonalInfoState,
 } from "@/features/profile-setup/hooks/usePersonalInfo";
 import { Feather } from "@expo/vector-icons";
@@ -39,6 +42,8 @@ function Field({
   children: ReactNode;
   last?: boolean;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View className={last ? "" : "mb-4"}>
       <Text className="text-ink text-[13px] mb-2" style={TYPE.label}>
@@ -63,14 +68,18 @@ function Field({
 }
 
 export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const { values, locked, notes } = form;
 
   return (
     <View>
-      <Card title="Thông tin cơ bản">
+      <Card title={tr("Thông tin cơ bản")}>
         <View className="flex-row" style={{ gap: 12 }}>
           <View className="flex-1">
-            <Field label="Họ" note={notes.lastName}>
+            <Field label={tr("Họ")} note={notes.lastName}>
               <FormInput
                 placeholder="Nguyễn"
                 value={values.lastName}
@@ -80,7 +89,7 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
             </Field>
           </View>
           <View className="flex-1">
-            <Field label="Tên" note={notes.firstName}>
+            <Field label={tr("Tên")} note={notes.firstName}>
               <FormInput
                 placeholder="Văn A"
                 value={values.firstName}
@@ -91,7 +100,7 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
           </View>
         </View>
 
-        <Field label="Số điện thoại" note={notes.phone}>
+        <Field label={tr("Số điện thoại")} note={notes.phone}>
           <FormInput
             icon="phone"
             placeholder="09xxxxxxxx"
@@ -102,12 +111,12 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
           />
         </Field>
 
-        <Field label="Giới tính" note={notes.gender}>
+        <Field label={tr("Giới tính")} note={notes.gender}>
           <View
             className="flex-row bg-accent-light border border-line rounded-full p-1"
             style={{ opacity: locked.gender ? 0.5 : 1 }}
           >
-            {GENDER_OPTIONS.map((opt) => {
+            {getLocalizedGenderOptions().map((opt) => {
               const selected = values.gender === opt.value;
               return (
                 <Pressable
@@ -117,7 +126,7 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
                   className={`flex-1 items-center justify-center rounded-full ${
-                    selected ? "bg-ink" : "bg-transparent"
+                    selected ? "bg-ink-panel" : "bg-transparent"
                   }`}
                   style={{ height: 44 }}
                 >
@@ -135,7 +144,7 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
           </View>
         </Field>
 
-        <Field label="Ngày sinh" note={notes.birthDate} last>
+        <Field label={tr("Ngày sinh")} note={notes.birthDate} last>
           <DateInputBox
             value={values.birthDate}
             onChange={form.setBirthDate}
@@ -146,8 +155,8 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
         </Field>
       </Card>
 
-      <Card title="Kinh nghiệm">
-        <Field label="Số năm kinh nghiệm">
+      <Card title={tr("Kinh nghiệm")}>
+        <Field label={tr("Số năm kinh nghiệm")}>
           <FormInput
             icon="briefcase"
             placeholder="0"
@@ -158,9 +167,9 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
           />
         </Field>
 
-        <Field label="Giới thiệu bản thân" last>
+        <Field label={tr("Giới thiệu bản thân")} last>
           <FormInput
-            placeholder="Mô tả kinh nghiệm, kỹ năng của bạn..."
+            placeholder={tr("Mô tả kinh nghiệm, kỹ năng của bạn...")}
             multiline
             numberOfLines={4}
             value={values.bio}

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import {
   useClearAllNotificationsMutation,
   useGetNotificationsQuery,
@@ -28,9 +30,9 @@ function dayGroupLabel(iso: string) {
   const diff = Math.round(
     (startOfDay(new Date()) - startOfDay(new Date(iso))) / 86400000,
   );
-  if (diff <= 0) return "Hôm nay";
-  if (diff === 1) return "Hôm qua";
-  return "Trước đó";
+  if (diff <= 0) return tr("Hôm nay");
+  if (diff === 1) return tr("Hôm qua");
+  return tr("Trước đó");
 }
 
 function buildRows(items: AppNotification[]): NotificationRow[] {
@@ -48,6 +50,8 @@ function buildRows(items: AppNotification[]): NotificationRow[] {
 }
 
 export function useNotifications() {
+  const { t: tr } = useTranslation();
+
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<AppNotification[]>([]);
   const unreadCount = useAppSelector((s) => s.notification.unreadCount);
@@ -66,7 +70,7 @@ export function useNotifications() {
     );
   }, [currentData, page]);
 
-  const rows = useMemo(() => buildRows(items), [items]);
+  const rows = useMemo(() => buildRows(items), [items, tr]);
 
   const handleLoadMore = () => {
     if (currentData?.has_next && !isFetching) setPage((p) => p + 1);
@@ -98,12 +102,12 @@ export function useNotifications() {
   const handleMarkAllRead = () => {
     if (!unreadCount) return;
     Alert.alert(
-      "Đánh dấu tất cả đã đọc",
-      "Đánh dấu toàn bộ thông báo là đã đọc?",
+      tr("Đánh dấu tất cả đã đọc"),
+      tr("Đánh dấu toàn bộ thông báo là đã đọc?"),
       [
-        { text: "Hủy", style: "cancel" },
+        { text: tr("Hủy"), style: "cancel" },
         {
-          text: "Đồng ý",
+          text: tr("Đồng ý"),
           onPress: () => {
             markAllRead();
             setItems((prev) => prev.map((x) => ({ ...x, is_read: true })));
@@ -115,10 +119,10 @@ export function useNotifications() {
 
   const handleClearAll = () => {
     if (!items.length) return;
-    Alert.alert("Xoá tất cả thông báo", "Hành động này không thể hoàn tác.", [
-      { text: "Hủy", style: "cancel" },
+    Alert.alert(tr("Xoá tất cả thông báo"), tr("Hành động này không thể hoàn tác."), [
+      { text: tr("Hủy"), style: "cancel" },
       {
-        text: "Xoá",
+        text: tr("Xoá"),
         style: "destructive",
         onPress: async () => {
           try {
@@ -126,7 +130,7 @@ export function useNotifications() {
             setItems([]);
             setPage(1);
           } catch {
-            Alert.alert("Lỗi", "Không thể xoá thông báo. Vui lòng thử lại.");
+            Alert.alert(tr("Lỗi"), tr("Không thể xoá thông báo. Vui lòng thử lại."));
           }
         },
       },

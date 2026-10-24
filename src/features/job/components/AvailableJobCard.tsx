@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { Feather } from "@expo/vector-icons";
 import { memo } from "react";
 import { Text, View } from "react-native";
 
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, TYPE } from "@/constants/theme";
 import type { OpenJob } from "@/features/job/types/jobNav";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import {
@@ -27,6 +30,10 @@ export const AvailableJobCard = memo(function AvailableJobCard({
   /** Thứ tự trong danh sách, dùng để xếp so le animation */
   index?: number;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS } = useAppTheme();
+
   const total = item.total_sessions ?? 1;
   const isPackage = total > 1;
   const remaining = item.available_sessions ?? 1;
@@ -49,7 +56,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
       <PressableScale
         onPress={() => onOpen(item.id, "available", item.booking_id)}
         accessibilityRole="button"
-        accessibilityLabel={`Xem công việc ${item.service_name}`}
+        accessibilityLabel={tr("Xem công việc {{value0}}", { value0: item.service_name })}
         containerStyle={{ marginBottom: 12 }}
         className={`bg-surface border p-4 ${
           isPreferred ? "border-primary" : "border-line"
@@ -59,13 +66,12 @@ export const AvailableJobCard = memo(function AvailableJobCard({
         {isPreferred ? (
           <View
             className="self-start flex-row items-center rounded-full px-2.5 py-1 mb-3"
-            style={{ backgroundColor: COLORS.primary }}
+            style={{ backgroundColor: COLORS.primaryFill }}
           >
             <Feather name="user-check" size={11} color={COLORS.white} />
             <Text className="text-white text-xs font-semibold ml-1">
-              {invitation ? "Lời mời từ admin" : "Khách hàng mời bạn"} · còn{" "}
-              {preferredMinutes} phút
-            </Text>
+              {invitation ? tr("Lời mời từ admin") : tr("Khách hàng mời bạn")}  {tr("· còn")}{" "}
+              {preferredMinutes} {tr("phút")}</Text>
           </View>
         ) : null}
         <View className="flex-row items-center justify-between mb-3">
@@ -74,8 +80,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
               <View className="flex-row items-center bg-accent-light rounded-full px-2.5 py-1 mr-2">
                 <Feather name="repeat" size={11} color={COLORS.accentDark} />
                 <Text className="text-accent-dark text-xs font-semibold ml-1">
-                  Định kỳ
-                </Text>
+                  {tr("Định kỳ")}</Text>
               </View>
             ) : null}
             <Text className="text-ink-muted text-xs" numberOfLines={1}>
@@ -86,8 +91,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
           {isPackage ? (
             <View className="bg-warning-light rounded-full px-2.5 py-1">
               <Text className="text-warning-dark text-xs font-semibold">
-                Còn {remaining}/{total} buổi
-              </Text>
+                {tr("Còn")}{" "}{remaining}/{total} {tr("buổi")}</Text>
             </View>
           ) : null}
         </View>
@@ -125,13 +129,13 @@ export const AvailableJobCard = memo(function AvailableJobCard({
             <Text className="text-ink-soft text-xs font-semibold">
               {isPackage
                 ? dayFiltered
-                  ? "Buổi trống trong ngày"
-                  : "Buổi gần nhất chưa nhận"
-                : "Thời gian làm việc"}
+                  ? tr("Buổi trống trong ngày")
+                  : tr("Buổi gần nhất chưa nhận")
+                : tr("Thời gian làm việc")}
             </Text>
             {isPackage ? (
               <Text className="text-ink-muted text-xs">
-                Buổi {item.sequence_no}/{total}
+                {tr("Buổi")}{" "}{item.sequence_no}/{total}
               </Text>
             ) : null}
           </View>
@@ -163,18 +167,18 @@ export const AvailableJobCard = memo(function AvailableJobCard({
         <View className="flex-row items-center justify-between mt-4">
           <View>
             <Text className="text-ink-muted text-xs mb-0.5">
-              {isPackage ? "Thu nhập / buổi" : "Thu nhập"}
+              {isPackage ? tr("Thu nhập / buổi") : tr("Thu nhập")}
             </Text>
             <Text className="text-ink font-extrabold text-lg">
               {price ?? "—"}
             </Text>
           </View>
           <View
-            className="bg-primary rounded-full px-5 flex-row items-center justify-center"
+            className="bg-primary-fill rounded-full px-5 flex-row items-center justify-center"
             style={{ height: 44 }}
           >
             <Text className="text-white text-xs" style={TYPE.button}>
-              {isPackage ? "CHỌN BUỔI" : "XEM CHI TIẾT"}
+              {isPackage ? tr("CHỌN BUỔI") : tr("XEM CHI TIẾT")}
             </Text>
             <Feather
               name="chevron-right"

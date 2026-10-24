@@ -1,4 +1,5 @@
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { useEffect, useRef } from "react";
@@ -16,28 +17,30 @@ type Variant = {
   iconBg: string;
 };
 
-const VARIANTS: Record<"success" | "error" | "warning" | "info", Variant> = {
-  success: { icon: "check", color: COLORS.success, iconBg: "bg-success-light" },
-  error: {
-    icon: "alert-circle",
-    color: COLORS.danger,
-    iconBg: "bg-danger-light",
-  },
-  warning: {
-    icon: "alert-triangle",
-    color: COLORS.warning,
-    iconBg: "bg-warning-light",
-  },
-  info: { icon: "info", color: COLORS.info, iconBg: "bg-info-light" },
-};
-
 const DEFAULT_DURATION = 4000;
 
 type ToastCardProps = ToastConfigParams<{ duration?: number }> & {
-  variant: keyof typeof VARIANTS;
+  variant: "success" | "error" | "warning" | "info";
 };
 
 function ToastCard({ variant, text1, text2, props, hide }: ToastCardProps) {
+  const { COLORS } = useAppTheme();
+
+  const VARIANTS: Record<"success" | "error" | "warning" | "info", Variant> = {
+    success: { icon: "check", color: COLORS.success, iconBg: "bg-success-light" },
+    error: {
+      icon: "alert-circle",
+      color: COLORS.danger,
+      iconBg: "bg-danger-light",
+    },
+    warning: {
+      icon: "alert-triangle",
+      color: COLORS.warning,
+      iconBg: "bg-warning-light",
+    },
+    info: { icon: "info", color: COLORS.info, iconBg: "bg-info-light" },
+  };
+
   const v = VARIANTS[variant];
   const duration = props?.duration ?? DEFAULT_DURATION;
   const progress = useRef(new Animated.Value(1)).current;

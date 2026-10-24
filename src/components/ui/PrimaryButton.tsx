@@ -1,4 +1,5 @@
-import { COLORS, RADIUS, TYPE } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, TYPE } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import {
   ActivityIndicator,
@@ -22,36 +23,6 @@ type PrimaryButtonProps = TouchableOpacityProps & {
   color?: string;
 };
 
-const VARIANTS: Record<
-  Variant,
-  { bg: string; text: string; border: string; shadow: boolean }
-> = {
-  primary: {
-    bg: COLORS.primary,
-    text: COLORS.white,
-    border: "transparent",
-    shadow: true,
-  },
-  dark: {
-    bg: COLORS.ink,
-    text: COLORS.white,
-    border: "transparent",
-    shadow: true,
-  },
-  outline: {
-    bg: "transparent",
-    text: COLORS.ink,
-    border: COLORS.ink,
-    shadow: false,
-  },
-  soft: {
-    bg: COLORS.accentLight,
-    text: COLORS.ink,
-    border: "transparent",
-    shadow: false,
-  },
-};
-
 export function PrimaryButton({
   label,
   subtitle,
@@ -64,6 +35,38 @@ export function PrimaryButton({
   style,
   ...props
 }: PrimaryButtonProps) {
+  const { COLORS, isDark, SHADOWS } = useAppTheme();
+
+  const VARIANTS: Record<
+    Variant,
+    { bg: string; text: string; border: string; shadow: boolean }
+  > = {
+    primary: {
+      bg: COLORS.primaryFill,
+      text: COLORS.white,
+      border: "transparent",
+      shadow: true,
+    },
+    dark: {
+      bg: COLORS.inkPanel,
+      text: COLORS.white,
+      border: "transparent",
+      shadow: true,
+    },
+    outline: {
+      bg: "transparent",
+      text: COLORS.ink,
+      border: isDark ? COLORS.line : COLORS.ink,
+      shadow: false,
+    },
+    soft: {
+      bg: COLORS.accentLight,
+      text: COLORS.ink,
+      border: "transparent",
+      shadow: false,
+    },
+  };
+
   const v = VARIANTS[variant];
   const bg = color ?? v.bg;
   const inactive = disabled || loading;
@@ -84,13 +87,13 @@ export function PrimaryButton({
           alignItems: "center",
           justifyContent: subtitle ? "flex-start" : "center",
           opacity: inactive ? 0.55 : 1,
-          ...(v.shadow && {
+          ...(v.shadow && (isDark ? SHADOWS.float : {
             shadowColor: bg,
             shadowOpacity: 0.3,
             shadowRadius: 12,
             shadowOffset: { width: 0, height: 6 },
             elevation: 5,
-          }),
+          })),
         },
         style,
       ]}

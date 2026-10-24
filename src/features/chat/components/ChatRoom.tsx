@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS } from "@/constants/theme";
+
 import { ChatAvatar } from "@/features/chat/components/ChatAvatar";
 import { ChatComposer } from "@/features/chat/components/ChatComposer";
 import { MessageItem } from "@/features/chat/components/MessageItem";
@@ -45,6 +48,10 @@ export function ChatRoom({
   assignmentId?: number;
   staff?: boolean;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const room = useChatRoom(id);
   const { conversation } = room;
   const keyboardOpen = useKeyboardOpen();
@@ -61,8 +68,8 @@ export function ChatRoom({
       <View className="flex-1 items-center justify-center bg-surface px-5">
         <EmptyState
           icon="alert-circle"
-          title="Không mở được cuộc trò chuyện"
-          actionLabel="Quay lại"
+          title={tr("Không mở được cuộc trò chuyện")}
+          actionLabel={tr("Quay lại")}
           onAction={room.goBack}
         />
       </View>
@@ -82,7 +89,7 @@ export function ChatRoom({
           onPress={room.goBack}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Quay lại"
+          accessibilityLabel={tr("Quay lại")}
           className="w-11 h-11 items-center justify-center"
         >
           <Feather name="chevron-left" size={28} color={COLORS.ink} />
@@ -97,7 +104,7 @@ export function ChatRoom({
             {conversation.other_user.name}
           </Text>
           <Text className="text-xs text-ink-muted mt-0.5">
-            {staff ? "Khách hàng" : "Nhân viên phụ trách"}
+            {staff ? tr("Khách hàng") : tr("Nhân viên phụ trách")}
           </Text>
         </View>
       </View>
@@ -144,7 +151,7 @@ export function ChatRoom({
                 <Feather name="clock" size={13} color={COLORS.inkSoft} />
               )}
               <Text className="text-xs font-semibold text-ink ml-2">
-                {room.loadingMessages ? "Đang tải..." : "Xem tin nhắn cũ"}
+                {room.loadingMessages ? tr("Đang tải...") : tr("Xem tin nhắn cũ")}
               </Text>
             </TouchableOpacity>
           ) : null
@@ -156,15 +163,15 @@ export function ChatRoom({
             ) : room.messageError ? (
               <EmptyState
                 icon="alert-circle"
-                title="Không tải được tin nhắn"
-                actionLabel="Thử lại"
+                title={tr("Không tải được tin nhắn")}
+                actionLabel={tr("Thử lại")}
                 onAction={room.reload}
               />
             ) : (
               <EmptyState
                 icon="message-circle"
-                title="Chưa có tin nhắn"
-                message="Hãy gửi lời chào đầu tiên."
+                title={tr("Chưa có tin nhắn")}
+                message={tr("Hãy gửi lời chào đầu tiên.")}
               />
             )}
           </View>
@@ -172,7 +179,13 @@ export function ChatRoom({
         onContentSizeChange={room.onContentSizeChange}
       />
 
+      {room.moderationNotice ? (
+        <Text style={{ paddingHorizontal: 16, paddingVertical: 8, color: COLORS.accentDark, backgroundColor: COLORS.accentLight, fontSize: 12 }}>
+          {room.moderationNotice}
+        </Text>
+      ) : null}
       <ChatComposer
+        restrictionNotice={room.restrictionNotice}
         canSend={room.canSend}
         draft={room.draft}
         hasDraft={room.hasDraft}

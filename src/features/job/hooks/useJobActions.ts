@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { useLazyGetAssignmentConversationQuery } from "@/features/chat/api/chatApi";
 import {
   useCancelAssignmentMutation,
@@ -62,11 +64,13 @@ export function useJobActions({
   refetchBookingSchedules,
   refetchMineSchedules,
 }: Args) {
+  const { t: tr } = useTranslation();
+
   const [selected, setSelected] = useState<number[]>([]);
 
   const validSelected = useMemo(
     () => selected.filter((sid) => openSessions.some((s) => s.id === sid)),
-    [selected, openSessions],
+    [selected, openSessions, tr],
   );
 
   const allSelected =
@@ -162,9 +166,9 @@ export function useJobActions({
       await confirmCash({ scheduleId }).unwrap();
       await refetchBookingSchedules();
       await refetchMineSchedules();
-      showSuccessToast("Đã xác nhận", "Bạn đã xác nhận thu tiền mặt từ khách.");
+      showSuccessToast(tr("Đã xác nhận"), tr("Bạn đã xác nhận thu tiền mặt từ khách."));
     } catch (err) {
-      showErrorToast("Không thể xác nhận", getErrorMessage(err));
+      showErrorToast(tr("Không thể xác nhận"), getErrorMessage(err));
     }
   };
 
@@ -203,7 +207,7 @@ export function useJobActions({
     if (!session.assignment_id) return;
 
     if (sessionCancelReason.trim().length === 0) {
-      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      showWarningToast(tr("Thiếu thông tin"), tr("Vui lòng nhập lý do hủy."));
       return;
     }
 
@@ -219,8 +223,8 @@ export function useJobActions({
       setExpandedSessionId(null);
       setSessionCancelReason("");
       showSuccessToast(
-        "Đã hủy nhận buổi",
-        "Buổi làm đã được mở lại cho người khác.",
+        tr("Đã hủy nhận buổi"),
+        tr("Buổi làm đã được mở lại cho người khác."),
       );
     } catch (err) {
       await verifyScheduleMutation({
@@ -228,9 +232,9 @@ export function useJobActions({
         scheduleId: session.id,
         refetch: refetchBookingSchedules,
         isNowSuccess: (s) => s.claim_state === "OPEN",
-        successTitle: "Đã hủy",
-        successMessage: "Bạn đã hủy nhận buổi làm này.",
-        errorTitle: "Không thể hủy",
+        successTitle: tr("Đã hủy"),
+        successMessage: tr("Bạn đã hủy nhận buổi làm này."),
+        errorTitle: tr("Không thể hủy"),
         onSuccess: () => {
           cancelSessionKey.resetKey();
 
@@ -248,7 +252,7 @@ export function useJobActions({
         )}, ${formatTime(
           item.scheduled_start,
         )} - ${formatTime(item.scheduled_end)}`
-      : "Bạn đã nhận buổi làm này.";
+      : tr("Bạn đã nhận buổi làm này.");
 
     try {
       await claimSchedule({
@@ -259,7 +263,7 @@ export function useJobActions({
       claimKey.resetKey();
 
       openSuccessModal({
-        title: "Nhận việc thành công",
+        title: tr("Nhận việc thành công"),
         message: successMessage,
       });
     } catch (err) {
@@ -270,14 +274,14 @@ export function useJobActions({
           scheduleId,
           refetch: refetchBookingSchedules,
           isNowSuccess: (s) => s.claim_state === "MINE",
-          successTitle: "Nhận việc thành công",
+          successTitle: tr("Nhận việc thành công"),
           successMessage,
-          errorTitle: "Không thể nhận việc",
+          errorTitle: tr("Không thể nhận việc"),
           onSuccess: () => {
             claimKey.resetKey();
 
             openSuccessModal({
-              title: "Nhận việc thành công",
+              title: tr("Nhận việc thành công"),
               message: successMessage,
             });
           },
@@ -322,7 +326,7 @@ export function useJobActions({
           ? `${formatDayLabel(schedule.scheduled_start)}, ${formatTime(
               schedule.scheduled_start,
             )}`
-          : `Buổi #${sk.schedule_id}`;
+          : tr("Buổi #{{value0}}", { value0: sk.schedule_id });
 
         return `${label}: ${sk.reason}`;
       });
@@ -330,11 +334,11 @@ export function useJobActions({
       setSelected([]);
 
       openSuccessModal({
-        title: "Nhận việc thành công",
+        title: tr("Nhận việc thành công"),
         message:
           skipped.length > 0
-            ? `Đã nhận ${claimed.length} buổi. ${skipped.length} buổi bị bỏ qua:`
-            : `Bạn đã nhận ${claimed.length} buổi làm việc.`,
+            ? tr("Đã nhận {{value0}} buổi. {{value1}} buổi bị bỏ qua:", { value0: claimed.length, value1: skipped.length })
+            : tr("Bạn đã nhận {{value0}} buổi làm việc.", { value0: claimed.length , count: claimed.length}),
         details: skipped.length > 0 ? details : undefined,
       });
     } catch (err: any) {
@@ -353,8 +357,8 @@ export function useJobActions({
             claimPackageKey.resetKey();
             setSelected((prev) => prev.filter((sid) => !nowMine.includes(sid)));
             openSuccessModal({
-              title: "Nhận việc thành công",
-              message: `Bạn đã nhận ${nowMine.length} buổi làm việc. (Mạng chập chờn nhưng hệ thống đã ghi nhận.)`,
+              title: tr("Nhận việc thành công"),
+              message: tr("Bạn đã nhận {{value0}} buổi làm việc. (Mạng chập chờn nhưng hệ thống đã ghi nhận.)", { value0: nowMine.length }),
             });
             return;
           }
@@ -363,7 +367,7 @@ export function useJobActions({
         }
       }
 
-      showErrorToast("Không thể nhận việc", getErrorMessage(err));
+      showErrorToast(tr("Không thể nhận việc"), getErrorMessage(err));
     }
   };
 
@@ -397,25 +401,25 @@ export function useJobActions({
     visible: pendingClaim !== null,
     title:
       pendingClaim === "package"
-        ? `Nhận ${validSelected.length} buổi đã chọn?`
-        : "Nhận việc này?",
+        ? tr("Nhận {{value0}} buổi đã chọn?", { value0: validSelected.length , count: validSelected.length})
+        : tr("Nhận việc này?"),
     message:
       pendingClaim === "package"
-        ? "Các buổi đã chọn sẽ được xếp vào lịch của bạn."
+        ? tr("Các buổi đã chọn sẽ được xếp vào lịch của bạn.")
         : item
           ? `${item.service_name} · ${formatDayLabel(
               item.scheduled_start,
             )}, ${formatTime(item.scheduled_start)} - ${formatTime(
               item.scheduled_end,
             )}`
-          : "Buổi làm này sẽ được xếp vào lịch của bạn.",
+          : tr("Buổi làm này sẽ được xếp vào lịch của bạn."),
   };
 
   const handleCancel = async () => {
     if (!mineItem?.assignment_id) return;
 
     if (reason.trim().length === 0) {
-      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      showWarningToast(tr("Thiếu thông tin"), tr("Vui lòng nhập lý do hủy."));
       return;
     }
 
@@ -428,7 +432,7 @@ export function useJobActions({
 
       cancelKey.resetKey();
 
-      showSuccessToast("Đã hủy nhận việc", "Bạn đã hủy nhận buổi làm này.");
+      showSuccessToast(tr("Đã hủy nhận việc"), tr("Bạn đã hủy nhận buổi làm này."));
       router.back();
     } catch (err) {
       await verifyScheduleMutation({
@@ -436,9 +440,9 @@ export function useJobActions({
         scheduleId,
         refetch: refetchBookingSchedules,
         isNowSuccess: (s) => s.claim_state === "OPEN",
-        successTitle: "Đã hủy",
-        successMessage: "Bạn đã hủy nhận buổi làm này.",
-        errorTitle: "Không thể hủy",
+        successTitle: tr("Đã hủy"),
+        successMessage: tr("Bạn đã hủy nhận buổi làm này."),
+        errorTitle: tr("Không thể hủy"),
         onSuccess: () => {
           cancelKey.resetKey();
           router.back();
@@ -451,7 +455,7 @@ export function useJobActions({
   const requestCancelSession = (session: WorkerSchedule) => {
     if (!session.assignment_id) return;
     if (sessionCancelReason.trim().length === 0) {
-      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      showWarningToast(tr("Thiếu thông tin"), tr("Vui lòng nhập lý do hủy."));
       return;
     }
     setPendingCancel({ type: "session", session });
@@ -460,7 +464,7 @@ export function useJobActions({
   const requestCancel = () => {
     if (!mineItem?.assignment_id) return;
     if (reason.trim().length === 0) {
-      showWarningToast("Thiếu thông tin", "Vui lòng nhập lý do hủy.");
+      showWarningToast(tr("Thiếu thông tin"), tr("Vui lòng nhập lý do hủy."));
       return;
     }
     setPendingCancel({ type: "job" });
@@ -486,16 +490,16 @@ export function useJobActions({
     visible: pendingCancel !== null,
     title:
       pendingCancel?.type === "session"
-        ? "Hủy nhận buổi này?"
-        : "Hủy nhận việc này?",
+        ? tr("Hủy nhận buổi này?")
+        : tr("Hủy nhận việc này?"),
     message:
       pendingCancel?.type === "session"
-        ? `Buổi ${formatDayLabel(
+        ? tr("Buổi {{value0}}, {{value1}} sẽ được mở lại cho nhân viên khác nhận.", { value0: formatDayLabel(
             pendingCancel.session.scheduled_start,
-          )}, ${formatTime(
+          ), value1: formatTime(
             pendingCancel.session.scheduled_start,
-          )} sẽ được mở lại cho nhân viên khác nhận.`
-        : "Bạn sẽ không còn được xếp vào buổi làm này và việc sẽ được mở lại cho nhân viên khác.",
+          ) })
+        : tr("Bạn sẽ không còn được xếp vào buổi làm này và việc sẽ được mở lại cho nhân viên khác."),
   };
 
   const handleOpenChat = async () => {
@@ -513,8 +517,8 @@ export function useJobActions({
       });
     } catch {
       showErrorToast(
-        "Không mở được trò chuyện",
-        "Vui lòng kiểm tra lịch phân công và thử lại.",
+        tr("Không mở được trò chuyện"),
+        tr("Vui lòng kiểm tra lịch phân công và thử lại."),
       );
     }
   };
@@ -536,8 +540,8 @@ export function useJobActions({
       }
       if (perm.status !== "granted") {
         showWarningToast(
-          "Cần quyền vị trí",
-          "Hãy cho phép ứng dụng truy cập vị trí để check-in tại địa chỉ khách.",
+          tr("Cần quyền vị trí"),
+          tr("Hãy cho phép ứng dụng truy cập vị trí để check-in tại địa chỉ khách."),
         );
         return;
       }
@@ -549,8 +553,8 @@ export function useJobActions({
 
       if (pos.mocked) {
         showErrorToast(
-          "Vị trí không hợp lệ",
-          "Phát hiện vị trí giả lập. Vui lòng tắt ứng dụng giả lập GPS.",
+          tr("Vị trí không hợp lệ"),
+          tr("Phát hiện vị trí giả lập. Vui lòng tắt ứng dụng giả lập GPS."),
         );
         return;
       }
@@ -561,7 +565,7 @@ export function useJobActions({
         accuracy: pos.coords.accuracy ?? null,
       };
     } catch {
-      showErrorToast("Không xác định được vị trí", "Hãy bật GPS rồi thử lại.");
+      showErrorToast(tr("Không xác định được vị trí"), tr("Hãy bật GPS rồi thử lại."));
       return;
     } finally {
       setIsLocating(false);
@@ -574,16 +578,16 @@ export function useJobActions({
       await refetchBookingSchedules();
       await refetchMineSchedules();
 
-      showSuccessToast("Đã bắt đầu", "Bạn đã bắt đầu buổi làm việc này.");
+      showSuccessToast(tr("Đã bắt đầu"), tr("Bạn đã bắt đầu buổi làm việc này."));
     } catch (err) {
       await verifyScheduleMutation({
         err,
         scheduleId,
         refetch: refetchBookingSchedules,
         isNowSuccess: (s) => s.status === "IN_PROGRESS",
-        successTitle: "Đã bắt đầu",
-        successMessage: "Bạn đã bắt đầu buổi làm việc này.",
-        errorTitle: "Không thể bắt đầu",
+        successTitle: tr("Đã bắt đầu"),
+        successMessage: tr("Bạn đã bắt đầu buổi làm việc này."),
+        errorTitle: tr("Không thể bắt đầu"),
         onSuccess: () => refetchMineSchedules(),
       });
     }
@@ -648,11 +652,11 @@ export function useJobActions({
 
       if (failedUploadTypes.length > 0) {
         showWarningToast(
-          "Đã hoàn thành",
-          "Buổi làm đã hoàn thành nhưng một số ảnh chưa tải lên được.",
+          tr("Đã hoàn thành"),
+          tr("Buổi làm đã hoàn thành nhưng một số ảnh chưa tải lên được."),
         );
       } else {
-        showSuccessToast("Đã hoàn thành", "Bạn đã hoàn thành buổi làm việc.");
+        showSuccessToast(tr("Đã hoàn thành"), tr("Bạn đã hoàn thành buổi làm việc."));
       }
     } catch (err) {
       await verifyScheduleMutation({
@@ -660,9 +664,9 @@ export function useJobActions({
         scheduleId,
         refetch: refetchBookingSchedules,
         isNowSuccess: (s) => s.status === "COMPLETED",
-        successTitle: "Đã hoàn thành",
-        successMessage: "Bạn đã hoàn thành buổi làm việc.",
-        errorTitle: "Không thể hoàn thành",
+        successTitle: tr("Đã hoàn thành"),
+        successMessage: tr("Bạn đã hoàn thành buổi làm việc."),
+        errorTitle: tr("Không thể hoàn thành"),
         onSuccess: () => refetchMineSchedules(),
       });
     }

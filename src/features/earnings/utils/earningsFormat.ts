@@ -1,9 +1,8 @@
+import { translate as tr, getLocale } from "@/features/language/i18n";
 export const formatVnd = (value: string | number | undefined | null) => {
   const n = Math.round(Number(value ?? 0));
-  const digits = Math.abs(n)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `${n < 0 ? "-" : ""}${digits}đ`;
+  const digits = Math.abs(n).toLocaleString(getLocale());
+  return tr("{{value0}}{{value1}}đ", { value0: n < 0 ? "-" : "", value1: digits });
 };
 
 // "2026-09-24" -> "24/09"

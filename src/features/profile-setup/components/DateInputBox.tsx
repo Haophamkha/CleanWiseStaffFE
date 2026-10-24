@@ -1,4 +1,8 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "@/features/language/i18n";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
@@ -36,6 +40,10 @@ export function DateInputBox({
   /** Bỏ khoảng cách dưới mặc định (khi đã đặt trong Field có khoảng cách riêng) */
   noMargin?: boolean;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const [showPicker, setShowPicker] = useState(false);
 
   const dateValue = value ? parseDate(value, maxDate) : maxDate;
@@ -80,7 +88,7 @@ export function DateInputBox({
                 : COLORS.inkMuted,
           }}
         >
-          {value || "Chọn ngày"}
+          {value || tr("Chọn ngày")}
         </Text>
         <Feather
           name={disabled ? "lock" : "chevron-down"}
@@ -91,6 +99,7 @@ export function DateInputBox({
 
       {showPicker && !disabled && (
         <DateTimePicker
+          locale={getLocale()}
           value={dateValue}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}

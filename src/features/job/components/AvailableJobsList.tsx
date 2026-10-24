@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { COLORS } from "@/constants/theme";
+
 import { AvailableJobCard } from "@/features/job/components/AvailableJobCard";
 import { JobsListFooter } from "@/features/job/components/JobsListFooter";
 import type { JobsListState } from "@/features/job/hooks/useJobs";
@@ -31,6 +34,10 @@ export function AvailableJobsList({
   onScrollStart,
   onEndReached,
 }: AvailableJobsListProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const renderItem = useCallback(
     ({ item, index }: { item: WorkerSchedule; index: number }) => (
       <AvailableJobCard
@@ -40,7 +47,7 @@ export function AvailableJobsList({
         index={index}
       />
     ),
-    [onOpen, dayFiltered],
+    [onOpen, dayFiltered, tr],
   );
 
   if (state.isLoading) {
@@ -79,8 +86,8 @@ export function AvailableJobsList({
           <View className="self-start bg-accent-light rounded-full px-3 py-1.5 mb-3">
             <Text className="text-ink-soft text-xs font-semibold">
               {dayFiltered
-                ? `${state.total} đơn có buổi trống trong ngày này`
-                : `${state.total} đơn đang chờ nhận`}
+                ? tr("{{value0}} đơn có buổi trống trong ngày này", { value0: state.total , count: state.total})
+                : tr("{{value0}} đơn đang chờ nhận", { value0: state.total , count: state.total})}
             </Text>
           </View>
         ) : null
@@ -99,8 +106,8 @@ export function AvailableJobsList({
           {showInitialError ? (
             <EmptyState
               icon="wifi-off"
-              title="Không tải được danh sách"
-              actionLabel="Thử lại"
+              title={tr("Không tải được danh sách")}
+              actionLabel={tr("Thử lại")}
               onAction={() => {
                 state.retryMore();
               }}
@@ -108,15 +115,15 @@ export function AvailableJobsList({
           ) : dayFiltered ? (
             <EmptyState
               icon="calendar"
-              title="Không có buổi nào trong ngày này"
-              actionLabel="Xem tất cả các ngày"
+              title={tr("Không có buổi nào trong ngày này")}
+              actionLabel={tr("Xem tất cả các ngày")}
               onAction={onClearDay}
             />
           ) : (
             <EmptyState
               icon="clipboard"
-              title="Chưa có buổi làm khả dụng"
-              message="Kéo xuống để làm mới"
+              title={tr("Chưa có buổi làm khả dụng")}
+              message={tr("Kéo xuống để làm mới")}
             />
           )}
         </View>

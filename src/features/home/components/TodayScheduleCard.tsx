@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
+import { ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
 import type { WorkerMySchedule } from "@/features/schedule/types/Schedule";
 import { formatDuration } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
@@ -22,6 +23,8 @@ export function TodayScheduleCard({
   schedule: s,
   onPress,
 }: TodayScheduleCardProps) {
+  const { COLORS } = useAppTheme();
+
   return (
     <Pressable
       onPress={onPress}

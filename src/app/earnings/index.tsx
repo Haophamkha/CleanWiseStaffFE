@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { COLORS } from "@/constants/theme";
+
 import {
   HistorySection,
   PeriodSummaryCard,
@@ -23,25 +26,29 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function EarningsScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const e = useEarnings();
 
   return (
     <View className="flex-1 bg-canvas">
-      <SimpleHeader title="Thu nhập" />
+      <SimpleHeader title={tr("Thu nhập")} />
 
       {e.isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={COLORS.primary} size="large" />
-          <Text className="text-ink-soft mt-3">Đang tải thu nhập...</Text>
+          <Text className="text-ink-soft mt-3">{tr("Đang tải thu nhập...")}</Text>
         </View>
       ) : e.isError || !e.data ? (
         <View className="flex-1 justify-center px-5">
           <EmptyState
             icon="alert-circle"
-            title="Không tải được dữ liệu"
-            message="Kiểm tra kết nối và thử lại."
-            actionLabel="Thử lại"
+            title={tr("Không tải được dữ liệu")}
+            message={tr("Kiểm tra kết nối và thử lại.")}
+            actionLabel={tr("Thử lại")}
             onAction={e.onRefresh}
           />
         </View>
@@ -87,8 +94,7 @@ export default function EarningsScreen() {
                 color: COLORS.primaryDark,
               }}
             >
-              Nạp tiền ký quỹ
-            </Text>
+              {tr("Nạp tiền ký quỹ")}</Text>
           </TouchableOpacity>
 
           <PeriodTabs

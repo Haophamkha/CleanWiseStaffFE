@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { DetailHeader } from "@/components/common/DetailHeader";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { SuccessModal } from "@/components/ui/SuccessModal";
-import { COLORS } from "@/constants/theme";
+
 import {
   AdminInvitationBanner,
   InvitationActions,
@@ -26,6 +29,10 @@ import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function JobDetailScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const job = useJobDetail();
   const { item, mineItem, summary, actions } = job;
@@ -45,7 +52,7 @@ export default function JobDetailScreen() {
           icon="alert-circle"
           title={job.missingTitle}
           message={job.missingMessage}
-          actionLabel="Quay lại"
+          actionLabel={tr("Quay lại")}
           onAction={job.goBack}
         />
       </View>
@@ -55,7 +62,7 @@ export default function JobDetailScreen() {
   return (
     <View className="flex-1 bg-canvas">
       <DetailHeader
-        title="Chi tiết đơn"
+        title={tr("Chi tiết đơn")}
         subtitle={summary.codeLine}
         onBack={job.goBack}
       />
@@ -170,8 +177,8 @@ export default function JobDetailScreen() {
         icon="check-circle"
         title={actions.claimConfirm.title}
         message={actions.claimConfirm.message}
-        confirmLabel="Nhận việc"
-        cancelLabel="Để sau"
+        confirmLabel={tr("Nhận việc")}
+        cancelLabel={tr("Để sau")}
         onConfirm={actions.confirmClaim}
         onCancel={actions.dismissClaimConfirm}
       />
@@ -182,8 +189,8 @@ export default function JobDetailScreen() {
         icon="alert-triangle"
         title={actions.cancelConfirm.title}
         message={actions.cancelConfirm.message}
-        confirmLabel="Hủy nhận việc"
-        cancelLabel="Giữ lại"
+        confirmLabel={tr("Hủy nhận việc")}
+        cancelLabel={tr("Giữ lại")}
         loading={actions.isCancelling}
         onConfirm={actions.confirmCancel}
         onCancel={actions.dismissCancelConfirm}

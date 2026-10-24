@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import {
   useGetWorkingAreasQuery,
   useUpdateWorkingAreasMutation,
@@ -8,6 +10,8 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
 export function useWorkingAreas() {
+  const { t: tr } = useTranslation();
+
   const [provinceCode, setProvinceCode] = useState<string | null>(null);
   const [areaIds, setAreaIds] = useState<number[]>([]);
   const [error, setError] = useState("");
@@ -38,19 +42,19 @@ export function useWorkingAreas() {
 
   const handleSave = async () => {
     if (areaIds.length === 0) {
-      setError("Vui lòng chọn ít nhất một khu vực hoạt động.");
+      setError(tr("Vui lòng chọn ít nhất một khu vực hoạt động."));
       return;
     }
     setError("");
     try {
       await updateWorkingAreas(areaIds).unwrap();
-      showSuccessToast("Thành công", "Đã cập nhật khu vực hoạt động.");
+      showSuccessToast(tr("Thành công"), tr("Đã cập nhật khu vực hoạt động."));
       router.back();
     } catch (e: any) {
       const message =
-        e?.data?.message || "Cập nhật khu vực thất bại, vui lòng thử lại.";
+        e?.data?.message || tr("Cập nhật khu vực thất bại, vui lòng thử lại.");
       setError(message);
-      showErrorToast("Lỗi", message);
+      showErrorToast(tr("Lỗi"), message);
     }
   };
 

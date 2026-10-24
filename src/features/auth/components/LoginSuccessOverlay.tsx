@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { COLORS, ON_DARK, TYPE } from "@/constants/theme";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, Modal, Text, View } from "react-native";
@@ -82,6 +85,10 @@ export function LoginSuccessOverlay({
   onFinish,
   durationMs = 2000,
 }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const ring = useRef(new Animated.Value(0)).current;
   const fill = useRef(new Animated.Value(0)).current;
   const tick = useRef(new Animated.Value(0)).current;
@@ -220,8 +227,8 @@ export function LoginSuccessOverlay({
       onRequestClose={() => {}}
     >
       <View
-        className="flex-1 items-center justify-center bg-ink px-8"
-        style={{ backgroundColor: COLORS.ink }}
+        className="flex-1 items-center justify-center bg-ink-panel px-8"
+        style={{ backgroundColor: COLORS.inkPanel }}
       >
         {/* Cung tròn lớn ở 2 góc */}
         <Animated.View
@@ -433,7 +440,7 @@ export function LoginSuccessOverlay({
               width: R * 2,
               height: R * 2,
               borderRadius: R,
-              backgroundColor: COLORS.primary,
+              backgroundColor: COLORS.primaryFill,
               transform: [{ scale: fill }],
             }}
           />
@@ -494,20 +501,18 @@ export function LoginSuccessOverlay({
             className="text-xs"
             style={[TYPE.label, { letterSpacing: 1.5, color: COLORS.accent }]}
           >
-            ĐĂNG NHẬP THÀNH CÔNG
-          </Text>
+            {tr("ĐĂNG NHẬP THÀNH CÔNG")}</Text>
           <Text
             className="text-2xl font-extrabold mt-2 text-center"
             style={{ color: ON_DARK.text }}
           >
-            {name ? `Chào mừng trở lại, ${name}` : "Chào mừng trở lại"}
+            {name ? tr("Chào mừng trở lại, {{value0}}", { value0: name }) : tr("Chào mừng trở lại")}
           </Text>
           <Text
             className="text-sm mt-1.5 text-center"
             style={{ color: ON_DARK.textSoft }}
           >
-            Chúc bạn một ngày làm việc thuận lợi.
-          </Text>
+            {tr("Chúc bạn một ngày làm việc thuận lợi.")}</Text>
         </Animated.View>
 
         <View
@@ -523,7 +528,7 @@ export function LoginSuccessOverlay({
           <Animated.View
             className="h-full rounded-full"
             style={{
-              backgroundColor: COLORS.accent,
+              backgroundColor: COLORS.accentFill,
               width: progress.interpolate({
                 inputRange: [0, 1],
                 outputRange: ["0%", "100%"],

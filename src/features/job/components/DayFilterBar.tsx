@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import type { DayChip } from "@/utils/dayChips";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
@@ -11,6 +12,8 @@ export function DayFilterBar({
   selected: string | null;
   onSelect: (key: string | null) => void;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <ScrollView
       horizontal

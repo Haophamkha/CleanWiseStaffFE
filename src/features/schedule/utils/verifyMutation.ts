@@ -1,3 +1,4 @@
+import { translate as tr } from "@/features/language/i18n";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import { getErrorMessage, isNetworkError } from "@/utils/apiError";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
@@ -53,7 +54,7 @@ export async function verifyScheduleMutation({
     if (ok) {
       showSuccessToast(
         successTitle,
-        `${successMessage} (Mạng chập chờn nhưng hệ thống đã ghi nhận.)`,
+        tr("{{value0}} (Mạng chập chờn nhưng hệ thống đã ghi nhận.)", { value0: successMessage }),
       );
       onSuccess?.();
       return;

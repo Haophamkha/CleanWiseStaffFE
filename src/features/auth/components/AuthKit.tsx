@@ -1,4 +1,7 @@
-import { COLORS, SHADOWS, TYPE } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { SHADOWS, TYPE } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import type { ComponentProps, ReactNode } from "react";
@@ -28,6 +31,10 @@ export function AuthScreen({
   children,
   footer,
 }: AuthScreenProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
 
   return (
@@ -45,7 +52,7 @@ export function AuthScreen({
           {/* Thương hiệu */}
           <View className="flex-row items-center">
             <View
-              className="bg-primary items-center justify-center"
+              className="bg-primary-fill items-center justify-center"
               style={[
                 { width: 40, height: 40, borderRadius: 20 },
                 SHADOWS.float,
@@ -61,8 +68,7 @@ export function AuthScreen({
                 CleanWise Staff
               </Text>
               <Text className="text-ink-muted text-xs">
-                Ứng dụng dành cho nhân viên
-              </Text>
+                {tr("Ứng dụng dành cho nhân viên")}</Text>
             </View>
           </View>
 
@@ -122,6 +128,8 @@ export function FormField({
 }
 
 export function ErrorNotice({ message }: { message?: string }) {
+  const { COLORS } = useAppTheme();
+
   if (!message) return null;
   return (
     <View className="flex-row items-start bg-danger-light rounded-2xl p-3.5 mb-4">
@@ -145,6 +153,8 @@ export function SectionTitle({
   icon: FeatherName;
   title: string;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="flex-row items-center mt-2 mb-4">
       <View className="w-8 h-8 rounded-full bg-accent-light items-center justify-center mr-2.5">
@@ -218,7 +228,7 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected }}
             className={`flex-1 items-center justify-center rounded-full ${
-              selected ? "bg-ink" : "bg-transparent"
+              selected ? "bg-ink-panel" : "bg-transparent"
             }`}
             style={{ height: 44 }}
           >
@@ -246,6 +256,8 @@ export function DateField({
   placeholder: string;
   onPress: () => void;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <Pressable
       onPress={onPress}
@@ -272,6 +284,10 @@ export function TermsCheckbox({
   checked: boolean;
   onToggle: () => void;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <Pressable
       onPress={onToggle}
@@ -281,7 +297,7 @@ export function TermsCheckbox({
     >
       <View
         className={`items-center justify-center rounded-md mr-3 ${
-          checked ? "bg-ink" : "bg-surface"
+          checked ? "bg-ink-panel" : "bg-surface"
         }`}
         style={{
           width: 22,
@@ -294,11 +310,9 @@ export function TermsCheckbox({
         {checked && <Feather name="check" size={14} color={COLORS.white} />}
       </View>
       <Text className="flex-1 text-ink-soft text-[14px] leading-5">
-        Tôi đã đọc và đồng ý với{" "}
-        <Text className="text-primary font-bold">Điều khoản dịch vụ</Text> và{" "}
-        <Text className="text-primary font-bold">Chính sách bảo mật</Text> của
-        CleanWise.
-      </Text>
+        {tr("Tôi đã đọc và đồng ý với")}{" "}
+        <Text className="text-primary font-bold">{tr("Điều khoản dịch vụ")}</Text>  {tr("và")}{" "}
+        <Text className="text-primary font-bold">{tr("Chính sách bảo mật")}</Text> {tr("của CleanWise.")}</Text>
     </Pressable>
   );
 }
@@ -317,7 +331,7 @@ export function StepProgress({
           <View
             key={l}
             className={`flex-1 h-1.5 rounded-full ${
-              i <= current ? "bg-ink" : "bg-accent-light"
+              i <= current ? "bg-ink-panel" : "bg-accent-light"
             }`}
           />
         ))}

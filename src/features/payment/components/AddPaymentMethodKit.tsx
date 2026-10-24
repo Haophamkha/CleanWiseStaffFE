@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FormInput } from "@/components/ui/FormInput";
-import { COLORS, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import type {
     AddPaymentMethodState,
     OptionView,
@@ -26,14 +29,16 @@ export function PaymentOptionList({
   options: OptionView[];
   onSelect: (option: PaymentMethodOption) => void;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <View>
       <Text className="text-ink text-base font-extrabold">
-        Chọn phương thức nhận tiền
-      </Text>
+        {tr("Chọn phương thức nhận tiền")}</Text>
       <Text className="text-ink-soft text-sm mt-1 mb-5">
-        Phương thức mặc định sẽ được dùng khi CleanWise hỗ trợ chi trả.
-      </Text>
+        {tr("Phương thức mặc định sẽ được dùng khi CleanWise hỗ trợ chi trả.")}</Text>
 
       {isLoading ? (
         <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
@@ -48,7 +53,7 @@ export function PaymentOptionList({
           >
             <View
               className={`w-12 h-12 rounded-2xl items-center justify-center mr-3 ${
-                available ? "bg-ink" : "bg-accent-light"
+                available ? "bg-ink-panel" : "bg-accent-light"
               }`}
             >
               <Feather
@@ -99,6 +104,10 @@ function Field({
 }
 
 export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <View>
       <View className="flex-row bg-accent-light border border-line rounded-2xl p-4">
@@ -109,15 +118,14 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
           style={{ marginTop: 1 }}
         />
         <Text className="flex-1 text-ink-soft text-sm leading-5 ml-3">
-          Dùng dữ liệu giả lập TINGEE Sandbox và nhập OTP test. Không nhập mật khẩu hoặc OTP ngân hàng thật.
-        </Text>
+          {tr("Dùng dữ liệu giả lập TINGEE Sandbox và nhập OTP test. Không nhập mật khẩu hoặc OTP ngân hàng thật.")}</Text>
       </View>
 
       <View
         className="bg-surface border border-line p-4 mt-5"
         style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
       >
-        <Field label="Ngân hàng">
+        <Field label={tr("Ngân hàng")}>
           <TouchableOpacity
             onPress={form.openPicker}
             disabled={form.bankDisabled}
@@ -146,16 +154,15 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
               className="mt-2 py-1"
             >
               <Text className="text-danger text-sm">
-                Không tải được ngân hàng. Nhấn để thử lại.
-              </Text>
+                {tr("Không tải được ngân hàng. Nhấn để thử lại.")}</Text>
             </TouchableOpacity>
           )}
         </Field>
 
-        <Field label="Số tài khoản">
+        <Field label={tr("Số tài khoản")}>
           <FormInput
             icon="hash"
-            placeholder="Nhập số tài khoản"
+            placeholder={tr("Nhập số tài khoản")}
             keyboardType="number-pad"
             value={form.accountNumber}
             onChangeText={form.changeAccountNumber}
@@ -164,7 +171,7 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
           />
         </Field>
 
-        <Field label="Tên chủ tài khoản">
+        <Field label={tr("Tên chủ tài khoản")}>
           <FormInput
             icon="user"
             placeholder="NGUYEN VAN A"
@@ -175,17 +182,17 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
         </Field>
 
         <Field label="CCCD/CMND Sandbox">
-          <FormInput icon="user-check" placeholder="Mã định danh trong kịch bản test" value={form.identity} onChangeText={form.setIdentity} keyboardType="number-pad" maxLength={14} />
+          <FormInput icon="user-check" placeholder={tr("Mã định danh trong kịch bản test")} value={form.identity} onChangeText={form.setIdentity} keyboardType="number-pad" maxLength={14} />
         </Field>
 
-        <Field label="Số điện thoại Sandbox">
-          <FormInput icon="smartphone" placeholder="Số điện thoại trong kịch bản test" value={form.mobile} onChangeText={form.setMobile} keyboardType="phone-pad" maxLength={10} />
+        <Field label={tr("Số điện thoại Sandbox")}>
+          <FormInput icon="smartphone" placeholder={tr("Số điện thoại trong kịch bản test")} value={form.mobile} onChangeText={form.setMobile} keyboardType="phone-pad" maxLength={10} />
         </Field>
 
-        <Field label="Tên gợi nhớ (không bắt buộc)" last>
+        <Field label={tr("Tên gợi nhớ (không bắt buộc)")} last>
           <FormInput
             icon="tag"
-            placeholder="Ví dụ: Tài khoản nhận lương"
+            placeholder={tr("Ví dụ: Tài khoản nhận lương")}
             value={form.displayName}
             onChangeText={form.setDisplayName}
             maxLength={100}
@@ -198,10 +205,9 @@ export function BankAccountForm({ form }: { form: AddPaymentMethodState }) {
         style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
       >
         <View className="flex-1 pr-4">
-          <Text className="text-ink font-extrabold">Đặt làm mặc định</Text>
+          <Text className="text-ink font-extrabold">{tr("Đặt làm mặc định")}</Text>
           <Text className="text-ink-soft text-sm mt-0.5">
-            Ưu tiên tài khoản này để nhận tiền.
-          </Text>
+            {tr("Ưu tiên tài khoản này để nhận tiền.")}</Text>
         </View>
         <Switch
           value={form.isDefault}

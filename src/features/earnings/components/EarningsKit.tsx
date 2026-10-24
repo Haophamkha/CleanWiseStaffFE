@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { ON_DARK, RADIUS, TYPE } from "@/constants/theme";
 import type { EarningPeriod } from "@/features/earnings/api/earningsApi";
 import type {
   EarningsData,
@@ -21,11 +24,15 @@ export function WalletCard({
   wallet: EarningsData["wallet"];
   onWithdraw?: () => void; // không truyền = ẩn nút "Rút tiền"
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS, isDark } = useAppTheme();
+
   return (
     // View ngoài giữ bóng, View trong cắt vòng tròn trang trí
     // (overflow hidden sẽ làm mất bóng nếu để chung một View)
     <View
-      className="bg-accent-dark"
+      className={isDark ? "bg-primary-fill-dark" : "bg-accent-dark"}
       style={[{ borderRadius: RADIUS.hero }, SHADOWS.card]}
     >
       <View
@@ -46,8 +53,7 @@ export function WalletCard({
         />
 
         <Text className="text-sm" style={{ color: ON_DARK.textSoft }}>
-          Số dư ví
-        </Text>
+          {tr("Số dư ví")}</Text>
         <Text
           className="text-3xl font-extrabold mt-1"
           style={{ color: ON_DARK.text }}
@@ -57,7 +63,7 @@ export function WalletCard({
 
         {onWithdraw && (
           <PrimaryButton
-            label="Rút tiền"
+            label={tr("Rút tiền")}
             variant="soft"
             color={COLORS.surface}
             icon="arrow-down-circle"
@@ -75,8 +81,7 @@ export function WalletCard({
               className="text-xs flex-1 pr-3"
               style={{ color: ON_DARK.textSoft }}
             >
-              Hoa hồng tiền mặt chưa nộp
-            </Text>
+              {tr("Hoa hồng tiền mặt chưa nộp")}</Text>
             <Text
               className="text-sm"
               style={[TYPE.label, { color: ON_DARK.text }]}
@@ -92,8 +97,7 @@ export function WalletCard({
                   className="text-xs flex-1 pr-3"
                   style={{ color: ON_DARK.textSoft }}
                 >
-                  Đang chờ giải ngân
-                </Text>
+                  {tr("Đang chờ giải ngân")}</Text>
                 <Text
                   className="text-sm"
                   style={[TYPE.label, { color: ON_DARK.text }]}
@@ -105,8 +109,7 @@ export function WalletCard({
                 className="text-[11px] mt-1"
                 style={{ color: ON_DARK.textSoft }}
               >
-                Tối đa 24 giờ sau khi hoàn thành
-              </Text>
+                {tr("Tối đa 24 giờ sau khi hoàn thành")}</Text>
             </View>
           )}
         </View>
@@ -159,6 +162,7 @@ export function PeriodTabs({
 /* ───────── Thống kê kỳ ───────── */
 
 function BarChart({ data }: { data: SeriesPoint[] }) {
+  const { isDark } = useAppTheme();
   const values = data.map((d) => Number(d.amount));
   const max = Math.max(...values, 1);
 
@@ -173,7 +177,7 @@ function BarChart({ data }: { data: SeriesPoint[] }) {
           <View key={`${d.label}-${i}`} className="flex-1 items-center">
             <View
               className={`w-4 rounded-t-md ${
-                values[i] > 0 ? "bg-ink" : "bg-line"
+                values[i] > 0 ? (isDark ? "bg-primary" : "bg-ink-panel") : "bg-line"
               }`}
               style={{ height: h }}
             />
@@ -188,16 +192,17 @@ function BarChart({ data }: { data: SeriesPoint[] }) {
 function StatRow({
   label,
   value,
-  valueColor = COLORS.ink,
+  valueColor,
 }: {
   label: string;
   value: string;
   valueColor?: string;
 }) {
+  const { COLORS } = useAppTheme();
   return (
     <View className="flex-row items-center justify-between py-2">
       <Text className="text-ink-soft text-sm flex-1 pr-3">{label}</Text>
-      <Text className="text-sm" style={[TYPE.label, { color: valueColor }]}>
+      <Text className="text-sm" style={[TYPE.label, { color: valueColor ?? COLORS.ink }]}>
         {value}
       </Text>
     </View>
@@ -209,6 +214,9 @@ export function PeriodSummaryCard({
 }: {
   period: EarningsData["period"];
 }) {
+  const { t: tr } = useTranslation();
+  const { SHADOWS } = useAppTheme();
+
   return (
     <View
       className="bg-surface border border-line p-5 mt-4"
@@ -219,16 +227,15 @@ export function PeriodSummaryCard({
         {period.incomeText}
       </Text>
       <Text className="text-ink-soft text-xs mt-0.5">
-        Thu nhập sau hoa hồng
-      </Text>
+        {tr("Thu nhập sau hoa hồng")}</Text>
 
       <View className="mt-4">
         <BarChart data={period.series} />
       </View>
 
       <View className="mt-4 pt-2 border-t border-line">
-        <StatRow label="Đơn hoàn thành" value={period.completedJobs} />
-        <StatRow label="Tổng giá trị đơn" value={period.grossText} />
+        <StatRow label={tr("Đơn hoàn thành")} value={period.completedJobs} />
+        <StatRow label={tr("Tổng giá trị đơn")} value={period.grossText} />
       </View>
     </View>
   );
@@ -241,21 +248,24 @@ export function SettlementCard({
 }: {
   settlement: EarningsData["settlement"];
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS } = useAppTheme();
+
   return (
     <View
       className="bg-surface border border-line p-5 mt-4"
       style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <Text className="text-ink text-base font-extrabold mb-1">
-        Đối soát với CleanWise
-      </Text>
+        {tr("Đối soát với CleanWise")}</Text>
       <StatRow
-        label="Đơn online (app giữ tiền, vào ví sau tối đa 24 giờ)"
+        label={tr("Đơn online (app giữ tiền, vào ví sau tối đa 24 giờ)")}
         value={settlement.onlineText}
         valueColor={COLORS.success}
       />
       <StatRow
-        label="Đơn tiền mặt (bạn đã thu, hoa hồng đã trừ ví)"
+        label={tr("Đơn tiền mặt (bạn đã thu, hoa hồng đã trừ ví)")}
         value={settlement.cashText}
         valueColor={COLORS.danger}
       />
@@ -266,6 +276,10 @@ export function SettlementCard({
 /* ───────── Lịch sử đơn ───────── */
 
 function HistoryRow({ row, last }: { row: HistoryRowView; last: boolean }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <View
       className={`flex-row items-center py-3.5 ${
@@ -294,8 +308,7 @@ function HistoryRow({ row, last }: { row: HistoryRowView; last: boolean }) {
         <Text className="text-ink-soft text-xs mt-0.5">{row.methodText}</Text>
         {row.pending && (
           <Text className="text-warning-dark text-xs mt-0.5" style={TYPE.label}>
-            Đang chờ giải ngân
-          </Text>
+            {tr("Đang chờ giải ngân")}</Text>
         )}
       </View>
 
@@ -316,21 +329,24 @@ export function HistorySection({
   loading: boolean;
   rows: HistoryRowView[];
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS } = useAppTheme();
+
   return (
     <View className="mt-6">
       <Text
         className="text-ink-muted text-xs mb-2.5 ml-1"
         style={[TYPE.label, { letterSpacing: 1 }]}
       >
-        ĐƠN ĐÃ HOÀN THÀNH
-      </Text>
+        {tr("ĐƠN ĐÃ HOÀN THÀNH")}</Text>
 
       {loading ? (
         <View className="py-8 items-center">
           <ActivityIndicator color={COLORS.primary} />
         </View>
       ) : rows.length === 0 ? (
-        <EmptyState icon="inbox" title="Chưa có đơn nào trong kỳ này" />
+        <EmptyState icon="inbox" title={tr("Chưa có đơn nào trong kỳ này")} />
       ) : (
         <View
           className="bg-surface border border-line px-4"
@@ -348,6 +364,8 @@ export function HistorySection({
 /* ───────── Giao dịch ví ───────── */
 
 function WalletTxRow({ row, last }: { row: WalletTxRowView; last: boolean }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View
       className={`flex-row items-center py-3.5 ${
@@ -406,21 +424,24 @@ export function WalletTransactionsSection({
   loading: boolean;
   rows: WalletTxRowView[];
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, SHADOWS } = useAppTheme();
+
   return (
     <View className="mt-6">
       <Text
         className="text-ink-muted text-xs mb-2.5 ml-1"
         style={[TYPE.label, { letterSpacing: 1 }]}
       >
-        GIAO DỊCH VÍ GẦN ĐÂY
-      </Text>
+        {tr("GIAO DỊCH VÍ GẦN ĐÂY")}</Text>
 
       {loading ? (
         <View className="py-8 items-center">
           <ActivityIndicator color={COLORS.primary} />
         </View>
       ) : rows.length === 0 ? (
-        <EmptyState icon="inbox" title="Chưa có giao dịch ví nào" />
+        <EmptyState icon="inbox" title={tr("Chưa có giao dịch ví nào")} />
       ) : (
         <View
           className="bg-surface border border-line px-4"

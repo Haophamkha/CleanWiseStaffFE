@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ActiveProfileGate } from "@/components/common/ActiveProfileGate";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FadeInView } from "@/components/ui/FadeInView";
-import { COLORS } from "@/constants/theme";
+
 import { DaySummary } from "@/features/schedule/components/DaySummary";
 import { ScheduleHero } from "@/features/schedule/components/ScheduleHero";
 import { ScheduleTimelineItem } from "@/features/schedule/components/ScheduleTimelineItem";
@@ -15,6 +18,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function ScheduleContent() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const s = useSchedule();
   const insets = useSafeAreaInsets();
 
@@ -66,9 +73,9 @@ function ScheduleContent() {
             <FadeInView key={`empty-${s.dateLabel}`} delay={80}>
               <EmptyState
                 icon="calendar"
-                title="Chưa có lịch làm"
-                message='Ngày này chưa có ca làm việc. Sang tab "Khả dụng" để nhận thêm việc nhé.'
-                actionLabel="Xem việc khả dụng"
+                title={tr("Chưa có lịch làm")}
+                message={tr("Ngày này chưa có ca làm việc. Sang tab \"Khả dụng\" để nhận thêm việc nhé.")}
+                actionLabel={tr("Xem việc khả dụng")}
                 onAction={s.goAvailableJobs}
               />
             </FadeInView>

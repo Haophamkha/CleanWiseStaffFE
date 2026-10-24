@@ -1,4 +1,7 @@
-import { COLORS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { SHADOWS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +21,10 @@ export function NotificationsHeader({
   onMarkAllRead,
   onClearAll,
 }: NotificationsHeaderProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const canMarkAll = unreadCount > 0;
 
@@ -31,7 +38,7 @@ export function NotificationsHeader({
         onPress={onBack}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Quay lại"
+        accessibilityLabel={tr("Quay lại")}
         className="items-center justify-center"
         style={{ width: 40, height: 44 }}
       >
@@ -43,17 +50,16 @@ export function NotificationsHeader({
         style={{ lineHeight: 32 }}
         numberOfLines={1}
       >
-        Thông báo
-      </Text>
+        {tr("Thông báo")}</Text>
 
       {/* Đọc tất cả + thùng rác nằm cạnh nhau */}
       <Pressable
         onPress={onMarkAllRead}
         disabled={!canMarkAll}
         accessibilityRole="button"
-        accessibilityLabel="Đọc tất cả thông báo"
+        accessibilityLabel={tr("Đọc tất cả thông báo")}
         className={`flex-row items-center px-3.5 rounded-full mr-2 ${
-          canMarkAll ? "bg-ink" : "bg-accent-light"
+          canMarkAll ? "bg-ink-panel" : "bg-accent-light"
         }`}
         style={{ height: 40 }}
       >
@@ -68,15 +74,14 @@ export function NotificationsHeader({
           }`}
           style={{ fontWeight: "800" }}
         >
-          Đọc tất cả
-        </Text>
+          {tr("Đọc tất cả")}</Text>
       </Pressable>
 
       <Pressable
         onPress={onClearAll}
         disabled={!hasItems}
         accessibilityRole="button"
-        accessibilityLabel="Xoá tất cả thông báo"
+        accessibilityLabel={tr("Xoá tất cả thông báo")}
         className="w-10 h-10 rounded-full bg-surface border border-line items-center justify-center"
         style={[SHADOWS.card, { opacity: hasItems ? 1 : 0.5 }]}
       >

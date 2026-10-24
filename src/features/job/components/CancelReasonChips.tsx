@@ -1,10 +1,14 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import { Pressable, Text, View } from "react-native";
 
-const QUICK_REASONS = [
-  "Bận việc đột xuất",
-  "Sức khỏe không tốt",
-  "Trùng lịch khác",
-];
+function getLocalizedQuickReasons() {
+  return [
+    tr("Bận việc đột xuất"),
+    tr("Sức khỏe không tốt"),
+    tr("Trùng lịch khác"),
+  ];
+}
 
 type CancelReasonChipsProps = {
   value: string;
@@ -13,9 +17,11 @@ type CancelReasonChipsProps = {
 
 /** Gợi ý nhanh lý do hủy, chạm để điền vào ô nhập. */
 export function CancelReasonChips({ value, onSelect }: CancelReasonChipsProps) {
+  const { t: tr } = useTranslation();
+
   return (
     <View className="flex-row flex-wrap mb-3" style={{ gap: 8 }}>
-      {QUICK_REASONS.map((r) => {
+      {getLocalizedQuickReasons().map((r) => {
         const active = value.trim() === r;
         return (
           <Pressable
@@ -24,7 +30,7 @@ export function CancelReasonChips({ value, onSelect }: CancelReasonChipsProps) {
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             className={`rounded-full px-3.5 justify-center border ${
-              active ? "bg-ink border-ink" : "bg-surface border-line"
+              active ? "bg-ink-panel border-ink" : "bg-surface border-line"
             }`}
             style={{ minHeight: 36 }}
           >

@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { useMemo } from "react";
 import { Text, View } from "react-native";
@@ -21,7 +24,7 @@ function CalendarTile() {
       className="bg-surface overflow-hidden items-center mr-4"
       style={[{ width: 62, borderRadius: 18 }, SHADOWS.card]}
     >
-      <View className="bg-primary w-full items-center py-1">
+      <View className="bg-primary-fill w-full items-center py-1">
         <Text
           style={[TYPE.label, { color: ON_DARK.text, fontSize: 10 }]}
           numberOfLines={1}
@@ -36,12 +39,16 @@ function CalendarTile() {
 
 /** Lối vào màn Lịch làm việc, đặt dưới thẻ thống kê của Home. */
 export function ScheduleShortcut({ onPress }: ScheduleShortcutProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="px-5 mt-5">
       <PressableScale
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel="Mở lịch làm việc"
+        accessibilityLabel={tr("Mở lịch làm việc")}
         className="flex-row items-center bg-accent-light border border-line overflow-hidden px-4 py-4"
         style={[{ borderRadius: RADIUS.card, minHeight: 88 }, SHADOWS.card]}
       >
@@ -77,11 +84,9 @@ export function ScheduleShortcut({ onPress }: ScheduleShortcutProps) {
 
         <View className="flex-1">
           <Text className="text-ink text-base font-extrabold">
-            Lịch làm việc
-          </Text>
+            {tr("Lịch làm việc")}</Text>
           <Text className="text-ink-soft text-xs mt-0.5">
-            Xem các ca làm của bạn theo tuần
-          </Text>
+            {tr("Xem các ca làm của bạn theo tuần")}</Text>
         </View>
 
         <Feather

@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/theme";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
@@ -11,6 +12,8 @@ export function InfoRow({
   label: string;
   value: string;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="flex-row items-start mb-3">
       <View className="w-8 h-8 rounded-full bg-accent-light items-center justify-center mr-3">

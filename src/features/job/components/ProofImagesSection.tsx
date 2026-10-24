@@ -1,4 +1,7 @@
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
 import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
 import type {
@@ -15,11 +18,13 @@ import {
   View,
 } from "react-native";
 
-const UPLOAD_IMAGE_SLOTS: { type: ScheduleImageType; label: string }[] = [
-  { type: "BEFORE", label: "Trước khi làm" },
-  { type: "AFTER", label: "Sau khi làm" },
-  { type: "ISSUE", label: "Vấn đề phát sinh" },
-];
+function getLocalizedUploadImageSlots(): { type: ScheduleImageType; label: string }[] {
+  return [
+    { type: "BEFORE", label: tr("Trước khi làm") },
+    { type: "AFTER", label: tr("Sau khi làm") },
+    { type: "ISSUE", label: tr("Vấn đề phát sinh") },
+  ];
+}
 
 const THUMB_SIZE = 92;
 
@@ -47,6 +52,8 @@ function StagedThumb({
   disabled: boolean;
   onRemove: () => void;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View
       style={{
@@ -65,7 +72,7 @@ function StagedThumb({
         <Pressable
           onPress={onRemove}
           hitSlop={10}
-          className="absolute top-1 right-1 w-6 h-6 rounded-full items-center justify-center bg-ink/75"
+          className="absolute top-1 right-1 w-6 h-6 rounded-full items-center justify-center bg-ink-panel/75"
         >
           <Feather name="x" size={14} color={COLORS.white} />
         </Pressable>
@@ -101,6 +108,8 @@ export function ProofImagesSection({
   onPickImage,
   onRemoveImage,
 }: Props) {
+  const { t: tr } = useTranslation();
+
   const hasPendingAny = Object.values(localImages).some(
     (files) => (files?.length ?? 0) > 0,
   );
@@ -111,21 +120,20 @@ export function ProofImagesSection({
       style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <Text className="text-ink text-base font-extrabold mb-1">
-        Ảnh minh chứng
-      </Text>
+        {tr("Ảnh minh chứng")}</Text>
       <Text className="text-ink-muted text-xs mb-3">
         {canEdit
           ? hasPendingAny
-            ? 'Ảnh sẽ được gửi khi bạn bấm "Hoàn thành công việc". Có thể xóa (X) ảnh chưa ưng.'
-            : "Chụp ảnh trước và sau khi làm để lưu lại minh chứng công việc."
-          : "Ảnh minh chứng đã ghi nhận cho buổi làm này."}
+            ? tr("Ảnh sẽ được gửi khi bạn bấm \"Hoàn thành công việc\". Có thể xóa (X) ảnh chưa ưng.")
+            : tr("Chụp ảnh trước và sau khi làm để lưu lại minh chứng công việc.")
+          : tr("Ảnh minh chứng đã ghi nhận cho buổi làm này.")}
       </Text>
 
-      {UPLOAD_IMAGE_SLOTS.map(({ type, label }, index) => {
+      {getLocalizedUploadImageSlots().map(({ type, label }, index) => {
         const existing = images.filter((img) => img.image_type === type);
         const pending = localImages[type] ?? [];
         const hasAnyImage = existing.length > 0 || pending.length > 0;
-        const isLastRow = index === UPLOAD_IMAGE_SLOTS.length - 1;
+        const isLastRow = index === getLocalizedUploadImageSlots().length - 1;
 
         if (!canEdit && !hasAnyImage) return null;
 
@@ -164,7 +172,7 @@ export function ProofImagesSection({
                   pointerEvents={isUploadingImages ? "none" : "auto"}
                 >
                   <ImageUploadBox
-                    label="Thêm"
+                    label={tr("Thêm")}
                     value={null}
                     existingUri={null}
                     onChange={(file) => onPickImage(type, file)}

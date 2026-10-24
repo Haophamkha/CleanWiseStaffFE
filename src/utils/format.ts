@@ -1,5 +1,6 @@
+import { translate as tr, getLocale } from "@/features/language/i18n";
 export function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("vi-VN", {
+  return new Date(iso).toLocaleString(getLocale(), {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
@@ -10,7 +11,7 @@ export function formatDateTime(iso: string) {
 }
 
 export function formatDateTimeShort(iso: string) {
-  return new Date(iso).toLocaleString("vi-VN", {
+  return new Date(iso).toLocaleString(getLocale(), {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -19,7 +20,7 @@ export function formatDateTimeShort(iso: string) {
 }
 
 export function formatDayLabel(iso: string) {
-  return new Date(iso).toLocaleDateString("vi-VN", {
+  return new Date(iso).toLocaleDateString(getLocale(), {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
@@ -27,7 +28,7 @@ export function formatDayLabel(iso: string) {
 }
 
 export function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("vi-VN", {
+  return new Date(iso).toLocaleTimeString(getLocale(), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -46,7 +47,7 @@ export function formatCurrency(value: string | number | null | undefined) {
   if (value === null || value === undefined) return null;
   const num = Number(value);
   if (Number.isNaN(num)) return null;
-  return new Intl.NumberFormat("vi-VN", {
+  return new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency: "VND",
   }).format(num);
@@ -60,8 +61,8 @@ export function relativeDayLabel(iso: string): string | null {
   const diff = Math.round(
     (startOfDay(new Date(iso)) - startOfDay(new Date())) / 86400000,
   );
-  if (diff === 0) return "Hôm nay";
-  if (diff === 1) return "Ngày mai";
+  if (diff === 0) return tr("Hôm nay");
+  if (diff === 1) return tr("Ngày mai");
   return null;
 }
 

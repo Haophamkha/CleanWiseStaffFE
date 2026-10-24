@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import { useGetMyComplaintsQuery } from "@/features/complaint/api/complaintApi";
 import { ComplaintSheet } from "@/features/complaint/components/ComplaintSheet";
 import { Feather } from "@expo/vector-icons";
@@ -20,17 +23,21 @@ export function ComplaintAction({
   scheduleId,
   scheduleStatus,
 }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const [open, setOpen] = useState(false);
   const { data } = useGetMyComplaintsQuery({ schedule: scheduleId });
   const active = data?.find((c) => c.status !== "CANCELLED");
   const missed = scheduleStatus === "MISSED";
 
   const idleTitle = missed
-    ? "Đã làm nhưng đơn bị tự hủy?"
-    : "Báo sự cố / Khiếu nại";
+    ? tr("Đã làm nhưng đơn bị tự hủy?")
+    : tr("Báo sự cố / Khiếu nại");
   const idleHint = missed
-    ? "Gửi khiếu nại trong 72 giờ để được xem xét thu nhập."
-    : "Khách không trả tiền, sự cố khi làm việc...";
+    ? tr("Gửi khiếu nại trong 72 giờ để được xem xét thu nhập.")
+    : tr("Khách không trả tiền, sự cố khi làm việc...");
 
   return (
     <FadeInView delay={150}>
@@ -41,7 +48,7 @@ export function ComplaintAction({
             : setOpen(true)
         }
         accessibilityRole="button"
-        accessibilityLabel="Báo sự cố"
+        accessibilityLabel={tr("Báo sự cố")}
         containerStyle={{ marginBottom: 12 }}
         className="flex-row items-center bg-surface border border-line px-4 py-3"
         style={[{ borderRadius: RADIUS.card, minHeight: 64 }, SHADOWS.card]}
@@ -55,10 +62,10 @@ export function ComplaintAction({
         </View>
         <View className="flex-1">
           <Text className="text-ink text-sm font-extrabold">
-            {active ? "Đã gửi khiếu nại" : idleTitle}
+            {active ? tr("Đã gửi khiếu nại") : idleTitle}
           </Text>
           <Text className="text-ink-muted text-xs mt-0.5">
-            {active ? `Trạng thái: ${active.status_label}` : idleHint}
+            {active ? tr("Trạng thái: {{value0}}", { value0: active.status_label }) : idleHint}
           </Text>
         </View>
         <Feather name="chevron-right" size={22} color={COLORS.ink} />

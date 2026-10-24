@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import {
   AreaSelectorList,
   AreaSelectorTop,
@@ -8,13 +11,15 @@ import { Feather } from "@expo/vector-icons";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 export function WorkingAreasPicker({ form }: { form: WorkingAreasState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="flex-1">
       <View className="px-5 pt-5 pb-3">
         <Text className="text-ink-soft text-[15px] leading-5 mb-4">
-          Chọn 1 tỉnh/thành, sau đó chọn các phường/xã bạn có thể nhận việc. Cần
-          chọn ít nhất một khu vực.
-        </Text>
+          {tr("Chọn 1 tỉnh/thành, sau đó chọn các phường/xã bạn có thể nhận việc. Cần chọn ít nhất một khu vực.")}</Text>
         {form.isLoading ? null : <AreaSelectorTop area={form.area} />}
       </View>
 

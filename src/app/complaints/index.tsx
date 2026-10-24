@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { DetailHeader } from "@/components/common/DetailHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { COLORS, RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS, SHADOWS } from "@/constants/theme";
 import { useGetMyComplaintsQuery } from "@/features/complaint/api/complaintApi";
 import { ComplaintStatusBadge } from "@/features/complaint/components/ComplaintStatusBadge";
 import { formatDateTime } from "@/utils/format";
@@ -11,6 +14,10 @@ import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ComplaintListScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
 
   const {
@@ -23,11 +30,11 @@ export default function ComplaintListScreen() {
   return (
     <View className="flex-1 bg-canvas">
       <DetailHeader
-        title="Khiếu nại của tôi"
+        title={tr("Khiếu nại của tôi")}
         subtitle={
           data.length > 0
-            ? `${data.length} khiếu nại`
-            : "Theo dõi các khiếu nại của bạn"
+            ? tr("{{value0}} khiếu nại", { value0: data.length , count: data.length})
+            : tr("Theo dõi các khiếu nại của bạn")
         }
         onBack={() => router.back()}
       />
@@ -53,8 +60,8 @@ export default function ComplaintListScreen() {
             <View className="flex-1 items-center justify-center">
               <EmptyState
                 icon="check-circle"
-                title="Chưa có khiếu nại"
-                message="Các khiếu nại bạn gửi sẽ hiển thị tại đây."
+                title={tr("Chưa có khiếu nại")}
+                message={tr("Các khiếu nại bạn gửi sẽ hiển thị tại đây.")}
               />
             </View>
           }
@@ -84,8 +91,7 @@ export default function ComplaintListScreen() {
 
                   <View className="flex-1">
                     <Text className="text-ink-muted text-[11px] font-semibold mb-0.5">
-                      MÃ KHIẾU NẠI
-                    </Text>
+                      {tr("MÃ KHIẾU NẠI")}</Text>
 
                     <Text
                       selectable
@@ -99,7 +105,7 @@ export default function ComplaintListScreen() {
                       className="text-ink-soft text-[11px] mt-0.5"
                       numberOfLines={1}
                     >
-                      Đơn {item.booking_code}
+                      {tr("Đơn")}{" "}{item.booking_code}
                     </Text>
                   </View>
                 </View>
@@ -116,8 +122,7 @@ export default function ComplaintListScreen() {
               {/* Complaint type */}
               <View>
                 <Text className="text-ink-muted text-[11px] font-semibold uppercase tracking-wide mb-1">
-                  Nội dung khiếu nại
-                </Text>
+                  {tr("Nội dung khiếu nại")}</Text>
 
                 <Text
                   className="text-ink text-[15px] font-extrabold leading-5"
@@ -135,7 +140,7 @@ export default function ComplaintListScreen() {
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-ink-soft text-[11px]">Giai đoạn</Text>
+                    <Text className="text-ink-soft text-[11px]">{tr("Giai đoạn")}</Text>
 
                     <Text
                       className="text-ink-muted text-xs font-semibold"
@@ -158,8 +163,7 @@ export default function ComplaintListScreen() {
               {/* Detail hint */}
               <View className="flex-row items-center justify-end mt-3 pt-3 border-t border-line">
                 <Text className="text-primary text-xs font-bold mr-1">
-                  Xem chi tiết
-                </Text>
+                  {tr("Xem chi tiết")}</Text>
 
                 <Feather name="arrow-right" size={14} color={COLORS.primary} />
               </View>

@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS } from "@/constants/theme";
+
 import { StepHeader } from "@/features/profile-setup/components/StepHeader";
 import {
   STEP_NUMBER,
@@ -44,6 +47,10 @@ export function SetupScreen({
   disabled?: boolean;
   children: ReactNode;
 }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const number = STEP_NUMBER[step];
 
@@ -56,7 +63,7 @@ export function SetupScreen({
           className="text-ink-muted text-xs font-semibold"
           style={{ letterSpacing: 1.2 }}
         >
-          BƯỚC {number}/{TOTAL_STEPS}
+          {tr("BƯỚC")}{" "}{number}/{TOTAL_STEPS}
         </Text>
         <Text className="text-ink text-2xl font-extrabold mt-1">{title}</Text>
         <Text className="text-ink-soft text-sm leading-5 mt-1.5">
@@ -90,7 +97,7 @@ export function SetupScreen({
           label={setup.ctaLabel(step)}
           variant={setup.isFinalStep(step) ? "primary" : "dark"}
           loading={setup.isBusy}
-          loadingLabel="Đang xử lý..."
+          loadingLabel={tr("Đang xử lý...")}
           disabled={setup.isBusy || disabled}
           onPress={() => setup.goNext(step)}
         />
@@ -114,6 +121,8 @@ export function Field({
   icon?: FeatherName;
   suffix?: string;
 } & TextInputProps) {
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const multiline = !!input.multiline;
   return (
     <View className="mb-4">
@@ -133,7 +142,7 @@ export function Field({
         {icon ? (
           <Feather name={icon} size={17} color={COLORS.inkMuted} />
         ) : null}
-        <TextInput
+        <TextInput keyboardAppearance={themeMode}
           {...input}
           editable={!locked}
           placeholderTextColor={COLORS.inkMuted}
@@ -179,6 +188,10 @@ export function SectionLabel({
 }
 
 export function AdminNote({ message }: { message: string }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   return (
     <View className="flex-row items-start bg-danger-light rounded-2xl px-4 py-3 mb-5">
       <Feather
@@ -189,8 +202,7 @@ export function AdminNote({ message }: { message: string }) {
       />
       <View className="flex-1 ml-2.5">
         <Text className="text-danger text-xs font-bold mb-0.5">
-          Quản trị viên yêu cầu sửa lại
-        </Text>
+          {tr("Quản trị viên yêu cầu sửa lại")}</Text>
         <Text className="text-danger text-sm">{message}</Text>
       </View>
     </View>
@@ -206,13 +218,15 @@ export function SearchBox({
   onChangeText: (v: string) => void;
   placeholder: string;
 }) {
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   return (
     <View
       className="flex-row items-center bg-surface border border-line rounded-2xl px-4"
       style={{ height: 48 }}
     >
       <Feather name="search" size={17} color={COLORS.inkMuted} />
-      <TextInput
+      <TextInput keyboardAppearance={themeMode}
         className="flex-1 ml-3 text-ink text-[15px]"
         placeholder={placeholder}
         placeholderTextColor={COLORS.inkMuted}
@@ -244,6 +258,8 @@ export function Choice({
   left?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -272,7 +288,7 @@ export function Choice({
         ) : null}
       </View>
       {selected ? (
-        <View className="w-5 h-5 rounded-full bg-ink items-center justify-center ml-2">
+        <View className="w-5 h-5 rounded-full bg-ink-panel items-center justify-center ml-2">
           <Feather name="check" size={12} color={COLORS.white} />
         </View>
       ) : (
@@ -292,6 +308,8 @@ export function GuideCard({
   tips: { ok: boolean; text: string }[];
   defaultOpen?: boolean;
 }) {
+  const { COLORS } = useAppTheme();
+
   const [open, setOpen] = useState(defaultOpen);
 
   return (

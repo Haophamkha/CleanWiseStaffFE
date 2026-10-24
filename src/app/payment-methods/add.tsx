@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
   BankAccountForm,
@@ -10,6 +13,10 @@ import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, Tou
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AddWorkerPaymentMethodScreen() {
+  const { t: tr } = useTranslation();
+
+  const { mode: themeMode } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const form = useAddPaymentMethod();
 
@@ -60,10 +67,10 @@ export default function AddWorkerPaymentMethodScreen() {
             style={{ paddingBottom: Math.max(insets.bottom, 16) }}
           >
             <PrimaryButton
-              label="Lưu và xác minh"
+              label={tr("Lưu và xác minh")}
               variant="primary"
               loading={form.isSaving}
-              loadingLabel="Đang lưu..."
+              loadingLabel={tr("Đang lưu...")}
               onPress={form.handleSubmit}
             />
           </View>
@@ -78,13 +85,13 @@ export default function AddWorkerPaymentMethodScreen() {
       />
       <Modal visible={form.otpMethodId !== null} transparent animationType="fade" onRequestClose={() => form.setOtpMethodId(null)}>
         <View className="flex-1 bg-black/40 justify-center px-6">
-          <View className="bg-white rounded-3xl p-5">
-            <Text className="text-ink text-lg font-bold">Nhập OTP Sandbox</Text>
-            <Text className="text-ink-soft mt-2 leading-5">Nhập mã OTP giả lập của kịch bản TINGEE.</Text>
-            <TextInput className="border border-line rounded-2xl px-4 py-3 mt-4 text-ink" keyboardType="number-pad" value={form.otp} onChangeText={(value) => form.setOtp(value.replace(/\D/g, "").slice(0, 8))} placeholder="Mã OTP" maxLength={8} />
+          <View className="bg-surface rounded-3xl p-5">
+            <Text className="text-ink text-lg font-bold">{tr("Nhập OTP Sandbox")}</Text>
+            <Text className="text-ink-soft mt-2 leading-5">{tr("Nhập mã OTP giả lập của kịch bản TINGEE.")}</Text>
+            <TextInput keyboardAppearance={themeMode} className="border border-line rounded-2xl px-4 py-3 mt-4 text-ink" keyboardType="number-pad" value={form.otp} onChangeText={(value) => form.setOtp(value.replace(/\D/g, "").slice(0, 8))} placeholder={tr("Mã OTP")} maxLength={8} />
             <View className="flex-row mt-5">
-              <TouchableOpacity className="flex-1 py-3 items-center" onPress={() => form.setOtpMethodId(null)}><Text className="text-ink-soft font-semibold">Để sau</Text></TouchableOpacity>
-              <TouchableOpacity className="flex-1 py-3 items-center bg-ink rounded-xl" onPress={form.handleConfirmOtp} disabled={form.isConfirming || form.otp.length < 4}><Text className="text-white font-bold">{form.isConfirming ? "Đang kiểm tra..." : "Xác nhận"}</Text></TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3 items-center" onPress={() => form.setOtpMethodId(null)}><Text className="text-ink-soft font-semibold">{tr("Để sau")}</Text></TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3 items-center bg-ink-panel rounded-xl" onPress={form.handleConfirmOtp} disabled={form.isConfirming || form.otp.length < 4}><Text className="text-white font-bold">{form.isConfirming ? tr("Đang kiểm tra...") : tr("Xác nhận")}</Text></TouchableOpacity>
             </View>
           </View>
         </View>

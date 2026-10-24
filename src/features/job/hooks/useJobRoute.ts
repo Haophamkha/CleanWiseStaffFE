@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
@@ -33,10 +35,10 @@ function formatDistance(meters: number) {
 
 function formatMinutes(seconds: number) {
   const total = Math.max(1, Math.round(seconds / 60));
-  if (total < 60) return `${total} phút`;
+  if (total < 60) return tr("{{value0}} phút", { value0: total });
   const h = Math.floor(total / 60);
   const m = total % 60;
-  return m === 0 ? `${h} giờ` : `${h} giờ ${m} phút`;
+  return m === 0 ? tr("{{value0}} giờ", { value0: h }) : tr("{{value0}} giờ {{value1}} phút", { value0: h, value1: m });
 }
 
 // Đổi nhà cung cấp định tuyến: chỉ cần sửa hàm này.
@@ -77,6 +79,8 @@ async function fetchRoute(from: LatLng, to: LatLng): Promise<RouteInfo> {
 }
 
 export function useJobRoute(destination: LatLng | null) {
+  const { t: tr } = useTranslation();
+
   const [permission, setPermission] = useState<PermissionState>("idle");
   const [user, setUser] = useState<LatLng | null>(null);
   const [route, setRoute] = useState<RouteInfo | null>(null);
@@ -118,12 +122,12 @@ export function useJobRoute(destination: LatLng | null) {
       setRoute(result);
     } catch {
       if (id === requestId.current) {
-        setError("Không xác định được vị trí. Hãy bật GPS rồi thử lại.");
+        setError(tr("Không xác định được vị trí. Hãy bật GPS rồi thử lại."));
       }
     } finally {
       if (id === requestId.current) setIsLocating(false);
     }
-  }, [destination]);
+  }, [destination, tr]);
 
   useEffect(
     () => () => {

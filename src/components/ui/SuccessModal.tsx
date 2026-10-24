@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS, OVERLAY, RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Modal, ScrollView, Text, View } from "react-native";
 
@@ -20,6 +21,8 @@ export function SuccessModal({
   confirmLabel = "Xong",
   onClose,
 }: SuccessModalProps) {
+  const { COLORS, SHADOWS, OVERLAY } = useAppTheme();
+
   return (
     <Modal
       visible={visible}

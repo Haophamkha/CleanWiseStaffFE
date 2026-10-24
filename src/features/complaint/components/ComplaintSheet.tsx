@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { SuccessModal } from "@/components/ui/SuccessModal";
-import { COLORS, RADIUS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import {
   useCreateComplaintMutation,
   useGetComplaintIssueTypesQuery,
@@ -43,6 +46,10 @@ export function ComplaintSheet({
   scheduleStatus,
   onClose,
 }: Props) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const missed = scheduleStatus === "MISSED";
   const { data: allTypes = [], isLoading } = useGetComplaintIssueTypesQuery(
@@ -54,7 +61,7 @@ export function ComplaintSheet({
       allTypes.filter((t) =>
         missed ? t.code === WORKED_CODE : t.code !== WORKED_CODE,
       ),
-    [allTypes, missed],
+    [allTypes, missed, tr],
   );
   const [createComplaint, { isLoading: submitting }] =
     useCreateComplaintMutation();
@@ -101,7 +108,7 @@ export function ComplaintSheet({
       onClose();
       setDone(true);
     } catch (e) {
-      showErrorToast("Không gửi được khiếu nại", getErrorMessage(e));
+      showErrorToast(tr("Không gửi được khiếu nại"), getErrorMessage(e));
     }
   };
 
@@ -133,7 +140,7 @@ export function ComplaintSheet({
                 <Feather name="alert-circle" size={18} color={COLORS.danger} />
               </View>
               <Text className="text-ink text-base font-extrabold flex-1">
-                {missed ? "Khiếu nại buổi bị tự hủy" : "Báo sự cố / Khiếu nại"}
+                {missed ? tr("Khiếu nại buổi bị tự hủy") : tr("Báo sự cố / Khiếu nại")}
               </Text>
               <Pressable onPress={close} hitSlop={10}>
                 <Feather name="x" size={22} color={COLORS.ink} />
@@ -146,15 +153,11 @@ export function ComplaintSheet({
             >
               {missed ? (
                 <Text className="text-ink-soft text-xs leading-5 mb-4">
-                  Buổi này bị hệ thống tự hủy vì chưa check-in đúng hạn. Nếu bạn
-                  đã đến và làm việc, hãy mô tả và đính kèm ảnh minh chứng để
-                  CleanWise xem xét.
-                </Text>
+                  {tr("Buổi này bị hệ thống tự hủy vì chưa check-in đúng hạn. Nếu bạn đã đến và làm việc, hãy mô tả và đính kèm ảnh minh chứng để CleanWise xem xét.")}</Text>
               ) : null}
 
               <Text className="text-ink text-sm font-semibold mb-2">
-                Loại sự cố
-              </Text>
+                {tr("Loại sự cố")}</Text>
               {isLoading ? (
                 <ActivityIndicator color={COLORS.primary} />
               ) : (
@@ -169,7 +172,7 @@ export function ComplaintSheet({
                         accessibilityState={{ selected: active }}
                         className={`rounded-full px-3.5 justify-center border ${
                           active
-                            ? "bg-ink border-ink"
+                            ? "bg-ink-panel border-ink"
                             : "bg-surface border-line"
                         }`}
                         style={{ minHeight: 36 }}
@@ -188,19 +191,17 @@ export function ComplaintSheet({
               )}
 
               <Text className="text-ink text-sm font-semibold mb-2">
-                Mô tả
-                <Text className="text-ink-muted font-normal">
+                {tr("Mô tả")}<Text className="text-ink-muted font-normal">
                   {" "}
-                  (không bắt buộc)
-                </Text>
+                  {tr("(không bắt buộc)")}</Text>
               </Text>
-              <TextInput
+              <TextInput keyboardAppearance={themeMode}
                 value={content}
                 onChangeText={setContent}
                 placeholder={
                   missed
-                    ? "Ví dụ: Tôi đến đúng giờ nhưng GPS lỗi nên không check-in được..."
-                    : "Ví dụ: Khách không thanh toán tiền mặt sau khi hoàn thành..."
+                    ? tr("Ví dụ: Tôi đến đúng giờ nhưng GPS lỗi nên không check-in được...")
+                    : tr("Ví dụ: Khách không thanh toán tiền mặt sau khi hoàn thành...")
                 }
                 placeholderTextColor={COLORS.inkMuted}
                 multiline
@@ -214,8 +215,7 @@ export function ComplaintSheet({
               </Text>
 
               <Text className="text-ink text-sm font-semibold mb-2">
-                Ảnh minh chứng
-                <Text className="text-ink-muted font-normal">
+                {tr("Ảnh minh chứng")}<Text className="text-ink-muted font-normal">
                   {" "}
                   ({images.length}/{MAX_IMAGES})
                 </Text>
@@ -232,7 +232,7 @@ export function ComplaintSheet({
                         setImages((prev) => prev.filter((_, idx) => idx !== i))
                       }
                       hitSlop={6}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-danger items-center justify-center"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-danger-fill items-center justify-center"
                     >
                       <Feather name="x" size={12} color="#fff" />
                     </Pressable>
@@ -263,7 +263,7 @@ export function ComplaintSheet({
               onPress={submit}
               disabled={!issueTypeId || submitting}
               accessibilityRole="button"
-              className="bg-danger rounded-full items-center justify-center mt-2"
+              className="bg-danger-fill rounded-full items-center justify-center mt-2"
               style={{
                 height: 48,
                 opacity: !issueTypeId || submitting ? 0.45 : 1,
@@ -273,8 +273,7 @@ export function ComplaintSheet({
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text className="text-white text-xs font-extrabold">
-                  GỬI KHIẾU NẠI
-                </Text>
+                  {tr("GỬI KHIẾU NẠI")}</Text>
               )}
             </PressableScale>
           </View>
@@ -283,8 +282,8 @@ export function ComplaintSheet({
 
       <SuccessModal
         visible={done}
-        title="Đã gửi khiếu nại"
-        message="CleanWise sẽ xem xét và phản hồi sớm nhất."
+        title={tr("Đã gửi khiếu nại")}
+        message={tr("CleanWise sẽ xem xét và phản hồi sớm nhất.")}
         onClose={() => setDone(false)}
       />
     </>

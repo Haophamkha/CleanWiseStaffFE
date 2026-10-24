@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { COLORS } from "@/constants/theme";
+
 import {
   AuthFooter,
   AuthScreen,
@@ -10,32 +13,38 @@ import {
 } from "@/features/auth/components/AuthKit";
 import {
   MIN_PASSWORD_LENGTH,
-  STEP_LABELS,
+  getLocalizedStepLabels,
   useForgotPassword,
 } from "@/features/auth/hooks/useForgotPassword";
 import { Feather } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
-const COPY = {
-  request: {
-    title: "Quên mật khẩu?",
-    subtitle:
-      "Nhập email đã đăng ký, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu.",
-  },
-  verify: { title: "Nhập mã xác nhận", subtitle: "" },
-  reset: {
-    title: "Đặt mật khẩu mới",
-    subtitle: "Nhập mật khẩu mới cho tài khoản của bạn.",
-  },
-  done: {
-    title: "Đổi mật khẩu thành công",
-    subtitle: "Bạn có thể đăng nhập lại bằng mật khẩu mới.",
-  },
-} as const;
+function getLocalizedCopy() {
+  return {
+    request: {
+      title: tr("Quên mật khẩu?"),
+      subtitle:
+        tr("Nhập email đã đăng ký, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu."),
+    },
+    verify: { title: tr("Nhập mã xác nhận"), subtitle: "" },
+    reset: {
+      title: tr("Đặt mật khẩu mới"),
+      subtitle: tr("Nhập mật khẩu mới cho tài khoản của bạn."),
+    },
+    done: {
+      title: tr("Đổi mật khẩu thành công"),
+      subtitle: tr("Bạn có thể đăng nhập lại bằng mật khẩu mới."),
+    },
+  } as const;
+}
 
 export default function ForgotPasswordScreen() {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   const f = useForgotPassword();
-  const copy = COPY[f.step];
+  const copy = getLocalizedCopy()[f.step];
 
   const subtitle = f.step === "verify" ? undefined : copy.subtitle || undefined;
 
@@ -46,15 +55,15 @@ export default function ForgotPasswordScreen() {
       footer={
         f.step === "request" ? (
           <AuthFooter
-            prompt="Nhớ mật khẩu rồi?"
-            linkLabel="Đăng nhập"
+            prompt={tr("Nhớ mật khẩu rồi?")}
+            linkLabel={tr("Đăng nhập")}
             href="/(auth)/login"
           />
         ) : undefined
       }
     >
       {f.step !== "done" && (
-        <StepProgress current={f.stepIndex} labels={STEP_LABELS} />
+        <StepProgress current={f.stepIndex} labels={getLocalizedStepLabels()} />
       )}
 
       {f.step === "request" && (
@@ -73,10 +82,10 @@ export default function ForgotPasswordScreen() {
           <ErrorNotice message={f.error} />
 
           <PrimaryButton
-            label="Gửi mã xác nhận"
+            label={tr("Gửi mã xác nhận")}
             variant="dark"
             loading={f.isSending}
-            loadingLabel="Đang gửi..."
+            loadingLabel={tr("Đang gửi...")}
             icon="arrow-right"
             onPress={f.handleSendCode}
           />
@@ -86,11 +95,11 @@ export default function ForgotPasswordScreen() {
       {f.step === "verify" && (
         <>
           <Text className="text-ink-soft text-base leading-6 mb-5">
-            Mã xác nhận đã được gửi tới{" "}
+            {tr("Mã xác nhận đã được gửi tới")}{" "}
             <Text className="text-ink font-bold">{f.email}</Text>
           </Text>
 
-          <FormField label="Mã xác nhận">
+          <FormField label={tr("Mã xác nhận")}>
             <FormInput
               icon="shield"
               placeholder="000000"
@@ -105,10 +114,10 @@ export default function ForgotPasswordScreen() {
           <ErrorNotice message={f.error} />
 
           <PrimaryButton
-            label="Xác nhận"
+            label={tr("Xác nhận")}
             variant="dark"
             loading={f.isVerifying}
-            loadingLabel="Đang xác nhận..."
+            loadingLabel={tr("Đang xác nhận...")}
             onPress={f.handleVerifyOtp}
           />
 
@@ -116,8 +125,8 @@ export default function ForgotPasswordScreen() {
             <PrimaryButton
               label={
                 f.countdown > 0
-                  ? `Gửi lại mã sau ${f.countdown}s`
-                  : "Gửi lại mã"
+                  ? tr("Gửi lại mã sau {{value0}}s", { value0: f.countdown })
+                  : tr("Gửi lại mã")
               }
               variant="outline"
               disabled={f.countdown > 0 || f.isSending}
@@ -129,21 +138,21 @@ export default function ForgotPasswordScreen() {
 
       {f.step === "reset" && (
         <>
-          <FormField label="Mật khẩu mới">
+          <FormField label={tr("Mật khẩu mới")}>
             <FormInput
               icon="lock"
               isPassword
-              placeholder={`Ít nhất ${MIN_PASSWORD_LENGTH} ký tự`}
+              placeholder={tr("Ít nhất {{value0}} ký tự", { value0: MIN_PASSWORD_LENGTH })}
               value={f.newPassword}
               onChangeText={f.setNewPassword}
             />
           </FormField>
 
-          <FormField label="Xác nhận mật khẩu mới">
+          <FormField label={tr("Xác nhận mật khẩu mới")}>
             <FormInput
               icon="lock"
               isPassword
-              placeholder="Nhập lại mật khẩu mới"
+              placeholder={tr("Nhập lại mật khẩu mới")}
               value={f.confirmPassword}
               onChangeText={f.setConfirmPassword}
             />
@@ -152,10 +161,10 @@ export default function ForgotPasswordScreen() {
           <ErrorNotice message={f.error} />
 
           <PrimaryButton
-            label="Đặt lại mật khẩu"
+            label={tr("Đặt lại mật khẩu")}
             variant="dark"
             loading={f.isResetting}
-            loadingLabel="Đang cập nhật..."
+            loadingLabel={tr("Đang cập nhật...")}
             onPress={f.handleResetPassword}
           />
         </>
@@ -165,14 +174,14 @@ export default function ForgotPasswordScreen() {
         <>
           <View className="items-center mb-6">
             <View className="w-20 h-20 rounded-full bg-success-light items-center justify-center">
-              <View className="w-14 h-14 rounded-full bg-success items-center justify-center">
+              <View className="w-14 h-14 rounded-full bg-success-fill items-center justify-center">
                 <Feather name="check" size={28} color={COLORS.white} />
               </View>
             </View>
           </View>
 
           <PrimaryButton
-            label="Về đăng nhập"
+            label={tr("Về đăng nhập")}
             variant="dark"
             icon="arrow-right"
             onPress={f.goToLogin}

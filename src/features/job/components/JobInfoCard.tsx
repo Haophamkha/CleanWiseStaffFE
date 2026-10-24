@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { COLORS, ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
+import { ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import type { JobSummary } from "@/features/job/hooks/useJobDetail";
-import { PAYMENT_STATUS_MAP } from "@/features/schedule/utils/scheduleStatus";
+import { getPaymentStatusMap } from "@/features/schedule/utils/scheduleStatus";
 import { Feather } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Image, Text, View } from "react-native";
@@ -27,6 +30,8 @@ function InfoLine({
   value: string;
   last?: boolean;
 }) {
+  const { COLORS } = useAppTheme();
+
   return (
     <View
       className={`flex-row items-start py-3 ${last ? "" : "border-b border-line"}`}
@@ -52,7 +57,11 @@ export function JobInfoCard({
   onDirections,
   map,
 }: JobInfoCardProps) {
-  const payment = PAYMENT_STATUS_MAP[summary.payment];
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
+  const payment = getPaymentStatusMap(COLORS)[summary.payment];
 
   return (
     <View
@@ -118,15 +127,14 @@ export function JobInfoCard({
           <PressableScale
             onPress={onDirections}
             accessibilityRole="button"
-            accessibilityLabel="Chỉ đường"
+            accessibilityLabel={tr("Chỉ đường")}
             containerStyle={{ marginTop: 8, marginBottom: 4 }}
-            className="flex-row items-center justify-center bg-ink rounded-full"
+            className="flex-row items-center justify-center bg-ink-panel rounded-full"
             style={{ height: 46 }}
           >
             <Feather name="navigation" size={15} color={ON_DARK.text} />
             <Text className="text-white text-xs ml-2" style={TYPE.button}>
-              CHỈ ĐƯỜNG
-            </Text>
+              {tr("CHỈ ĐƯỜNG")}</Text>
           </PressableScale>
         ) : null)}
 
@@ -162,7 +170,7 @@ export function JobInfoCard({
           </View>
         )}
         <View className="ml-3 flex-1">
-          <Text className="text-ink-muted text-xs mb-0.5">Khách đặt đơn</Text>
+          <Text className="text-ink-muted text-xs mb-0.5">{tr("Khách đặt đơn")}</Text>
           <Text className="text-ink text-base font-extrabold" numberOfLines={1}>
             {customerName}
           </Text>

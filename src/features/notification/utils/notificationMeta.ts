@@ -1,3 +1,4 @@
+import { translate as tr } from "@/features/language/i18n";
 type RouteInput = {
   target?: string | null;
   type?: string | null;
@@ -56,34 +57,36 @@ interface NotificationTypeMeta {
   iconName: string;
 }
 
-const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeMeta> = {
-  BOOKING: {
-    label: "Đơn hàng",
-    iconLibrary: "material-community",
-    iconName: "broom",
-  },
-  PAYMENT: {
-    label: "Thanh toán",
-    iconLibrary: "feather",
-    iconName: "check-circle",
-  },
-  ASSIGNMENT: {
-    label: "Phân công",
-    iconLibrary: "feather",
-    iconName: "user-check",
-  },
-  COMPLAINT: {
-    label: "Khiếu nại",
-    iconLibrary: "feather",
-    iconName: "alert-circle",
-  },
-  SYSTEM: {
-    label: "Hệ thống",
-    iconLibrary: "feather",
-    iconName: "bell",
-  },
-};
+function getLocalizedNotificationTypeMap(): Record<string, NotificationTypeMeta> {
+  return {
+    BOOKING: {
+      label: tr("Đơn hàng"),
+      iconLibrary: "material-community",
+      iconName: "broom",
+    },
+    PAYMENT: {
+      label: tr("Thanh toán"),
+      iconLibrary: "feather",
+      iconName: "check-circle",
+    },
+    ASSIGNMENT: {
+      label: tr("Phân công"),
+      iconLibrary: "feather",
+      iconName: "user-check",
+    },
+    COMPLAINT: {
+      label: tr("Khiếu nại"),
+      iconLibrary: "feather",
+      iconName: "alert-circle",
+    },
+    SYSTEM: {
+      label: tr("Hệ thống"),
+      iconLibrary: "feather",
+      iconName: "bell",
+    },
+  };
+}
 
 export function getNotificationTypeMeta(type: string): NotificationTypeMeta {
-  return NOTIFICATION_TYPE_MAP[type] ?? NOTIFICATION_TYPE_MAP.SYSTEM;
+  return getLocalizedNotificationTypeMap()[type] ?? getLocalizedNotificationTypeMap().SYSTEM;
 }

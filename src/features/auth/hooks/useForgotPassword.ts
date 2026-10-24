@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import {
     useForgotPasswordMutation,
     useResetPasswordMutation,
@@ -5,7 +7,7 @@ import {
 } from "@/features/auth/api/authApi";
 import { getErrorMessage } from "@/utils/apiError";
 import { showSuccessToast } from "@/utils/toast";
-import { forgotPasswordSchema } from "@/utils/validators";
+import { getLocalizedForgotPasswordSchema } from "@/utils/validators";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -14,7 +16,9 @@ export const MIN_PASSWORD_LENGTH = 8;
 
 export type Step = "request" | "verify" | "reset" | "done";
 
-export const STEP_LABELS = ["Email", "Mã xác nhận", "Mật khẩu mới"];
+export function getLocalizedStepLabels() {
+  return ["Email", tr("Mã xác nhận"), tr("Mật khẩu mới")];
+}
 const STEP_INDEX: Record<Step, number> = {
   request: 0,
   verify: 1,
@@ -23,6 +27,8 @@ const STEP_INDEX: Record<Step, number> = {
 };
 
 export function useForgotPassword() {
+  const { t: tr } = useTranslation();
+
   const [step, setStep] = useState<Step>("request");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -52,7 +58,7 @@ export function useForgotPassword() {
 
   const handleSendCode = async () => {
     const trimmedEmail = email.trim();
-    const result = forgotPasswordSchema.safeParse({ contact: trimmedEmail });
+    const result = getLocalizedForgotPasswordSchema().safeParse({ contact: trimmedEmail });
     if (!result.success) {
       setError(result.error.issues[0].message);
       return;
@@ -62,7 +68,7 @@ export function useForgotPassword() {
       await forgotPassword({ email: trimmedEmail }).unwrap();
       setStep("verify");
       setResendAt(Date.now() + RESEND_SECONDS * 1000);
-      showSuccessToast("Đã gửi mã xác nhận", "Kiểm tra email của bạn");
+      showSuccessToast(tr("Đã gửi mã xác nhận"), tr("Kiểm tra email của bạn"));
     } catch (err) {
       setError(getErrorMessage(err));
     }
@@ -70,7 +76,7 @@ export function useForgotPassword() {
 
   const handleVerifyOtp = async () => {
     if (!/^\d{6}$/.test(otp.trim())) {
-      setError("Mã xác nhận gồm 6 chữ số");
+      setError(tr("Mã xác nhận gồm 6 chữ số"));
       return;
     }
     setError("");
@@ -84,11 +90,11 @@ export function useForgotPassword() {
 
   const handleResetPassword = async () => {
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      setError(`Mật khẩu phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự`);
+      setError(tr("Mật khẩu phải có ít nhất {{value0}} ký tự", { value0: MIN_PASSWORD_LENGTH }));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+      setError(tr("Mật khẩu xác nhận không khớp"));
       return;
     }
     setError("");

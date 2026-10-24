@@ -1,4 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -11,6 +14,7 @@ import {
 
 type ChatComposerProps = {
   canSend: boolean;
+  restrictionNotice?: string;
   draft: string;
   hasDraft: boolean;
   bottomPadding: number;
@@ -24,6 +28,7 @@ const COUNTER_FROM = 1800;
 
 export function ChatComposer({
   canSend,
+  restrictionNotice,
   draft,
   hasDraft,
   bottomPadding,
@@ -31,6 +36,10 @@ export function ChatComposer({
   onBlur,
   onSend,
 }: ChatComposerProps) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS, mode: themeMode } = useAppTheme();
+
   const [focused, setFocused] = useState(false);
   const pop = useRef(new Animated.Value(hasDraft ? 1 : 0)).current;
 
@@ -51,7 +60,7 @@ export function ChatComposer({
       >
         <Feather name="lock" size={14} color={COLORS.inkMuted} />
         <Text className="text-sm text-ink-soft ml-2 flex-shrink">
-          Lịch này đã kết thúc, bạn vẫn có thể xem lịch sử trò chuyện.
+          {restrictionNotice ?? tr("Lịch này đã kết thúc, bạn vẫn có thể xem lịch sử trò chuyện.")}
         </Text>
       </View>
     );
@@ -68,7 +77,7 @@ export function ChatComposer({
         }`}
         style={{ minHeight: 44 }}
       >
-        <TextInput
+        <TextInput keyboardAppearance={themeMode}
           value={draft}
           onChangeText={onChange}
           onFocus={() => setFocused(true)}
@@ -76,7 +85,7 @@ export function ChatComposer({
             setFocused(false);
             onBlur();
           }}
-          placeholder="Nhập tin nhắn..."
+          placeholder={tr("Nhập tin nhắn...")}
           placeholderTextColor={COLORS.inkMuted}
           multiline
           maxLength={MAX_LENGTH}
@@ -95,7 +104,7 @@ export function ChatComposer({
         disabled={!hasDraft}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel="Gửi tin nhắn"
+        accessibilityLabel={tr("Gửi tin nhắn")}
       >
         <Animated.View
           className="w-11 h-11 rounded-full items-center justify-center overflow-hidden"
@@ -112,7 +121,7 @@ export function ChatComposer({
         >
           <View className="absolute inset-0 bg-accent-light" />
           <Animated.View
-            className="absolute inset-0 bg-ink"
+            className="absolute inset-0 bg-ink-panel"
             style={{ opacity: pop }}
           />
           <Feather

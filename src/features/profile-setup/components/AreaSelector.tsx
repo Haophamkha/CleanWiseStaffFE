@@ -1,4 +1,7 @@
-import { COLORS, TYPE } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { TYPE } from "@/constants/theme";
 import { SearchBox } from "@/features/profile-setup/components/SetupKit";
 import type { AreaSelectionState } from "@/features/profile-setup/hooks/useAreaSelection";
 import { Feather } from "@expo/vector-icons";
@@ -6,12 +9,16 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 /** Phần cố định phía trên: ô tìm, tỉnh đang chọn, nút chọn tất cả. */
 export function AreaSelectorTop({ area }: { area: AreaSelectionState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   if (area.step === "province") {
     return (
       <SearchBox
         value={area.search}
         onChangeText={area.setSearch}
-        placeholder="Tìm tỉnh/thành..."
+        placeholder={tr("Tìm tỉnh/thành...")}
       />
     );
   }
@@ -28,31 +35,29 @@ export function AreaSelectorTop({ area }: { area: AreaSelectionState }) {
           style={TYPE.label}
           numberOfLines={1}
         >
-          {area.provinceName || "Tỉnh/thành đã chọn"}
+          {area.provinceName || tr("Tỉnh/thành đã chọn")}
         </Text>
         <TouchableOpacity
           onPress={area.changeProvince}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityLabel="Đổi tỉnh/thành"
+          accessibilityLabel={tr("Đổi tỉnh/thành")}
         >
           <Text className="text-primary text-sm" style={TYPE.label}>
-            Đổi
-          </Text>
+            {tr("Đổi")}</Text>
         </TouchableOpacity>
       </View>
 
       <SearchBox
         value={area.search}
         onChangeText={area.setSearch}
-        placeholder="Tìm phường/xã..."
+        placeholder={tr("Tìm phường/xã...")}
       />
 
       <View className="flex-row items-center justify-between mt-3">
         <Text className="text-ink-soft text-sm">
-          Đã chọn{" "}
+          {tr("Đã chọn")}{" "}
           <Text className="text-ink font-extrabold">{area.selectedCount}</Text>{" "}
-          phường/xã
-        </Text>
+          {tr("phường/xã")}</Text>
         <TouchableOpacity
           onPress={area.toggleAllVisible}
           disabled={area.wards.length === 0}
@@ -64,7 +69,7 @@ export function AreaSelectorTop({ area }: { area: AreaSelectionState }) {
             }`}
             style={TYPE.label}
           >
-            {area.allVisibleSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+            {area.allVisibleSelected ? tr("Bỏ chọn tất cả") : tr("Chọn tất cả")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -74,6 +79,10 @@ export function AreaSelectorTop({ area }: { area: AreaSelectionState }) {
 
 /** Danh sách tỉnh hoặc phường, đặt trong vùng cuộn. */
 export function AreaSelectorList({ area }: { area: AreaSelectionState }) {
+  const { t: tr } = useTranslation();
+
+  const { COLORS } = useAppTheme();
+
   if (area.isLoading) {
     return (
       <View className="py-12 items-center">
@@ -101,7 +110,7 @@ export function AreaSelectorList({ area }: { area: AreaSelectionState }) {
           </TouchableOpacity>
         ))}
         {area.provinces.length === 0 ? (
-          <EmptyText text="Không tìm thấy tỉnh/thành." />
+          <EmptyText text={tr("Không tìm thấy tỉnh/thành.")} />
         ) : null}
       </View>
     );
@@ -122,7 +131,7 @@ export function AreaSelectorList({ area }: { area: AreaSelectionState }) {
             accessibilityState={{ selected: w.selected }}
             style={{ width: "48.5%", minHeight: 48 }}
             className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 ${
-              w.selected ? "border-ink bg-ink" : "border-line bg-surface"
+              w.selected ? "border-ink bg-ink-panel" : "border-line bg-surface"
             }`}
           >
             <Text
@@ -146,7 +155,7 @@ export function AreaSelectorList({ area }: { area: AreaSelectionState }) {
         ))}
       </View>
       {area.wards.length === 0 ? (
-        <EmptyText text="Không tìm thấy phường/xã." />
+        <EmptyText text={tr("Không tìm thấy phường/xã.")} />
       ) : null}
     </View>
   );

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as tr } from "@/features/language/i18n";
 import {
     useGetWorkerProfileQuery,
     useSubmitWorkerProfileMutation,
@@ -14,11 +16,13 @@ import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
-export const GENDER_OPTIONS: { value: Gender; label: string }[] = [
-  { value: "MALE", label: "Nam" },
-  { value: "FEMALE", label: "Nữ" },
-  { value: "OTHER", label: "Khác" },
-];
+export function getLocalizedGenderOptions(): { value: Gender; label: string }[] {
+  return [
+    { value: "MALE", label: tr("Nam") },
+    { value: "FEMALE", label: tr("Nữ") },
+    { value: "OTHER", label: tr("Khác") },
+  ];
+}
 
 const MAX_BIRTH_DATE = new Date(
   new Date().setFullYear(new Date().getFullYear() - 18),
@@ -36,6 +40,8 @@ type FormSnapshot = {
 };
 
 export function usePersonalInfo() {
+  const { t: tr } = useTranslation();
+
   const { data: profile, isLoading: isLoadingProfile } =
     useGetWorkerProfileQuery();
   const [updateProfile, { isLoading: isSaving }] =
@@ -133,7 +139,7 @@ export function usePersonalInfo() {
       (!lastNameLocked && !lastName.trim()) ||
       (!phoneLocked && !phoneNumber.trim())
     ) {
-      setError("Vui lòng điền đầy đủ họ tên và số điện thoại.");
+      setError(tr("Vui lòng điền đầy đủ họ tên và số điện thoại."));
       return;
     }
     setError("");
@@ -162,13 +168,13 @@ export function usePersonalInfo() {
         return;
       }
 
-      showSuccessToast("Thành công", "Đã cập nhật thông tin cá nhân.");
+      showSuccessToast(tr("Thành công"), tr("Đã cập nhật thông tin cá nhân."));
       router.back();
     } catch (e: any) {
       const message =
-        e?.data?.message || "Cập nhật thất bại, vui lòng thử lại.";
+        e?.data?.message || tr("Cập nhật thất bại, vui lòng thử lại.");
       setError(message);
-      showErrorToast("Lỗi", message);
+      showErrorToast(tr("Lỗi"), message);
     }
   };
 
@@ -190,10 +196,10 @@ export function usePersonalInfo() {
 
   const submitLabel =
     isRejectedFlow && nextRejectedStep
-      ? "Tiếp tục"
+      ? tr("Tiếp tục")
       : isRejectedFlow
-        ? "Hoàn tất & gửi lại"
-        : "Lưu thay đổi";
+        ? tr("Hoàn tất & gửi lại")
+        : tr("Lưu thay đổi");
 
   return {
     isLoadingProfile,
