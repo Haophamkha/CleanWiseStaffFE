@@ -1,7 +1,7 @@
-import { useTranslation } from "react-i18next";
+import type { ThemeColors } from "@/constants/theme";
 import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
-import type { ThemeColors } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import type { ProfileStatus } from "@/features/profile-setup/types/WorkerProfile";
@@ -32,43 +32,47 @@ export type MenuGroup = {
   items: MenuItem[];
 };
 
-export function getProfileStatusInfo(COLORS: ThemeColors): Record<ProfileStatus, ProfileStatusInfo> { return {
-  DRAFT: {
-    label: tr("Chưa hoàn tất hồ sơ"),
-    color: COLORS.danger,
-    bg: COLORS.dangerLight,
-    text: COLORS.danger,
-  },
-  PENDING: {
-    label: tr("Đang chờ duyệt"),
-    color: COLORS.warning,
-    bg: COLORS.warningLight,
-    text: COLORS.warningDark,
-  },
-  ACTIVE: {
-    label: tr("Đang làm việc"),
-    color: COLORS.success,
-    bg: COLORS.successLight,
-    text: COLORS.success,
-  },
-  REJECTED: {
-    label: tr("Hồ sơ bị từ chối"),
-    color: COLORS.danger,
-    bg: COLORS.dangerLight,
-    text: COLORS.danger,
-  },
-  SUSPENDED: {
-    label: tr("Tạm khóa"),
-    color: COLORS.danger,
-    bg: COLORS.dangerLight,
-    text: COLORS.danger,
-  },
-}; }
+export function getProfileStatusInfo(
+  COLORS: ThemeColors,
+): Record<ProfileStatus, ProfileStatusInfo> {
+  return {
+    DRAFT: {
+      label: tr("Chưa hoàn tất hồ sơ"),
+      color: COLORS.danger,
+      bg: COLORS.dangerLight,
+      text: COLORS.danger,
+    },
+    PENDING: {
+      label: tr("Đang chờ duyệt"),
+      color: COLORS.warning,
+      bg: COLORS.warningLight,
+      text: COLORS.warningDark,
+    },
+    ACTIVE: {
+      label: tr("Đang làm việc"),
+      color: COLORS.success,
+      bg: COLORS.successLight,
+      text: COLORS.success,
+    },
+    REJECTED: {
+      label: tr("Hồ sơ bị từ chối"),
+      color: COLORS.danger,
+      bg: COLORS.dangerLight,
+      text: COLORS.danger,
+    },
+    SUSPENDED: {
+      label: tr("Tạm khóa"),
+      color: COLORS.danger,
+      bg: COLORS.dangerLight,
+      text: COLORS.danger,
+    },
+  };
+}
 
 function buildMenuGroups(): MenuGroup[] {
   return [
     {
-      title: tr("Tài khoản & công việc"),
+      title: tr("Tài khoản"),
       layout: "list",
       items: [
         {
@@ -87,6 +91,16 @@ function buildMenuGroups(): MenuGroup[] {
           onPress: () => router.push("/(profile-setup)/my-profile"),
         },
         {
+          icon: "credit-card",
+          label: tr("Tài khoản ngân hàng"),
+          onPress: () => router.push("/payment-methods" as any),
+        },
+        {
+          icon: "trending-up",
+          label: tr("Thu nhập"),
+          onPress: () => router.push("/earnings" as any),
+        },
+        {
           icon: "alert-circle",
           label: tr("Khiếu nại của tôi"),
           onPress: () => router.push("/complaints" as any),
@@ -94,26 +108,14 @@ function buildMenuGroups(): MenuGroup[] {
       ],
     },
     {
-      title: tr("Tài chính"),
-      layout: "shortcuts",
-      items: [
-        {
-          icon: "trending-up",
-          label: tr("Thu nhập"),
-          onPress: () => router.push("/earnings" as any),
-        },
-        {
-          icon: "credit-card",
-          label: tr("Tài khoản ngân hàng"),
-          onPress: () => router.push("/payment-methods" as any),
-        },
-      ],
-    },
-    {
       title: tr("Ứng dụng"),
       layout: "support",
       items: [
-        { icon: "settings", label: tr("Cài đặt"), onPress: () => router.push("/settings" as any) },
+        {
+          icon: "settings",
+          label: tr("Cài đặt"),
+          onPress: () => router.push("/settings" as any),
+        },
         {
           icon: "info",
           label: tr("Về CleanWise"),

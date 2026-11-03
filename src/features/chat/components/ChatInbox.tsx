@@ -1,17 +1,19 @@
 import { useTranslation } from "react-i18next";
 
-import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { TabHeader } from "@/components/common/TabHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 
 import { ConversationItem } from "@/features/chat/components/ConversationItem";
 import { useChatInbox } from "@/features/chat/hooks/useChatInbox";
+import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   Animated,
   FlatList,
   RefreshControl,
+  Text,
   View,
 } from "react-native";
 
@@ -57,17 +59,64 @@ function InboxSkeleton() {
   );
 }
 
-export function ChatInbox(_props: { staff?: boolean }) {
+/** Trạng thái chưa có cuộc trò chuyện: thoáng, không khung card. */
+function EmptyInbox() {
   const { t: tr } = useTranslation();
-
   const { COLORS } = useAppTheme();
 
+  return (
+    <View
+      className="flex-1 items-center justify-center px-10"
+      style={{ paddingBottom: 80 }}
+    >
+      <View
+        className="items-center justify-center"
+        style={{
+          width: 112,
+          height: 112,
+          borderRadius: 56,
+          backgroundColor: COLORS.primarySoft,
+        }}
+      >
+        <View
+          className="items-center justify-center"
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            backgroundColor: COLORS.primaryLight,
+          }}
+        >
+          <Feather name="message-circle" size={34} color={COLORS.primary} />
+        </View>
+      </View>
+
+      <Text
+        className="text-ink font-extrabold text-center"
+        style={{ fontSize: 18, lineHeight: 24, marginTop: 24 }}
+      >
+        {tr("Chưa có cuộc trò chuyện nào")}
+      </Text>
+      <Text
+        className="text-ink-soft text-center"
+        style={{ fontSize: 14, lineHeight: 21, marginTop: 8 }}
+      >
+        {tr(
+          "Tin nhắn với khách hàng sẽ xuất hiện ở đây sau khi bạn nhận việc.",
+        )}
+      </Text>
+    </View>
+  );
+}
+
+export function ChatInbox(_props: { staff?: boolean }) {
+  const { t: tr } = useTranslation();
+  const { COLORS } = useAppTheme();
   const inbox = useChatInbox();
 
   return (
-    <View className="flex-1 bg-surface">
+    <View className="flex-1 bg-canvas">
       <TabHeader title={tr("Tin nhắn")} subtitle={inbox.subtitle} />
-      <View className="h-px bg-line" />
 
       {inbox.status === "guest" ? (
         <View className="flex-1 justify-center px-5">
@@ -98,8 +147,8 @@ export function ChatInbox(_props: { staff?: boolean }) {
             />
           )}
           contentContainerStyle={{
-            paddingTop: 8,
-            paddingBottom: 24,
+            paddingTop: 4,
+            paddingBottom: 120,
             flexGrow: 1,
           }}
           showsVerticalScrollIndicator={false}
@@ -114,14 +163,7 @@ export function ChatInbox(_props: { staff?: boolean }) {
           }
           onEndReached={inbox.loadMore}
           onEndReachedThreshold={0.3}
-          ListEmptyComponent={
-            <View className="flex-1 justify-center">
-              <EmptyState
-                icon="message-circle"
-                title={tr("Chưa có cuộc trò chuyện nào")}
-              />
-            </View>
-          }
+          ListEmptyComponent={<EmptyInbox />}
           ListFooterComponent={
             inbox.isFetchingMore ? (
               <ActivityIndicator color={COLORS.primary} />
