@@ -1,16 +1,16 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 
 import type { MyJobsTab } from "@/features/schedule/types/Schedule";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-function getLocalizedTabs(): { key: MyJobsTab; label: string }[] {
+function getLocalizedTabs(translateText = defaultTranslate): { key: MyJobsTab; label: string }[] {
   return [
-    { key: "today", label: tr("Hôm nay") },
-    { key: "upcoming", label: tr("Sắp tới") },
-    { key: "completed", label: tr("Hoàn thành") },
-    { key: "cancelled", label: tr("Đã hủy") },
+    { key: "today", label: translateText("Hôm nay") },
+    { key: "upcoming", label: translateText("Sắp tới") },
+    { key: "completed", label: translateText("Hoàn thành") },
+    { key: "cancelled", label: translateText("Đã hủy") },
   ];
 }
 
@@ -34,7 +34,7 @@ export function MyStatusTabs({
       className="mt-3 -mx-5"
       contentContainerStyle={{ paddingHorizontal: 20 }}
     >
-      {getLocalizedTabs().map((t) => {
+      {getLocalizedTabs(tr).map((t) => {
         const active = value === t.key;
         const count = counts?.[t.key] ?? 0;
         return (

@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { ROUTES } from "@/config/constants";
 import {
     saveTokens,
@@ -40,18 +40,18 @@ export type RegisterFieldConfig = {
   autoCapitalize?: "none" | "words";
 };
 
-export function getLocalizedPersonalFields(): RegisterFieldConfig[] {
+export function getLocalizedPersonalFields(translateText = defaultTranslate): RegisterFieldConfig[] {
   return [
     {
       key: "last_name",
-      label: tr("Họ và tên đệm"),
+      label: translateText("Họ và tên đệm"),
       icon: "user",
       placeholder: "Nguyễn Thị",
       autoCapitalize: "words",
     },
     {
       key: "first_name",
-      label: tr("Tên"),
+      label: translateText("Tên"),
       icon: "user",
       placeholder: "Lan",
       autoCapitalize: "words",
@@ -59,11 +59,11 @@ export function getLocalizedPersonalFields(): RegisterFieldConfig[] {
   ];
 }
 
-export function getLocalizedAccountFields(): RegisterFieldConfig[] {
+export function getLocalizedAccountFields(translateText = defaultTranslate): RegisterFieldConfig[] {
   return [
     {
       key: "username",
-      label: tr("Tên đăng nhập"),
+      label: translateText("Tên đăng nhập"),
       icon: "at-sign",
       placeholder: "vd. lan.nguyen92",
       autoCapitalize: "none",
@@ -78,7 +78,7 @@ export function getLocalizedAccountFields(): RegisterFieldConfig[] {
     },
     {
       key: "phone_number",
-      label: tr("Số điện thoại"),
+      label: translateText("Số điện thoại"),
       icon: "phone",
       placeholder: "090 123 4567",
       keyboardType: "phone-pad",
@@ -87,11 +87,11 @@ export function getLocalizedAccountFields(): RegisterFieldConfig[] {
   ];
 }
 
-export function getLocalizedGenderOptions(): { value: Gender; label: string }[] {
+export function getLocalizedGenderOptions(translateText = defaultTranslate): { value: Gender; label: string }[] {
   return [
-    { value: "MALE", label: tr("Nam") },
-    { value: "FEMALE", label: tr("Nữ") },
-    { value: "OTHER", label: tr("Khác") },
+    { value: "MALE", label: translateText("Nam") },
+    { value: "FEMALE", label: translateText("Nữ") },
+    { value: "OTHER", label: translateText("Khác") },
   ];
 }
 
@@ -150,7 +150,7 @@ export function useRegister() {
   const handleRegister = async () => {
     setError("");
 
-    const validation = getLocalizedRegisterWorkerSchema().safeParse(form);
+    const validation = getLocalizedRegisterWorkerSchema(tr).safeParse(form);
 
     if (!validation.success) {
       const message =
@@ -184,7 +184,7 @@ export function useRegister() {
 
       router.replace(ROUTES.HOME);
     } catch (e: any) {
-      const message = getErrorMessage(e);
+      const message = getErrorMessage(e, tr);
       setError(message);
       showErrorToast(tr("Đăng ký thất bại"), message);
     }

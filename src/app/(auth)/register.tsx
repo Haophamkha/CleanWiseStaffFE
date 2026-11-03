@@ -63,7 +63,7 @@ export default function RegisterScreen() {
       }
     >
       <SectionTitle icon="user" title={tr("Thông tin cá nhân")} />
-      {getLocalizedPersonalFields().map(renderField)}
+      {getLocalizedPersonalFields(tr).map(renderField)}
 
       <FormField label={tr("Ngày sinh")} required>
         <DateField
@@ -89,14 +89,14 @@ export default function RegisterScreen() {
 
       <FormField label={tr("Giới tính")} required>
         <SegmentedControl
-          options={getLocalizedGenderOptions()}
+          options={getLocalizedGenderOptions(tr)}
           value={form.gender}
           onChange={(g) => update("gender", g)}
         />
       </FormField>
 
       <SectionTitle icon="smartphone" title={tr("Tài khoản và liên hệ")} />
-      {getLocalizedAccountFields().map(renderField)}
+      {getLocalizedAccountFields(tr).map(renderField)}
 
       <SectionTitle icon="lock" title={tr("Bảo mật")} />
       <FormField label={tr("Mật khẩu")} required>

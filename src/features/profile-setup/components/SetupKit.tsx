@@ -1,3 +1,4 @@
+import { localizeKnownMessage } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -89,7 +90,7 @@ export function SetupScreen({
           <View className="flex-row items-center bg-danger-light rounded-2xl px-3.5 py-2.5 mb-3">
             <Feather name="alert-circle" size={16} color={COLORS.danger} />
             <Text className="text-danger text-sm ml-2 flex-1">
-              {setup.error}
+              {localizeKnownMessage(setup.error, tr)}
             </Text>
           </View>
         ) : null}

@@ -61,7 +61,7 @@ export function JobInfoCard({
 
   const { COLORS } = useAppTheme();
 
-  const payment = getPaymentStatusMap(COLORS)[summary.payment];
+  const payment = getPaymentStatusMap(COLORS, tr)[summary.payment];
 
   return (
     <View

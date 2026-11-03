@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
 import {
   Field,
@@ -10,14 +10,14 @@ import {
 import { useProfileSetup } from "@/features/profile-setup/hooks/useProfileSetup";
 import { Text } from "react-native";
 
-function getLocalizedTips() {
+function getLocalizedTips(translateText = defaultTranslate) {
   return [
-    { ok: true, text: tr("Chụp toàn bộ giấy, thấy rõ tên, con dấu và ngày cấp.") },
-    { ok: true, text: tr("Đặt giấy trên mặt phẳng, đủ sáng, chụp thẳng góc.") },
-    { ok: false, text: tr("Không chụp mờ, lóa sáng hoặc bị cắt mất góc.") },
+    { ok: true, text: translateText("Chụp toàn bộ giấy, thấy rõ tên, con dấu và ngày cấp.") },
+    { ok: true, text: translateText("Đặt giấy trên mặt phẳng, đủ sáng, chụp thẳng góc.") },
+    { ok: false, text: translateText("Không chụp mờ, lóa sáng hoặc bị cắt mất góc.") },
     {
       ok: false,
-      text: tr("Không dùng giấy tờ đã hết hạn hoặc không liên quan dịch vụ."),
+      text: translateText("Không dùng giấy tờ đã hết hạn hoặc không liên quan dịch vụ."),
     },
   ];
 }
@@ -77,7 +77,7 @@ export default function ExperienceStep() {
         <Text className="text-danger text-xs mt-1.5">{certificateNote}</Text>
       ) : null}
 
-      <GuideCard title={tr("Hướng dẫn chụp giấy tờ")} tips={getLocalizedTips()} />
+      <GuideCard title={tr("Hướng dẫn chụp giấy tờ")} tips={getLocalizedTips(tr)} />
     </SetupScreen>
   );
 }

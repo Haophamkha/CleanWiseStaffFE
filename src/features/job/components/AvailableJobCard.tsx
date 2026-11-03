@@ -56,7 +56,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
       <PressableScale
         onPress={() => onOpen(item.id, "available", item.booking_id)}
         accessibilityRole="button"
-        accessibilityLabel={tr("Xem công việc {{value0}}", { value0: item.service_name })}
+        accessibilityLabel={tr("Xem công việc {{value0}}", { value0: tr(item.service_name) })}
         containerStyle={{ marginBottom: 12 }}
         className={`bg-surface border p-4 ${
           isPreferred ? "border-primary" : "border-line"
@@ -109,7 +109,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
               className="text-ink font-extrabold text-base"
               numberOfLines={1}
             >
-              {item.service_name}
+              {tr(item.service_name)}
             </Text>
             <View className="flex-row items-center mt-0.5">
               <Feather name="map-pin" size={12} color={COLORS.inkMuted} />

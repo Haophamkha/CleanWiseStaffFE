@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useGetWorkingAreasQuery } from "@/features/auth/api/authApi";
 import type {
     ProfileStatus,
@@ -23,32 +23,32 @@ type StatusConfig = {
   ctaRoute: StatusRoute;
 };
 
-function getLocalizedStatusConfig(): Record<ProfileStatus, StatusConfig> {
+function getLocalizedStatusConfig(translateText = defaultTranslate): Record<ProfileStatus, StatusConfig> {
   return {
     DRAFT: {
-      title: tr("Hoàn thiện hồ sơ để bắt đầu nhận việc"),
+      title: translateText("Hoàn thiện hồ sơ để bắt đầu nhận việc"),
       description:
-        tr("Bạn cần cập nhật ảnh chân dung, CCCD, dịch vụ, khu vực hoạt động và kinh nghiệm."),
-      badge: tr("Chưa hoàn tất"),
+        translateText("Bạn cần cập nhật ảnh chân dung, CCCD, dịch vụ, khu vực hoạt động và kinh nghiệm."),
+      badge: translateText("Chưa hoàn tất"),
       tone: "danger",
-      ctaLabel: tr("Cập nhật"),
+      ctaLabel: translateText("Cập nhật"),
       ctaRoute: "wizard",
     },
     REJECTED: {
-      title: tr("Hồ sơ bị từ chối, vui lòng cập nhật lại"),
+      title: translateText("Hồ sơ bị từ chối, vui lòng cập nhật lại"),
       description:
-        tr("Vui lòng kiểm tra và chỉnh sửa thông tin theo phản hồi của quản trị viên."),
-      badge: tr("Bị từ chối"),
+        translateText("Vui lòng kiểm tra và chỉnh sửa thông tin theo phản hồi của quản trị viên."),
+      badge: translateText("Bị từ chối"),
       tone: "danger",
-      ctaLabel: tr("Cập nhật"),
+      ctaLabel: translateText("Cập nhật"),
       ctaRoute: "wizard",
     },
     PENDING: {
-      title: tr("Hồ sơ đang chờ xét duyệt"),
-      description: tr("Quản trị viên sẽ phản hồi trong vòng 24 - 48 giờ."),
-      badge: tr("Chờ duyệt"),
+      title: translateText("Hồ sơ đang chờ xét duyệt"),
+      description: translateText("Quản trị viên sẽ phản hồi trong vòng 24 - 48 giờ."),
+      badge: translateText("Chờ duyệt"),
       tone: "warning",
-      ctaLabel: tr("Xem lại hồ sơ"),
+      ctaLabel: translateText("Xem lại hồ sơ"),
       ctaRoute: "review",
     },
     ACTIVE: {
@@ -60,9 +60,9 @@ function getLocalizedStatusConfig(): Record<ProfileStatus, StatusConfig> {
       ctaRoute: null,
     },
     SUSPENDED: {
-      title: tr("Tài khoản đang bị tạm khóa"),
-      description: tr("Vui lòng liên hệ quản trị viên để biết thêm chi tiết."),
-      badge: tr("Tạm khóa"),
+      title: translateText("Tài khoản đang bị tạm khóa"),
+      description: translateText("Vui lòng liên hệ quản trị viên để biết thêm chi tiết."),
+      badge: translateText("Tạm khóa"),
       tone: "danger",
       ctaLabel: null,
       ctaRoute: null,
@@ -85,14 +85,14 @@ export function useProfileStatus(profile: WorkerProfileResponse) {
   const approvalWasRevoked = status === "DRAFT" && !!profile.rejection_reason;
   const config: StatusConfig = approvalWasRevoked
     ? {
-        ...getLocalizedStatusConfig().DRAFT,
+        ...getLocalizedStatusConfig(tr).DRAFT,
         title: tr("Phê duyệt hồ sơ đã được thu hồi"),
         description:
           tr("Vui lòng cập nhật hồ sơ nếu cần và gửi lại để quản trị viên xét duyệt."),
         badge: tr("Đã thu hồi phê duyệt"),
         ctaLabel: tr("Cập nhật và gửi lại"),
       }
-    : getLocalizedStatusConfig()[status];
+    : getLocalizedStatusConfig(tr)[status];
 
   const stepsDone = [
     // Step 1: Ảnh chân dung

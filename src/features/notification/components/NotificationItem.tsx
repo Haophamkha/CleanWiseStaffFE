@@ -1,4 +1,6 @@
-import { translate as tr, getLocale } from "@/features/language/i18n";
+import { localizeNotificationText } from "@/features/notification/utils/localizeNotificationText";
+import { useTranslation } from "react-i18next";
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import type {
@@ -19,23 +21,24 @@ type Tone = { bg: string; fg: string };
 /* Mỗi loại một màu nhẹ, lấy từ token */
 
 
-function formatAgo(iso: string) {
+function formatAgo(iso: string, translateText = defaultTranslate) {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minute = 60 * 1000;
   const hour = 60 * minute;
   const day = 24 * hour;
 
   if (diffMs < hour)
-    return tr("{{value0}} phút trước", { value0: Math.max(1, Math.floor(diffMs / minute)) , count: Math.max(1, Math.floor(diffMs / minute))});
-  if (diffMs < day) return tr("{{value0}} giờ trước", { value0: Math.floor(diffMs / hour) , count: Math.floor(diffMs / hour)});
-  if (diffMs < 7 * day) return tr("{{value0}} ngày trước", { value0: Math.floor(diffMs / day) , count: Math.floor(diffMs / day)});
-  return new Date(iso).toLocaleDateString(getLocale());
+    return translateText("{{value0}} phút trước", { value0: Math.max(1, Math.floor(diffMs / minute)) , count: Math.max(1, Math.floor(diffMs / minute))});
+  if (diffMs < day) return translateText("{{value0}} giờ trước", { value0: Math.floor(diffMs / hour) , count: Math.floor(diffMs / hour)});
+  if (diffMs < 7 * day) return translateText("{{value0}} ngày trước", { value0: Math.floor(diffMs / day) , count: Math.floor(diffMs / day)});
+  return new Date(iso).toLocaleDateString(getLocale(translateText));
 }
 
 export default function NotificationItem({
   notification,
   onPress,
 }: NotificationItemProps) {
+  const { t: tr } = useTranslation();
   const { COLORS } = useAppTheme();
 
   const TONES: Record<NotificationType, Tone> = {
@@ -46,7 +49,7 @@ export default function NotificationItem({
     SYSTEM: { bg: COLORS.primaryLight, fg: COLORS.primary },
   };
 
-  const meta = getNotificationTypeMeta(notification.type);
+  const meta = getNotificationTypeMeta(notification.type, tr);
   const tone = TONES[notification.type] ?? TONES.SYSTEM;
   const isUnread = !notification.is_read;
   const iconColor = isUnread ? tone.fg : COLORS.inkMuted;
@@ -88,7 +91,7 @@ export default function NotificationItem({
               <View className="w-2 h-2 rounded-full bg-primary-fill mr-1.5" />
             )}
             <Text className="text-ink-muted text-xs">
-              {formatAgo(notification.created_at)}
+              {formatAgo(notification.created_at, tr)}
             </Text>
           </View>
         </View>
@@ -99,10 +102,10 @@ export default function NotificationItem({
           }`}
           numberOfLines={2}
         >
-          {notification.title}
+          {localizeNotificationText(notification.title, tr)}
         </Text>
         <Text className="text-ink-soft text-sm leading-5" numberOfLines={2}>
-          {notification.message}
+          {localizeNotificationText(notification.message, tr)}
         </Text>
       </View>
     </TouchableOpacity>

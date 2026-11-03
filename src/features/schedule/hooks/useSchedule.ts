@@ -1,5 +1,5 @@
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr, getLocale } from "@/features/language/i18n";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
 import type {
   ScheduleStatus,
@@ -11,15 +11,15 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 
 const WEEKDAY_SHORT = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-function getLocalizedWeekdayFull() {
+function getLocalizedWeekdayFull(translateText = defaultTranslate) {
   return [
-    tr("Thứ Hai"),
-    tr("Thứ Ba"),
-    tr("Thứ Tư"),
-    tr("Thứ Năm"),
-    tr("Thứ Sáu"),
-    tr("Thứ Bảy"),
-    tr("Chủ Nhật"),
+    translateText("Thứ Hai"),
+    translateText("Thứ Ba"),
+    translateText("Thứ Tư"),
+    translateText("Thứ Năm"),
+    translateText("Thứ Sáu"),
+    translateText("Thứ Bảy"),
+    translateText("Chủ Nhật"),
   ];
 }
 
@@ -73,12 +73,12 @@ function minutesBetween(startIso: string, endIso: string) {
   );
 }
 
-function formatLength(startIso: string, endIso: string) {
+function formatLength(startIso: string, endIso: string, translateText = defaultTranslate) {
   const total = minutesBetween(startIso, endIso);
   const h = Math.floor(total / 60);
   const m = total % 60;
-  if (h === 0) return tr("{{value0}} phút", { value0: m });
-  if (m === 0) return tr("{{value0}} giờ", { value0: h });
+  if (h === 0) return translateText("{{value0}} phút", { value0: m });
+  if (m === 0) return translateText("{{value0}} giờ", { value0: h });
   return `${h}h${m}`;
 }
 
@@ -129,7 +129,7 @@ export function useSchedule() {
     return weekDays.map((date, i) => ({
       key: date.toISOString(),
       date,
-      weekday: getLocale() === "en-US" ? date.toLocaleDateString(getLocale(), { weekday: "short" }) : WEEKDAY_SHORT[i],
+      weekday: getLocale(tr) === "en-US" ? date.toLocaleDateString(getLocale(tr), { weekday: "short" }) : WEEKDAY_SHORT[i],
       dayNumber: date.getDate(),
       selected: isSameDay(date, selectedDate),
       isToday: isSameDay(date, today),
@@ -142,12 +142,12 @@ export function useSchedule() {
       selectedList.map((s, index) => ({
         id: s.id,
         status: s.status,
-        startLabel: formatTime(s.scheduled_start),
-        endLabel: formatTime(s.scheduled_end),
-        durationLabel: formatLength(s.scheduled_start, s.scheduled_end),
-        service: s.service_name,
+        startLabel: formatTime(s.scheduled_start, tr),
+        endLabel: formatTime(s.scheduled_end, tr),
+        durationLabel: formatLength(s.scheduled_start, s.scheduled_end, tr),
+        service: tr(s.service_name),
         location: `${s.address_ward ? `${s.address_ward}, ` : ""}${s.address_city}`,
-        priceLabel: formatCurrency(s.price) ?? "—",
+        priceLabel: formatCurrency(s.price, tr) ?? "—",
         isLast: index === selectedList.length - 1,
       })),
     [selectedList, tr],
@@ -186,13 +186,13 @@ export function useSchedule() {
     monthLabel: tr("Tháng {{value0}}", { value0: weekStart.getMonth() + 1 }),
     yearLabel: String(weekStart.getFullYear()),
     days,
-    dayTitle: getLocalizedWeekdayFull()[selectedIndex >= 0 ? selectedIndex : 0],
+    dayTitle: getLocalizedWeekdayFull(tr)[selectedIndex >= 0 ? selectedIndex : 0],
     dateLabel: `${pad2(selectedDate.getDate())}/${pad2(selectedDate.getMonth() + 1)}/${selectedDate.getFullYear()}`,
     rows,
     summary: {
       count: selectedList.length,
       hoursLabel: formatTotalHours(totalMinutes),
-      incomeLabel: formatCurrency(totalIncome) ?? "—",
+      incomeLabel: formatCurrency(totalIncome, tr) ?? "—",
     },
     selectDay: setSelectedDate,
     goPrevWeek,

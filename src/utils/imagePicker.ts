@@ -1,4 +1,4 @@
-import { translate as tr } from "@/features/language/i18n";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Linking } from "react-native";
@@ -31,16 +31,16 @@ type TakePhotoOptions = {
 };
 
 export async function takePhoto(
-  options: TakePhotoOptions = {},
+  options: TakePhotoOptions = {}, translateText = defaultTranslate,
 ): Promise<PickedFile | null> {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) {
     Alert.alert(
-      tr("Cần quyền camera"),
-      tr("Hãy cho phép ứng dụng dùng camera trong Cài đặt để chụp ảnh."),
+      translateText("Cần quyền camera"),
+      translateText("Hãy cho phép ứng dụng dùng camera trong Cài đặt để chụp ảnh."),
       [
-        { text: tr("Để sau"), style: "cancel" },
-        { text: tr("Mở cài đặt"), onPress: () => Linking.openSettings() },
+        { text: translateText("Để sau"), style: "cancel" },
+        { text: translateText("Mở cài đặt"), onPress: () => Linking.openSettings() },
       ],
     );
     return null;

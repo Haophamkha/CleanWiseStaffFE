@@ -1,4 +1,4 @@
-import { translate as tr } from "@/features/language/i18n";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import {
   useClearAllNotificationsMutation,
   useGetNotificationsQuery,
@@ -26,20 +26,20 @@ export type NotificationRow =
   | { type: "header"; key: string; label: string }
   | { type: "item"; key: string; notification: AppNotification };
 
-function dayGroupLabel(iso: string) {
+function dayGroupLabel(iso: string, translateText = defaultTranslate) {
   const diff = Math.round(
     (startOfDay(new Date()) - startOfDay(new Date(iso))) / 86400000,
   );
-  if (diff <= 0) return tr("Hôm nay");
-  if (diff === 1) return tr("Hôm qua");
-  return tr("Trước đó");
+  if (diff <= 0) return translateText("Hôm nay");
+  if (diff === 1) return translateText("Hôm qua");
+  return translateText("Trước đó");
 }
 
-function buildRows(items: AppNotification[]): NotificationRow[] {
+function buildRows(items: AppNotification[], translateText = defaultTranslate): NotificationRow[] {
   const rows: NotificationRow[] = [];
   let lastLabel = "";
   items.forEach((n) => {
-    const label = dayGroupLabel(n.created_at);
+    const label = dayGroupLabel(n.created_at, translateText);
     if (label !== lastLabel) {
       rows.push({ type: "header", key: `h-${label}`, label });
       lastLabel = label;
@@ -70,7 +70,7 @@ export function useNotifications() {
     );
   }, [currentData, page]);
 
-  const rows = useMemo(() => buildRows(items), [items, tr]);
+  const rows = useMemo(() => buildRows(items, tr), [items, tr]);
 
   const handleLoadMore = () => {
     if (currentData?.has_next && !isFetching) setPage((p) => p + 1);
@@ -82,7 +82,6 @@ export function useNotifications() {
   };
 
   const handlePressNotification = (n: AppNotification) => {
-    console.log("NOTI", JSON.stringify(n));
     if (!n.is_read) {
       markRead(n.id);
       setItems((prev) =>

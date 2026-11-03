@@ -1,5 +1,5 @@
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr, getLocale } from "@/features/language/i18n";
 import type { ChatModerationStatus } from "@/features/chat/types/chat";
 import {
     useGetConversationQuery,
@@ -102,22 +102,22 @@ function mergeMessages(
 const dayKey = (iso: string) => new Date(iso).toDateString();
 const isSameDay = (a: string, b: string) => dayKey(a) === dayKey(b);
 
-function formatDayLabel(iso: string): string {
+function formatDayLabel(iso: string, translateText = defaultTranslate): string {
   const date = new Date(iso);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  if (date.toDateString() === today.toDateString()) return tr("Hôm nay");
-  if (date.toDateString() === yesterday.toDateString()) return tr("Hôm qua");
-  return date.toLocaleDateString(getLocale(), {
+  if (date.toDateString() === today.toDateString()) return translateText("Hôm nay");
+  if (date.toDateString() === yesterday.toDateString()) return translateText("Hôm qua");
+  return date.toLocaleDateString(getLocale(translateText), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 }
 
-const formatTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString(getLocale(), {
+const formatTime = (iso: string, translateText = defaultTranslate) =>
+  new Date(iso).toLocaleTimeString(getLocale(translateText), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -162,7 +162,7 @@ export function useChatRoom(id: number) {
   const moderation = localModeration ?? conversation?.moderation;
   const canSend = !!conversation?.can_send && !moderation?.is_locked;
   const restrictionNotice = moderation?.is_locked && moderation.locked_until
-    ? tr("Bạn bị tạm khóa gửi chat đến {{value0}}. Bạn vẫn có thể đọc, nhận tin và liên hệ hỗ trợ.", { value0: new Date(moderation.locked_until).toLocaleString(getLocale()) })
+    ? tr("Bạn bị tạm khóa gửi chat đến {{value0}}. Bạn vẫn có thể đọc, nhận tin và liên hệ hỗ trợ.", { value0: new Date(moderation.locked_until).toLocaleString(getLocale(tr)) })
     : undefined;
   const moderationNotice = !moderation?.is_locked && moderation?.violation_count
     ? tr("Bạn đã vi phạm {{value0}} lần trong {{value1}} ngày. Không chia sẻ SĐT, email hoặc liên kết ngoài ứng dụng.", { value0: moderation.violation_count, value1: moderation.window_days })
@@ -387,7 +387,7 @@ export function useChatRoom(id: number) {
       }
       scrollToLatest();
     } catch (error) {
-      const blockedMessage = getChatBlockedMessage(error);
+      const blockedMessage = getChatBlockedMessage(error, tr);
       if (blockedMessage) {
         requestKeys.current.delete(localId);
         const status = getChatModerationStatus(error);
@@ -435,7 +435,7 @@ export function useChatRoom(id: number) {
             ? `${related.service_name} · ${related.booking_code}`
             : null,
           text: item.message,
-          timeLabel: new Date(item.created_at).toLocaleString(getLocale(), {
+          timeLabel: new Date(item.created_at).toLocaleString(getLocale(tr), {
             hour: "2-digit",
             minute: "2-digit",
             day: "2-digit",
@@ -478,7 +478,7 @@ export function useChatRoom(id: number) {
           joinsNewer,
           joinsOlder,
           showMeta,
-          metaText: `${formatTime(item.created_at)}${status}`,
+          metaText: `${formatTime(item.created_at, tr)}${status}`,
           failed: item.localStatus === "failed",
         });
       }
@@ -487,7 +487,7 @@ export function useChatRoom(id: number) {
         result.push({
           kind: "day",
           key: `day-${dayKey(item.created_at)}`,
-          label: formatDayLabel(item.created_at),
+          label: formatDayLabel(item.created_at, tr),
         });
       }
     });

@@ -69,7 +69,7 @@ export function useJobs() {
 
   const [day, setDay] = useState<string | null>(null);
 
-  const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT), [tr]);
+  const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT, tr), [tr]);
 
   const availableFilters = useMemo<AvailableFilters>(
     () =>

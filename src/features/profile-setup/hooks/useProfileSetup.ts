@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import {
   useGetActiveServicesQuery,
   useGetWorkerProfileQuery,
@@ -76,9 +76,9 @@ const IDENTITY_NUMBER_REGEX = /^(\d{12}|\d{9})$/;
 const MAX_EXPERIENCE_YEARS = 60;
 
 // Tên hiển thị tuỳ chỉnh cho nhóm dịch vụ gồm nhiều service cùng làm được.
-function getLocalizedSectionDisplayName(): Record<string, string> {
+function getLocalizedSectionDisplayName(translateText = defaultTranslate): Record<string, string> {
   return {
-    HOME_CLEANING: tr("Dọn dẹp nhà (ca lẻ & định kỳ)"),
+    HOME_CLEANING: translateText("Dọn dẹp nhà (ca lẻ & định kỳ)"),
   };
 }
 
@@ -158,7 +158,7 @@ export function useProfileSetup() {
     if (!services) return [];
     const keyword = serviceSearch.trim().toLowerCase();
     const filtered = keyword
-      ? services.filter((s) => s.name.toLowerCase().includes(keyword))
+      ? services.filter((s) => tr(s.name).toLowerCase().includes(keyword))
       : services;
 
     const bySection = new Map<string, typeof services>();
@@ -174,8 +174,8 @@ export function useProfileSetup() {
         sectionCode,
         representativeId: rep.id,
         memberIds: sorted.map((s) => s.id),
-        name: getLocalizedSectionDisplayName()[sectionCode] ?? rep.name,
-        description: rep.description,
+        name: getLocalizedSectionDisplayName(tr)[sectionCode] ?? rep.name,
+        description: tr(rep.description),
         image: rep.primary_image,
       };
     });
@@ -318,7 +318,7 @@ export function useProfileSetup() {
       await task();
       return true;
     } catch (e) {
-      const message = getErrorMessage(e);
+      const message = getErrorMessage(e, tr);
       setError(message);
       showErrorToast(failTitle, message);
       workingRef.current = false;

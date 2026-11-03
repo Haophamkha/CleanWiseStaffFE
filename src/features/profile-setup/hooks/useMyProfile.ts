@@ -1,4 +1,4 @@
-import { translate as tr, getLocale } from "@/features/language/i18n";
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { type ThemeColors } from "@/constants/theme";
@@ -24,31 +24,31 @@ export type ProfileImage = {
   note: string;
 };
 
-function getLocalizedGenderLabel(): Record<string, string> {
+function getLocalizedGenderLabel(translateText = defaultTranslate): Record<string, string> {
   return {
-    MALE: tr("Nam"),
-    FEMALE: tr("Nữ"),
-    OTHER: tr("Khác"),
+    MALE: translateText("Nam"),
+    FEMALE: translateText("Nữ"),
+    OTHER: translateText("Khác"),
   };
 }
 
 // Nhãn hiển thị tiếng Việt cho từng key field mà admin có thể đánh dấu
 // là "cần sửa". Phải khớp với REJECTABLE_PROFILE_FIELDS ở backend.
-function getLocalizedRejectedFieldLabel(): Record<string, string> {
+function getLocalizedRejectedFieldLabel(translateText = defaultTranslate): Record<string, string> {
   return {
-    first_name: tr("Tên"),
-    last_name: tr("Họ và tên đệm"),
-    phone_number: tr("Số điện thoại"),
-    gender: tr("Giới tính"),
-    birth_date: tr("Ngày sinh"),
-    bio: tr("Giới thiệu"),
-    experience_years: tr("Số năm kinh nghiệm"),
-    identity_number: tr("Số CCCD/CMND"),
-    service_id: tr("Dịch vụ đăng ký"),
-    portrait: tr("Ảnh chân dung"),
-    identity_front: tr("Ảnh CCCD/CMND mặt trước"),
-    identity_back: tr("Ảnh CCCD/CMND mặt sau"),
-    certificate_file: tr("Chứng chỉ"),
+    first_name: translateText("Tên"),
+    last_name: translateText("Họ và tên đệm"),
+    phone_number: translateText("Số điện thoại"),
+    gender: translateText("Giới tính"),
+    birth_date: translateText("Ngày sinh"),
+    bio: translateText("Giới thiệu"),
+    experience_years: translateText("Số năm kinh nghiệm"),
+    identity_number: translateText("Số CCCD/CMND"),
+    service_id: translateText("Dịch vụ đăng ký"),
+    portrait: translateText("Ảnh chân dung"),
+    identity_front: translateText("Ảnh CCCD/CMND mặt trước"),
+    identity_back: translateText("Ảnh CCCD/CMND mặt sau"),
+    certificate_file: translateText("Chứng chỉ"),
   };
 }
 
@@ -59,10 +59,10 @@ function formatYmd(value: string) {
 }
 
 /** ISO datetime -> "01/03/2026" */
-function formatIsoDate(iso: string) {
+function formatIsoDate(iso: string, translateText = defaultTranslate) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(getLocale(), {
+  return d.toLocaleDateString(getLocale(translateText), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -77,7 +77,7 @@ function getUpdateRoute(profile: WorkerProfileResponse) {
   return "/(profile-setup)/portrait";
 }
 
-function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
+function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors, translateText = defaultTranslate) {
   const approvalWasRevoked =
     profile.status === "DRAFT" && !!profile.rejection_reason;
   const isFieldRejected = (field: string) =>
@@ -99,14 +99,14 @@ function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
     };
   };
 
-  const baseStatusInfo: ProfileStatusInfo = getProfileStatusInfo(COLORS)[profile.status] ?? {
+  const baseStatusInfo: ProfileStatusInfo = getProfileStatusInfo(COLORS, translateText)[profile.status] ?? {
     label: profile.status,
     color: COLORS.inkSoft,
     bg: COLORS.accentLight,
     text: COLORS.inkSoft,
   };
   const statusInfo = approvalWasRevoked
-    ? { ...baseStatusInfo, label: tr("Đã thu hồi phê duyệt") }
+    ? { ...baseStatusInfo, label: translateText("Đã thu hồi phê duyệt") }
     : baseStatusInfo;
 
   const rejection =
@@ -114,13 +114,13 @@ function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
     !!profile.rejection_reason
       ? {
           label: approvalWasRevoked
-            ? tr("Lý do thu hồi phê duyệt")
-            : tr("Lý do từ chối"),
+            ? translateText("Lý do thu hồi phê duyệt")
+            : translateText("Lý do từ chối"),
           reason: profile.rejection_reason,
           fields: Object.entries(profile.rejected_fields ?? {}).map(
             ([key, note]) => ({
               key,
-              label: getLocalizedRejectedFieldLabel()[key] ?? key,
+              label: getLocalizedRejectedFieldLabel(translateText)[key] ?? key,
               note,
             }),
           ),
@@ -129,29 +129,29 @@ function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
 
   const missing =
     !profile.is_complete && profile.missing_fields.length > 0
-      ? profile.missing_fields.map((f) => getLocalizedRejectedFieldLabel()[f] ?? f)
+      ? profile.missing_fields.map((f) => getLocalizedRejectedFieldLabel(translateText)[f] ?? f)
       : [];
 
   const personalRows: InfoRowData[] = [
     {
-      label: tr("Họ tên"),
+      label: translateText("Họ tên"),
       value: `${profile.last_name} ${profile.first_name}`.trim(),
     },
-    { label: tr("Số điện thoại"), value: profile.phone_number },
+    { label: translateText("Số điện thoại"), value: profile.phone_number },
     { label: "Email", value: profile.email },
     {
-      label: tr("Giới tính"),
-      value: getLocalizedGenderLabel()[profile.gender] ?? profile.gender,
+      label: translateText("Giới tính"),
+      value: getLocalizedGenderLabel(translateText)[profile.gender] ?? profile.gender,
     },
-    { label: tr("Ngày sinh"), value: formatYmd(profile.birth_date) },
-    { label: tr("Kinh nghiệm"), value: tr("{{value0}} năm", { value0: profile.experience_years, count: profile.experience_years }) },
+    { label: translateText("Ngày sinh"), value: formatYmd(profile.birth_date) },
+    { label: translateText("Kinh nghiệm"), value: translateText("{{value0}} năm", { value0: profile.experience_years, count: profile.experience_years }) },
   ];
 
   const documentRows: InfoRowData[] = [
-    { label: tr("Số CCCD/CMND"), value: profile.identity_number },
+    { label: translateText("Số CCCD/CMND"), value: profile.identity_number },
     {
-      label: tr("Dịch vụ đăng ký"),
-      value: profile.registered_service?.name ?? tr("Chưa chọn"),
+      label: translateText("Dịch vụ đăng ký"),
+      value: profile.registered_service?.name ?? translateText("Chưa chọn"),
     },
   ];
 
@@ -159,14 +159,14 @@ function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
     profile.status === "ACTIVE" && profile.approved_by
       ? [
           {
-            label: tr("Được duyệt bởi"),
+            label: translateText("Được duyệt bởi"),
             value:
               `${profile.approved_by.last_name} ${profile.approved_by.first_name}`.trim(),
           },
           {
-            label: tr("Ngày duyệt"),
+            label: translateText("Ngày duyệt"),
             value: profile.approved_at
-              ? formatIsoDate(profile.approved_at)
+              ? formatIsoDate(profile.approved_at, translateText)
               : "—",
           },
         ]
@@ -190,19 +190,20 @@ function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors) {
     certificate: buildImage(profile.certificate_file, "certificate_file"),
     approvalRows,
     canUpdate: profile.status === "DRAFT" || profile.status === "REJECTED",
-    updateLabel: approvalWasRevoked ? tr("Cập nhật và gửi lại") : tr("Cập nhật hồ sơ"),
+    updateLabel: approvalWasRevoked ? translateText("Cập nhật và gửi lại") : translateText("Cập nhật hồ sơ"),
   };
 }
 
 export type MyProfileView = ReturnType<typeof buildView>;
 
 export function useMyProfile() {
+  const { t: tr } = useTranslation();
   const { i18n } = useTranslation();
   const { COLORS } = useAppTheme();
 
   const { data: profile, isLoading } = useGetWorkerProfileQuery();
 
-  const view = useMemo(() => (profile ? buildView(profile, COLORS) : null), [profile, COLORS, i18n.resolvedLanguage]);
+  const view = useMemo(() => (profile ? buildView(profile, COLORS, tr) : null), [profile, COLORS, i18n.resolvedLanguage]);
 
   const handleUpdate = () => {
     if (profile) router.push(getUpdateRoute(profile));

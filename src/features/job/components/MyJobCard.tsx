@@ -44,7 +44,7 @@ export const MyJobCard = memo(function MyJobCard({
       <PressableScale
         onPress={() => onOpen(item.id, "mine", item.booking_id)}
         accessibilityRole="button"
-        accessibilityLabel={tr("Xem chi tiết {{value0}}", { value0: item.service_name })}
+        accessibilityLabel={tr("Xem chi tiết {{value0}}", { value0: tr(item.service_name) })}
         containerStyle={{ marginBottom: 12 }}
         className="bg-surface border border-line p-4"
         style={[
@@ -56,7 +56,7 @@ export const MyJobCard = memo(function MyJobCard({
         <BookingCodeStrip code={item.booking_code} />
 
         <Text className="text-ink font-extrabold text-base" numberOfLines={2}>
-          {item.service_name}
+          {tr(item.service_name)}
         </Text>
 
         <View className="flex-row items-center mt-2 mb-3">

@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
 import {
   Field,
@@ -10,18 +10,18 @@ import {
 import { useProfileSetup } from "@/features/profile-setup/hooks/useProfileSetup";
 import { Text, View } from "react-native";
 
-function getLocalizedTips() {
+function getLocalizedTips(translateText = defaultTranslate) {
   return [
     {
       ok: true,
-      text: tr("Đặt giấy tờ trên mặt phẳng, nền tối màu, chụp thẳng góc."),
+      text: translateText("Đặt giấy tờ trên mặt phẳng, nền tối màu, chụp thẳng góc."),
     },
-    { ok: true, text: tr("Thấy rõ đủ 4 góc, chữ và số sắc nét.") },
-    { ok: true, text: tr("Chụp ở nơi đủ sáng, tránh bóng tay che.") },
-    { ok: false, text: tr("Không chụp bị lóa sáng, mờ hoặc cắt mất góc.") },
+    { ok: true, text: translateText("Thấy rõ đủ 4 góc, chữ và số sắc nét.") },
+    { ok: true, text: translateText("Chụp ở nơi đủ sáng, tránh bóng tay che.") },
+    { ok: false, text: translateText("Không chụp bị lóa sáng, mờ hoặc cắt mất góc.") },
     {
       ok: false,
-      text: tr("Không dùng ảnh photo, ảnh đã chỉnh sửa hoặc giấy tờ hết hạn."),
+      text: translateText("Không dùng ảnh photo, ảnh đã chỉnh sửa hoặc giấy tờ hết hạn."),
     },
   ];
 }
@@ -93,7 +93,7 @@ export default function IdentityStep() {
         </View>
       </View>
 
-      <GuideCard title={tr("Hướng dẫn chụp giấy tờ")} tips={getLocalizedTips()} />
+      <GuideCard title={tr("Hướng dẫn chụp giấy tờ")} tips={getLocalizedTips(tr)} />
     </SetupScreen>
   );
 }

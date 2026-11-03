@@ -1,4 +1,4 @@
-import { translate as tr, getLocale } from "@/features/language/i18n";
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import type { ThemeColors } from "@/constants/theme";
 import { getScheduleStatus } from "@/components/ui/StatusBadge";
 
@@ -10,22 +10,22 @@ import { startOfDay } from "@/utils/format";
 
 export const getStatusLabel = getScheduleStatus;
 
-export function getPaymentStatusMap(COLORS: ThemeColors): Record<
+export function getPaymentStatusMap(COLORS: ThemeColors, translateText = defaultTranslate): Record<
   PaymentStatus,
   { label: string; bg: string; text: string }
 > { return {
   UNPAID: {
-    label: tr("Chưa thanh toán"),
+    label: translateText("Chưa thanh toán"),
     bg: COLORS.warningLight,
     text: COLORS.warningDark,
   },
   PAID: {
-    label: tr("Đã thanh toán"),
+    label: translateText("Đã thanh toán"),
     bg: COLORS.successLight,
     text: COLORS.success,
   },
   REFUNDED: {
-    label: tr("Đã hoàn tiền"),
+    label: translateText("Đã hoàn tiền"),
     bg: COLORS.accentLight,
     text: COLORS.inkSoft,
   },
@@ -41,11 +41,11 @@ type CheckInAvailability =
   | { canStart: false; reason: "too_early"; availableAtLabel: string }
   | { canStart: false; reason: "too_late" };
 
-function formatTimeLabel(date: Date) {
+function formatTimeLabel(date: Date, translateText = defaultTranslate) {
   const sameDay = startOfDay(date) === startOfDay(new Date());
   return sameDay
-    ? date.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
-    : date.toLocaleString(getLocale(), {
+    ? date.toLocaleTimeString(getLocale(translateText), { hour: "2-digit", minute: "2-digit" })
+    : date.toLocaleString(getLocale(translateText), {
         day: "2-digit",
         month: "2-digit",
         hour: "2-digit",
@@ -54,7 +54,7 @@ function formatTimeLabel(date: Date) {
 }
 
 export function getCheckInAvailability(
-  scheduledStartIso: string,
+  scheduledStartIso: string, translateText = defaultTranslate,
 ): CheckInAvailability {
   const scheduledStartMs = new Date(scheduledStartIso).getTime();
   const earliestMs = scheduledStartMs - CHECKIN_EARLY_MINUTES * 60_000;
@@ -65,7 +65,7 @@ export function getCheckInAvailability(
     return {
       canStart: false,
       reason: "too_early",
-      availableAtLabel: formatTimeLabel(new Date(earliestMs)),
+      availableAtLabel: formatTimeLabel(new Date(earliestMs), translateText),
     };
   }
   if (now > latestMs) {
@@ -75,13 +75,13 @@ export function getCheckInAvailability(
 }
 
 export function getSessionInteraction(
-  session: WorkerSchedule,
+  session: WorkerSchedule, translateText = defaultTranslate,
 ): "expand-cancel" | "navigate" | "none" {
   if (session.claim_state !== "MINE") return "none";
   if (session.status === "IN_PROGRESS") return "navigate";
   if (session.status === "COMPLETED") return "navigate";
   if (session.status === "PENDING") {
-    return getCheckInAvailability(session.scheduled_start).canStart
+    return getCheckInAvailability(session.scheduled_start, translateText).canStart
       ? "navigate"
       : "expand-cancel";
   }

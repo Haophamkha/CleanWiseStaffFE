@@ -1,4 +1,4 @@
-import { translate as tr } from "@/features/language/i18n";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { STORAGE_KEYS } from "@/config/constants";
 import { ENV } from "@/config/env";
 import { clearAuth } from "@/features/auth/stores/authSlice";
@@ -201,15 +201,15 @@ export const performLogout = async (
 
 let lastRateLimitToastAt = 0;
 
-const showRateLimitToast = (retryAfter?: string) => {
+const showRateLimitToast = (retryAfter?: string, translateText = defaultTranslate) => {
   const now = Date.now();
   if (now - lastRateLimitToastAt < 3000) return; // tránh spam toast
   lastRateLimitToastAt = now;
   showErrorToast(
-    tr("Thao tác quá nhanh"),
+    translateText("Thao tác quá nhanh"),
     retryAfter
-      ? tr("Vui lòng thử lại sau {{value0}} giây.", { value0: retryAfter })
-      : tr("Vui lòng thử lại sau ít giây."),
+      ? translateText("Vui lòng thử lại sau {{value0}} giây.", { value0: retryAfter })
+      : translateText("Vui lòng thử lại sau ít giây."),
   );
 };
 

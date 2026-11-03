@@ -33,7 +33,7 @@ export default function HelpDetail() {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24 }}>
           <Text className="text-ink-muted text-xs mb-3">
-            {tr("Phiên bản")}{" "}{data.version}  {tr("· Hiệu lực từ")} {new Date(data.effective_from).toLocaleDateString(getLocale())}
+            {tr("Phiên bản")}{" "}{data.version}  {tr("· Hiệu lực từ")} {new Date(data.effective_from).toLocaleDateString(getLocale(tr))}
           </Text>
           {!!data.summary && <Text className="text-ink-soft text-sm leading-6 mb-4">{data.summary}</Text>}
           {data.sections.map((s, i) => (
