@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
@@ -33,16 +33,16 @@ function formatDistance(meters: number) {
   return `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
-function formatMinutes(seconds: number) {
+function formatMinutes(seconds: number, translateText = defaultTranslate) {
   const total = Math.max(1, Math.round(seconds / 60));
-  if (total < 60) return tr("{{value0}} phút", { value0: total });
+  if (total < 60) return translateText("{{value0}} phút", { value0: total });
   const h = Math.floor(total / 60);
   const m = total % 60;
-  return m === 0 ? tr("{{value0}} giờ", { value0: h }) : tr("{{value0}} giờ {{value1}} phút", { value0: h, value1: m });
+  return m === 0 ? translateText("{{value0}} giờ", { value0: h }) : translateText("{{value0}} giờ {{value1}} phút", { value0: h, value1: m });
 }
 
 // Đổi nhà cung cấp định tuyến: chỉ cần sửa hàm này.
-async function fetchRoute(from: LatLng, to: LatLng): Promise<RouteInfo> {
+async function fetchRoute(from: LatLng, to: LatLng, translateText = defaultTranslate): Promise<RouteInfo> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
@@ -57,7 +57,7 @@ async function fetchRoute(from: LatLng, to: LatLng): Promise<RouteInfo> {
       return {
         coords: r.geometry.coordinates,
         distanceLabel: formatDistance(r.distance),
-        durationLabel: formatMinutes(r.duration),
+        durationLabel: formatMinutes(r.duration, translateText),
         isEstimate: false,
       };
     }
@@ -117,7 +117,7 @@ export function useJobRoute(destination: LatLng | null) {
       if (id !== requestId.current) return;
       setUser(me);
 
-      const result = await fetchRoute(me, destination);
+      const result = await fetchRoute(me, destination, tr);
       if (id !== requestId.current) return;
       setRoute(result);
     } catch {

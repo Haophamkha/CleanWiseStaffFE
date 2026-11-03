@@ -74,7 +74,7 @@ export default function TopupModal({ visible, onClose }: Props) {
               color: COLORS.primaryDark,
             }}
           >
-            {formatVnd(t.amountValue)}
+            {formatVnd(t.amountValue, tr)}
           </Text>
           <Text
             style={{
@@ -127,7 +127,7 @@ export default function TopupModal({ visible, onClose }: Props) {
           color: COLORS.inkMuted,
         }}
       >
-        {tr("Tối thiểu")}{" "}{formatVnd(TOPUP_MIN)}{tr(", tối đa")} {formatVnd(TOPUP_MAX)}{tr("/lần. Bạn sẽ được chuyển sang trang thanh toán để chuyển khoản.")}</Text>
+        {tr("Tối thiểu")}{" "}{formatVnd(TOPUP_MIN, tr)}{tr(", tối đa")} {formatVnd(TOPUP_MAX, tr)}{tr("/lần. Bạn sẽ được chuyển sang trang thanh toán để chuyển khoản.")}</Text>
 
       <AmountField
         value={t.amountDisplay}

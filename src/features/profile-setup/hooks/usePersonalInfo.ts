@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import {
     useGetWorkerProfileQuery,
     useSubmitWorkerProfileMutation,
@@ -16,11 +16,11 @@ import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
-export function getLocalizedGenderOptions(): { value: Gender; label: string }[] {
+export function getLocalizedGenderOptions(translateText = defaultTranslate): { value: Gender; label: string }[] {
   return [
-    { value: "MALE", label: tr("Nam") },
-    { value: "FEMALE", label: tr("Nữ") },
-    { value: "OTHER", label: tr("Khác") },
+    { value: "MALE", label: translateText("Nam") },
+    { value: "FEMALE", label: translateText("Nữ") },
+    { value: "OTHER", label: translateText("Khác") },
   ];
 }
 

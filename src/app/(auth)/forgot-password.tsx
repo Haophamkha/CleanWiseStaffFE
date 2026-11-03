@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { FormInput } from "@/components/ui/FormInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
@@ -19,21 +19,21 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
-function getLocalizedCopy() {
+function getLocalizedCopy(translateText = defaultTranslate) {
   return {
     request: {
-      title: tr("Quên mật khẩu?"),
+      title: translateText("Quên mật khẩu?"),
       subtitle:
-        tr("Nhập email đã đăng ký, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu."),
+        translateText("Nhập email đã đăng ký, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu."),
     },
-    verify: { title: tr("Nhập mã xác nhận"), subtitle: "" },
+    verify: { title: translateText("Nhập mã xác nhận"), subtitle: "" },
     reset: {
-      title: tr("Đặt mật khẩu mới"),
-      subtitle: tr("Nhập mật khẩu mới cho tài khoản của bạn."),
+      title: translateText("Đặt mật khẩu mới"),
+      subtitle: translateText("Nhập mật khẩu mới cho tài khoản của bạn."),
     },
     done: {
-      title: tr("Đổi mật khẩu thành công"),
-      subtitle: tr("Bạn có thể đăng nhập lại bằng mật khẩu mới."),
+      title: translateText("Đổi mật khẩu thành công"),
+      subtitle: translateText("Bạn có thể đăng nhập lại bằng mật khẩu mới."),
     },
   } as const;
 }
@@ -44,7 +44,7 @@ export default function ForgotPasswordScreen() {
   const { COLORS } = useAppTheme();
 
   const f = useForgotPassword();
-  const copy = getLocalizedCopy()[f.step];
+  const copy = getLocalizedCopy(tr)[f.step];
 
   const subtitle = f.step === "verify" ? undefined : copy.subtitle || undefined;
 
@@ -63,7 +63,7 @@ export default function ForgotPasswordScreen() {
       }
     >
       {f.step !== "done" && (
-        <StepProgress current={f.stepIndex} labels={getLocalizedStepLabels()} />
+        <StepProgress current={f.stepIndex} labels={getLocalizedStepLabels(tr)} />
       )}
 
       {f.step === "request" && (

@@ -155,7 +155,7 @@ export default function ComplaintListScreen() {
                   <Feather name="clock" size={13} color={COLORS.inkMuted} />
 
                   <Text className="text-ink-muted text-[11px] ml-1">
-                    {formatDateTime(item.created_at)}
+                    {formatDateTime(item.created_at, tr)}
                   </Text>
                 </View>
               </View>

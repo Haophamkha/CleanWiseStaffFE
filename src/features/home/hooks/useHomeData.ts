@@ -1,5 +1,5 @@
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { getLocale } from "@/features/language/i18n";
 import { ENV } from "@/config/env";
 import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
@@ -16,11 +16,11 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
-function formatCurrency(value: string | number | null | undefined) {
+function formatCurrency(value: string | number | null | undefined, translateText = defaultTranslate) {
   if (value === null || value === undefined) return null;
   const num = Number(value);
   if (Number.isNaN(num)) return null;
-  return new Intl.NumberFormat(getLocale(), {
+  return new Intl.NumberFormat(getLocale(translateText), {
     style: "currency",
     currency: "VND",
   }).format(num);
@@ -107,7 +107,7 @@ export function useHomeData() {
     stats: {
       count: todaySchedules.length,
       hours: formatHours(totalHoursToday),
-      income: formatCurrency(totalIncomeToday) ?? "—",
+      income: formatCurrency(totalIncomeToday, tr) ?? "—",
     },
     workerName,
     workerAvatar,

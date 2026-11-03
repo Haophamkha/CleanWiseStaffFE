@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useJobActions } from "@/features/job/hooks/useJobActions";
 import { useJobDetailData } from "@/features/job/hooks/useJobDetailData";
 import type { PaymentStatus } from "@/features/schedule/types/Schedule";
@@ -21,11 +21,11 @@ import { Alert, Linking } from "react-native";
 
 const HIDE_TAKEN_SESSIONS = true;
 
-function getLocalizedPaymentMethodLabel(): Record<string, string> {
+function getLocalizedPaymentMethodLabel(translateText = defaultTranslate): Record<string, string> {
   return {
-    CASH: tr("Tiền mặt, thu trực tiếp từ khách"),
-    BANK_TRANSFER: tr("Chuyển khoản online"),
-    WALLET: tr("Ví CleanWise"),
+    CASH: translateText("Tiền mặt, thu trực tiếp từ khách"),
+    BANK_TRANSFER: translateText("Chuyển khoản online"),
+    WALLET: translateText("Ví CleanWise"),
   };
 }
 
@@ -140,7 +140,7 @@ export function useJobDetail() {
       rows.push({
         icon: "calendar",
         label: tr("Thời gian"),
-        value: `${formatDayLabel(item.scheduled_start)}, ${formatTime(item.scheduled_start)} - ${formatTime(item.scheduled_end)} (${formatDuration(item.scheduled_start, item.scheduled_end)})`,
+        value: `${formatDayLabel(item.scheduled_start, tr)}, ${formatTime(item.scheduled_start, tr)} - ${formatTime(item.scheduled_end, tr)} (${formatDuration(item.scheduled_start, item.scheduled_end)})`,
       });
     }
     rows.push({
@@ -159,21 +159,21 @@ export function useJobDetail() {
       rows.push({
         icon: "credit-card",
         label: tr("Hình thức thanh toán"),
-        value: getLocalizedPaymentMethodLabel()[item.payment_method] ?? item.payment_method,
+        value: getLocalizedPaymentMethodLabel(tr)[item.payment_method] ?? item.payment_method,
       });
     }
     if (item.cash_to_collect) {
       rows.push({
         icon: "dollar-sign",
         label: tr("Cần thu từ khách"),
-        value: formatCurrency(item.cash_to_collect) ?? item.cash_to_collect,
+        value: formatCurrency(item.cash_to_collect, tr) ?? item.cash_to_collect,
       });
     }
     if (item.platform_fee) {
       rows.push({
         icon: "percent",
         label: tr("Phí nền tảng"),
-        value: tr("{{value0}}, trừ vào ví khi nhận việc", { value0: formatCurrency(item.platform_fee) ?? item.platform_fee }),
+        value: tr("{{value0}}, trừ vào ví khi nhận việc", { value0: formatCurrency(item.platform_fee, tr) ?? item.platform_fee }),
       });
     }
     if (mineItem) {
@@ -198,7 +198,7 @@ export function useJobDetail() {
         rows.push({
           icon: "x-circle",
           label: tr("Hạn hủy nhận việc"),
-          value: tr("Trước {{value0}}", { value0: formatDateTime(mineItem.cancel_deadline) }),
+          value: tr("Trước {{value0}}", { value0: formatDateTime(mineItem.cancel_deadline, tr) }),
         });
       }
     }
@@ -238,9 +238,9 @@ export function useJobDetail() {
       countBadge: isPackage
         ? tr("Còn {{value0}}/{{value1}} buổi", { value0: openSessions.length, value1: totalSessions })
         : null,
-      service: item.service_name,
+      service: tr(item.service_name),
       priceCaption: isPackage ? tr("Thu nhập / buổi") : tr("Thu nhập"),
-      priceLabel: formatCurrency(item.price) ?? "—",
+      priceLabel: formatCurrency(item.price, tr) ?? "—",
       payment: item.payment_status,
       rows,
       noteRows,

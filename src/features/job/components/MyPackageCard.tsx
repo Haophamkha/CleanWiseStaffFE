@@ -77,7 +77,7 @@ export const MyPackageCard = memo(function MyPackageCard({
       <PressableScale
         onPress={() => onOpen(highlight.id, "mine", bookingId)}
         accessibilityRole="button"
-        accessibilityLabel={tr("Xem chi tiết {{value0}}", { value0: first.service_name })}
+        accessibilityLabel={tr("Xem chi tiết {{value0}}", { value0: tr(first.service_name) })}
         containerStyle={{ marginBottom: 12 }}
         className="bg-surface border border-line p-4"
         style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
@@ -85,7 +85,7 @@ export const MyPackageCard = memo(function MyPackageCard({
         <BookingCodeStrip code={first.booking_code} />
 
         <Text className="text-ink font-extrabold text-base" numberOfLines={2}>
-          {first.service_name}
+          {tr(first.service_name)}
         </Text>
 
         <View className="flex-row items-center mt-2 mb-3">

@@ -1,3 +1,4 @@
+import { localizeKnownMessage } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -116,7 +117,7 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
             className="flex-row bg-accent-light border border-line rounded-full p-1"
             style={{ opacity: locked.gender ? 0.5 : 1 }}
           >
-            {getLocalizedGenderOptions().map((opt) => {
+            {getLocalizedGenderOptions(tr).map((opt) => {
               const selected = values.gender === opt.value;
               return (
                 <Pressable
@@ -188,7 +189,7 @@ export function PersonalInfoForm({ form }: { form: PersonalInfoState }) {
             style={{ marginTop: 2 }}
           />
           <Text className="flex-1 text-danger text-sm leading-5 ml-2.5">
-            {form.error}
+            {localizeKnownMessage(form.error, tr)}
           </Text>
         </View>
       )}

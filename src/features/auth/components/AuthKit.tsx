@@ -1,3 +1,4 @@
+import { localizeKnownMessage } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -128,6 +129,7 @@ export function FormField({
 }
 
 export function ErrorNotice({ message }: { message?: string }) {
+  const { t: tr } = useTranslation();
   const { COLORS } = useAppTheme();
 
   if (!message) return null;
@@ -140,7 +142,7 @@ export function ErrorNotice({ message }: { message?: string }) {
         style={{ marginTop: 2 }}
       />
       <Text className="flex-1 text-danger text-sm leading-5 ml-2.5">
-        {message}
+        {localizeKnownMessage(message, tr)}
       </Text>
     </View>
   );

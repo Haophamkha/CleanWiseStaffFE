@@ -101,9 +101,9 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     amount <= 0
       ? null
       : amount < WITHDRAW_MIN
-        ? tr("Số tiền rút tối thiểu là {{value0}}.", { value0: formatVnd(WITHDRAW_MIN) })
+        ? tr("Số tiền rút tối thiểu là {{value0}}.", { value0: formatVnd(WITHDRAW_MIN, tr) })
         : amount > maxWithdrawable
-          ? tr("Ví ký quỹ phải còn tối thiểu {{value0}}, mỗi lần rút tối đa {{value1}}. Bạn có thể rút tối đa {{value2}}.", { value0: formatVnd(MIN_ESCROW_BALANCE), value1: formatVnd(WITHDRAW_MAX), value2: formatVnd(maxWithdrawable) })
+          ? tr("Ví ký quỹ phải còn tối thiểu {{value0}}, mỗi lần rút tối đa {{value1}}. Bạn có thể rút tối đa {{value2}}.", { value0: formatVnd(MIN_ESCROW_BALANCE, tr), value1: formatVnd(WITHDRAW_MAX, tr), value2: formatVnd(maxWithdrawable, tr) })
           : null;
 
   const canSubmit = !!selected && amount > 0 && !validationError && !isLoading;
@@ -203,9 +203,9 @@ export function useWithdraw({ walletBalance, onClose, onSuccess }: Params) {
     canSubmit,
     uncertain,
     message: validationError ?? errorText,
-    amountDisplay: rawInput ? Number(rawInput).toLocaleString(getLocale()) : "",
-    balanceText: formatVnd(walletBalance),
-    hintText: tr("Ví ký quỹ phải giữ tối thiểu {{value0}}. Bạn có thể rút tối đa {{value1}}.", { value0: formatVnd(MIN_ESCROW_BALANCE), value1: formatVnd(maxWithdrawable) }),
+    amountDisplay: rawInput ? Number(rawInput).toLocaleString(getLocale(tr)) : "",
+    balanceText: formatVnd(walletBalance, tr),
+    hintText: tr("Ví ký quỹ phải giữ tối thiểu {{value0}}. Bạn có thể rút tối đa {{value1}}.", { value0: formatVnd(MIN_ESCROW_BALANCE, tr), value1: formatVnd(maxWithdrawable, tr) }),
     quickAmounts,
     methods,
     hasUnverifiedMethods,

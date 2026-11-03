@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import {
     useForgotPasswordMutation,
     useResetPasswordMutation,
@@ -16,8 +16,8 @@ export const MIN_PASSWORD_LENGTH = 8;
 
 export type Step = "request" | "verify" | "reset" | "done";
 
-export function getLocalizedStepLabels() {
-  return ["Email", tr("Mã xác nhận"), tr("Mật khẩu mới")];
+export function getLocalizedStepLabels(translateText = defaultTranslate) {
+  return ["Email", translateText("Mã xác nhận"), translateText("Mật khẩu mới")];
 }
 const STEP_INDEX: Record<Step, number> = {
   request: 0,
@@ -58,7 +58,7 @@ export function useForgotPassword() {
 
   const handleSendCode = async () => {
     const trimmedEmail = email.trim();
-    const result = getLocalizedForgotPasswordSchema().safeParse({ contact: trimmedEmail });
+    const result = getLocalizedForgotPasswordSchema(tr).safeParse({ contact: trimmedEmail });
     if (!result.success) {
       setError(result.error.issues[0].message);
       return;
@@ -70,7 +70,7 @@ export function useForgotPassword() {
       setResendAt(Date.now() + RESEND_SECONDS * 1000);
       showSuccessToast(tr("Đã gửi mã xác nhận"), tr("Kiểm tra email của bạn"));
     } catch (err) {
-      setError(getErrorMessage(err));
+      setError(getErrorMessage(err, tr));
     }
   };
 
@@ -84,7 +84,7 @@ export function useForgotPassword() {
       await verifyResetOtp({ email: email.trim(), code: otp.trim() }).unwrap();
       setStep("reset");
     } catch (err) {
-      setError(getErrorMessage(err));
+      setError(getErrorMessage(err, tr));
     }
   };
 
@@ -107,7 +107,7 @@ export function useForgotPassword() {
       }).unwrap();
       setStep("done");
     } catch (err) {
-      setError(getErrorMessage(err));
+      setError(getErrorMessage(err, tr));
     }
   };
 

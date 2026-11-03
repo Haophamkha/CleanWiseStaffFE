@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
 import {
   AdminNote,
@@ -9,15 +9,15 @@ import {
 import { useProfileSetup } from "@/features/profile-setup/hooks/useProfileSetup";
 import { View } from "react-native";
 
-function getLocalizedTips() {
+function getLocalizedTips(translateText = defaultTranslate) {
   return [
-    { ok: true, text: tr("Chụp chính diện, nhìn thẳng vào camera, rõ khuôn mặt.") },
-    { ok: true, text: tr("Ánh sáng tốt, không bị sấp bóng hoặc ngược sáng.") },
-    { ok: true, text: tr("Nền đơn giản, trang phục gọn gàng, lịch sự.") },
-    { ok: false, text: tr("Không đeo kính râm, khẩu trang hoặc mũ.") },
+    { ok: true, text: translateText("Chụp chính diện, nhìn thẳng vào camera, rõ khuôn mặt.") },
+    { ok: true, text: translateText("Ánh sáng tốt, không bị sấp bóng hoặc ngược sáng.") },
+    { ok: true, text: translateText("Nền đơn giản, trang phục gọn gàng, lịch sự.") },
+    { ok: false, text: translateText("Không đeo kính râm, khẩu trang hoặc mũ.") },
     {
       ok: false,
-      text: tr("Không dùng ảnh đã chỉnh sửa hoặc ảnh chụp lại từ màn hình."),
+      text: translateText("Không dùng ảnh đã chỉnh sửa hoặc ảnh chụp lại từ màn hình."),
     },
   ];
 }
@@ -49,7 +49,7 @@ export default function PortraitStep() {
         />
       </View>
 
-      <GuideCard title={tr("Hướng dẫn chụp ảnh")} tips={getLocalizedTips()} />
+      <GuideCard title={tr("Hướng dẫn chụp ảnh")} tips={getLocalizedTips(tr)} />
     </SetupScreen>
   );
 }

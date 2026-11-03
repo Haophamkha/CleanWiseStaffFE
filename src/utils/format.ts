@@ -1,6 +1,6 @@
-import { translate as tr, getLocale } from "@/features/language/i18n";
-export function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString(getLocale(), {
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
+export function formatDateTime(iso: string, translateText = defaultTranslate) {
+  return new Date(iso).toLocaleString(getLocale(translateText), {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
@@ -10,8 +10,8 @@ export function formatDateTime(iso: string) {
   });
 }
 
-export function formatDateTimeShort(iso: string) {
-  return new Date(iso).toLocaleString(getLocale(), {
+export function formatDateTimeShort(iso: string, translateText = defaultTranslate) {
+  return new Date(iso).toLocaleString(getLocale(translateText), {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -19,16 +19,16 @@ export function formatDateTimeShort(iso: string) {
   });
 }
 
-export function formatDayLabel(iso: string) {
-  return new Date(iso).toLocaleDateString(getLocale(), {
+export function formatDayLabel(iso: string, translateText = defaultTranslate) {
+  return new Date(iso).toLocaleDateString(getLocale(translateText), {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
   });
 }
 
-export function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString(getLocale(), {
+export function formatTime(iso: string, translateText = defaultTranslate) {
+  return new Date(iso).toLocaleTimeString(getLocale(translateText), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -43,11 +43,11 @@ export function formatDuration(startIso: string, endIso: string) {
   return m === 0 ? `${h}h` : `${h}h${m}`;
 }
 
-export function formatCurrency(value: string | number | null | undefined) {
+export function formatCurrency(value: string | number | null | undefined, translateText = defaultTranslate) {
   if (value === null || value === undefined) return null;
   const num = Number(value);
   if (Number.isNaN(num)) return null;
-  return new Intl.NumberFormat(getLocale(), {
+  return new Intl.NumberFormat(getLocale(translateText), {
     style: "currency",
     currency: "VND",
   }).format(num);
@@ -57,12 +57,12 @@ export function startOfDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
-export function relativeDayLabel(iso: string): string | null {
+export function relativeDayLabel(iso: string, translateText = defaultTranslate): string | null {
   const diff = Math.round(
     (startOfDay(new Date(iso)) - startOfDay(new Date())) / 86400000,
   );
-  if (diff === 0) return tr("Hôm nay");
-  if (diff === 1) return tr("Ngày mai");
+  if (diff === 0) return translateText("Hôm nay");
+  if (diff === 1) return translateText("Ngày mai");
   return null;
 }
 

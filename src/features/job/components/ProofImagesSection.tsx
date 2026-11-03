@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { RADIUS, SHADOWS } from "@/constants/theme";
 import { ImageUploadBox } from "@/features/profile-setup/components/ImageUploadBox";
@@ -18,11 +18,11 @@ import {
   View,
 } from "react-native";
 
-function getLocalizedUploadImageSlots(): { type: ScheduleImageType; label: string }[] {
+function getLocalizedUploadImageSlots(translateText = defaultTranslate): { type: ScheduleImageType; label: string }[] {
   return [
-    { type: "BEFORE", label: tr("Trước khi làm") },
-    { type: "AFTER", label: tr("Sau khi làm") },
-    { type: "ISSUE", label: tr("Vấn đề phát sinh") },
+    { type: "BEFORE", label: translateText("Trước khi làm") },
+    { type: "AFTER", label: translateText("Sau khi làm") },
+    { type: "ISSUE", label: translateText("Vấn đề phát sinh") },
   ];
 }
 
@@ -129,11 +129,11 @@ export function ProofImagesSection({
           : tr("Ảnh minh chứng đã ghi nhận cho buổi làm này.")}
       </Text>
 
-      {getLocalizedUploadImageSlots().map(({ type, label }, index) => {
+      {getLocalizedUploadImageSlots(tr).map(({ type, label }, index) => {
         const existing = images.filter((img) => img.image_type === type);
         const pending = localImages[type] ?? [];
         const hasAnyImage = existing.length > 0 || pending.length > 0;
-        const isLastRow = index === getLocalizedUploadImageSlots().length - 1;
+        const isLastRow = index === getLocalizedUploadImageSlots(tr).length - 1;
 
         if (!canEdit && !hasAnyImage) return null;
 

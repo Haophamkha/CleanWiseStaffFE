@@ -1,3 +1,4 @@
+import { getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -11,13 +12,14 @@ type ScheduleShortcutProps = { onPress: () => void };
 
 /** Tờ lịch nhỏ hiển thị ngày hôm nay */
 function CalendarTile() {
+  const { t: tr } = useTranslation();
   const { month, day } = useMemo(() => {
     const d = new Date();
     return {
-      month: `THG ${d.getMonth() + 1}`,
+      month: getLocale(tr) === "en-US" ? d.toLocaleDateString(getLocale(tr), { month: "short" }).toUpperCase() : `THG ${d.getMonth() + 1}`,
       day: String(d.getDate()).padStart(2, "0"),
     };
-  }, []);
+  }, [tr]);
 
   return (
     <View
