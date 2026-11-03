@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { translate as tr } from "@/features/language/i18n";
 import {
   useClearAllNotificationsMutation,
@@ -12,6 +11,7 @@ import { useAppSelector } from "@/store/hooks";
 import { startOfDay } from "@/utils/format";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
 const mergeById = (prev: AppNotification[], next: AppNotification[]) => {
@@ -82,6 +82,7 @@ export function useNotifications() {
   };
 
   const handlePressNotification = (n: AppNotification) => {
+    console.log("NOTI", JSON.stringify(n));
     if (!n.is_read) {
       markRead(n.id);
       setItems((prev) =>
@@ -119,22 +120,29 @@ export function useNotifications() {
 
   const handleClearAll = () => {
     if (!items.length) return;
-    Alert.alert(tr("Xoá tất cả thông báo"), tr("Hành động này không thể hoàn tác."), [
-      { text: tr("Hủy"), style: "cancel" },
-      {
-        text: tr("Xoá"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await clearAll().unwrap();
-            setItems([]);
-            setPage(1);
-          } catch {
-            Alert.alert(tr("Lỗi"), tr("Không thể xoá thông báo. Vui lòng thử lại."));
-          }
+    Alert.alert(
+      tr("Xoá tất cả thông báo"),
+      tr("Hành động này không thể hoàn tác."),
+      [
+        { text: tr("Hủy"), style: "cancel" },
+        {
+          text: tr("Xoá"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await clearAll().unwrap();
+              setItems([]);
+              setPage(1);
+            } catch {
+              Alert.alert(
+                tr("Lỗi"),
+                tr("Không thể xoá thông báo. Vui lòng thử lại."),
+              );
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleBack = () => router.back();
