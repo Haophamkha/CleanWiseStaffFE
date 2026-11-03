@@ -26,7 +26,7 @@ export function useLogin() {
   const dispatch = useAppDispatch();
 
   const handleLogin = async () => {
-    const result = getLocalizedLoginSchema().safeParse({ phone, password });
+    const result = getLocalizedLoginSchema(tr).safeParse({ phone, password });
     if (!result.success) {
       setError(result.error.issues[0].message);
       return;
@@ -56,7 +56,7 @@ export function useLogin() {
       const message =
         e?.status === 429
           ? tr("Bạn thử quá nhiều lần, vui lòng đợi một phút rồi thử lại")
-          : getErrorMessage(e);
+          : getErrorMessage(e, tr);
       setError(message);
       if (e?.status !== 429) showErrorToast(tr("Đăng nhập thất bại"), message);
     }

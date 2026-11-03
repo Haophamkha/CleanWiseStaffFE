@@ -51,7 +51,7 @@ export function ChatbotHistorySheet({ visible, items, loading, activeId, onClose
               <View className={`flex-row items-center bg-surface border rounded-2xl ${item.id === activeId ? "border-primary" : "border-line"}`}>
                 <TouchableOpacity className="flex-1 px-4 py-3" onPress={() => onSelect(item)} activeOpacity={0.8}>
                   <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{item.title || tr("Cuộc trò chuyện mới")}</Text>
-                  <Text className="text-ink-muted text-xs mt-0.5">{new Date(item.updated_at).toLocaleString(getLocale())}</Text>
+                  <Text className="text-ink-muted text-xs mt-0.5">{new Date(item.updated_at).toLocaleString(getLocale(tr))}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="px-4 py-3" onPress={() => confirmDelete(item)} accessibilityLabel={tr("Xoá hội thoại")}>
                   <Feather name="trash-2" size={17} color={COLORS.danger} />

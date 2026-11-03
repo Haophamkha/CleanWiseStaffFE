@@ -168,14 +168,14 @@ export function useJobActions({
       await refetchMineSchedules();
       showSuccessToast(tr("Đã xác nhận"), tr("Bạn đã xác nhận thu tiền mặt từ khách."));
     } catch (err) {
-      showErrorToast(tr("Không thể xác nhận"), getErrorMessage(err));
+      showErrorToast(tr("Không thể xác nhận"), getErrorMessage(err, tr));
     }
   };
 
   const [uploadImage] = useUploadScheduleImageMutation();
 
   const handleSessionPress = (session: WorkerSchedule) => {
-    const interaction = getSessionInteraction(session);
+    const interaction = getSessionInteraction(session, tr);
 
     if (interaction === "navigate") {
       router.push({
@@ -241,17 +241,17 @@ export function useJobActions({
           setExpandedSessionId(null);
           setSessionCancelReason("");
         },
-      });
+      }, tr);
     }
   };
 
   const performClaim = async () => {
     const successMessage = item
       ? `${item.service_name} · ${formatDayLabel(
-          item.scheduled_start,
+          item.scheduled_start, tr,
         )}, ${formatTime(
-          item.scheduled_start,
-        )} - ${formatTime(item.scheduled_end)}`
+          item.scheduled_start, tr,
+        )} - ${formatTime(item.scheduled_end, tr)}`
       : tr("Bạn đã nhận buổi làm này.");
 
     try {
@@ -285,7 +285,7 @@ export function useJobActions({
               message: successMessage,
             });
           },
-        });
+        }, tr);
       } finally {
         setIsVerifyingClaim(false);
       }
@@ -323,8 +323,8 @@ export function useJobActions({
         const schedule = bookingSchedules.find((x) => x.id === sk.schedule_id);
 
         const label = schedule
-          ? `${formatDayLabel(schedule.scheduled_start)}, ${formatTime(
-              schedule.scheduled_start,
+          ? `${formatDayLabel(schedule.scheduled_start, tr)}, ${formatTime(
+              schedule.scheduled_start, tr,
             )}`
           : tr("Buổi #{{value0}}", { value0: sk.schedule_id });
 
@@ -367,7 +367,7 @@ export function useJobActions({
         }
       }
 
-      showErrorToast(tr("Không thể nhận việc"), getErrorMessage(err));
+      showErrorToast(tr("Không thể nhận việc"), getErrorMessage(err, tr));
     }
   };
 
@@ -408,9 +408,9 @@ export function useJobActions({
         ? tr("Các buổi đã chọn sẽ được xếp vào lịch của bạn.")
         : item
           ? `${item.service_name} · ${formatDayLabel(
-              item.scheduled_start,
-            )}, ${formatTime(item.scheduled_start)} - ${formatTime(
-              item.scheduled_end,
+              item.scheduled_start, tr,
+            )}, ${formatTime(item.scheduled_start, tr)} - ${formatTime(
+              item.scheduled_end, tr,
             )}`
           : tr("Buổi làm này sẽ được xếp vào lịch của bạn."),
   };
@@ -447,7 +447,7 @@ export function useJobActions({
           cancelKey.resetKey();
           router.back();
         },
-      });
+      }, tr);
     }
   };
 
@@ -495,9 +495,9 @@ export function useJobActions({
     message:
       pendingCancel?.type === "session"
         ? tr("Buổi {{value0}}, {{value1}} sẽ được mở lại cho nhân viên khác nhận.", { value0: formatDayLabel(
-            pendingCancel.session.scheduled_start,
+            pendingCancel.session.scheduled_start, tr,
           ), value1: formatTime(
-            pendingCancel.session.scheduled_start,
+            pendingCancel.session.scheduled_start, tr,
           ) })
         : tr("Bạn sẽ không còn được xếp vào buổi làm này và việc sẽ được mở lại cho nhân viên khác."),
   };
@@ -589,7 +589,7 @@ export function useJobActions({
         successMessage: tr("Bạn đã bắt đầu buổi làm việc này."),
         errorTitle: tr("Không thể bắt đầu"),
         onSuccess: () => refetchMineSchedules(),
-      });
+      }, tr);
     }
   };
 
@@ -668,7 +668,7 @@ export function useJobActions({
         successMessage: tr("Bạn đã hoàn thành buổi làm việc."),
         errorTitle: tr("Không thể hoàn thành"),
         onSuccess: () => refetchMineSchedules(),
-      });
+      }, tr);
     }
   };
 

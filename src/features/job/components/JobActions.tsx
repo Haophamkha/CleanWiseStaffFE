@@ -158,7 +158,7 @@ function CheckInBlock({
 }) {
   const { t: tr } = useTranslation();
 
-  const availability = getCheckInAvailability(item.scheduled_start);
+  const availability = getCheckInAvailability(item.scheduled_start, tr);
 
   if (availability.canStart) {
     return (

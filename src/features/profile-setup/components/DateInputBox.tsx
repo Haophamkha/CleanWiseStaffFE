@@ -99,7 +99,7 @@ export function DateInputBox({
 
       {showPicker && !disabled && (
         <DateTimePicker
-          locale={getLocale()}
+          locale={getLocale(tr)}
           value={dateValue}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}

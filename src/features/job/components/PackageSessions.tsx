@@ -105,15 +105,17 @@ function SessionRow({
 
   const { COLORS, mode: themeMode } = useAppTheme();
 
-  const interaction = getSessionInteraction(session);
+  const interaction = getSessionInteraction(session, tr);
   const isExpanded = actions.expandedSessionId === session.id;
   const checked = actions.validSelected.includes(session.id);
 
   const start = new Date(session.scheduled_start);
   const dayNum = String(start.getDate()).padStart(2, "0");
-  const monthLabel = `Th${start.getMonth() + 1}`;
-  const weekday = start.toLocaleDateString(getLocale(), { weekday: "long" });
-  const dayChip = relativeDayLabel(session.scheduled_start);
+  const monthLabel = getLocale(tr) === "en-US"
+    ? start.toLocaleDateString(getLocale(tr), { month: "short" })
+    : `Th${start.getMonth() + 1}`;
+  const weekday = start.toLocaleDateString(getLocale(tr), { weekday: "long" });
+  const dayChip = relativeDayLabel(session.scheduled_start, tr);
 
   const isMineSession = session.claim_state === "MINE";
   const isTaken = session.claim_state === "TAKEN";
@@ -191,8 +193,8 @@ function SessionRow({
             <View className="flex-row items-center mt-1">
               <Feather name="clock" size={12} color={COLORS.inkMuted} />
               <Text className="text-ink-soft text-xs ml-1.5">
-                {formatTime(session.scheduled_start)} -{" "}
-                {formatTime(session.scheduled_end)} ·{" "}
+                {formatTime(session.scheduled_start, tr)} -{" "}
+                {formatTime(session.scheduled_end, tr)} ·{" "}
                 {formatDuration(session.scheduled_start, session.scheduled_end)}
               </Text>
             </View>
@@ -372,7 +374,7 @@ export function PackageSessionsCard({
               {tr("Đã chọn")}{" "}{selectedCount}/{openSessions.length} {tr("buổi trống")}</Text>
             {actions.selectedIncome !== null && selectedCount > 0 ? (
               <Text className="text-ink text-xs font-extrabold">
-                {formatCurrency(actions.selectedIncome)}
+                {formatCurrency(actions.selectedIncome, tr)}
               </Text>
             ) : null}
           </View>
@@ -421,7 +423,7 @@ export function PackageClaimBar({ actions }: PackageClaimBarProps) {
             {count > 0 ? tr("Đã chọn {{value0}} buổi", { value0: count , count: count}) : tr("Chưa chọn buổi nào")}
           </Text>
           <Text className="text-ink font-extrabold text-lg">
-            {count > 0 ? (formatCurrency(actions.selectedIncome) ?? "—") : "—"}
+            {count > 0 ? (formatCurrency(actions.selectedIncome, tr) ?? "—") : "—"}
           </Text>
         </View>
         <PrimaryButton

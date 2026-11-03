@@ -1,3 +1,4 @@
+import { localizeKnownMessage } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -252,6 +253,7 @@ export function SheetButton({
 }
 
 export function ErrorBox({ text }: { text?: string | null }) {
+  const { t: tr } = useTranslation();
   const { COLORS } = useAppTheme();
 
   if (!text) return null;
@@ -265,7 +267,7 @@ export function ErrorBox({ text }: { text?: string | null }) {
       }}
     >
       <Text style={{ color: COLORS.danger, fontSize: 13, lineHeight: 19 }}>
-        {text}
+        {localizeKnownMessage(text, tr)}
       </Text>
     </View>
   );

@@ -63,7 +63,7 @@ export default function ComplaintDetailScreen() {
       showSuccessToast(tr("Đã hủy khiếu nại"));
     } catch (e) {
       setConfirm(false);
-      showErrorToast(tr("Không hủy được"), getErrorMessage(e));
+      showErrorToast(tr("Không hủy được"), getErrorMessage(e, tr));
     }
   };
 
@@ -123,7 +123,7 @@ export default function ComplaintDetailScreen() {
 
           <View className="flex-row items-center justify-between">
             <Text className="text-ink-soft text-xs">
-              {data.stage_label} · {formatDateTime(data.created_at)}
+              {data.stage_label} · {formatDateTime(data.created_at, tr)}
             </Text>
 
             <ComplaintStatusBadge
@@ -161,7 +161,7 @@ export default function ComplaintDetailScreen() {
 
             {data.resolved_at ? (
               <Text className="text-ink-muted text-xs mt-2">
-                {formatDateTime(data.resolved_at)}
+                {formatDateTime(data.resolved_at, tr)}
               </Text>
             ) : null}
           </Section>
@@ -175,7 +175,7 @@ export default function ComplaintDetailScreen() {
               }`}
             >
               {amount > 0 ? "+" : "-"}
-              {formatCurrency(String(Math.abs(amount))) ?? ""}
+              {formatCurrency(String(Math.abs(amount)), tr) ?? ""}
             </Text>
 
             <Text className="text-ink-muted text-xs mt-1">

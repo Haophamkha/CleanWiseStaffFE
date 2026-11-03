@@ -1,13 +1,13 @@
-import { translate as tr } from "@/features/language/i18n";
-export function getErrorMessage(err: any): string {
+import { translate as defaultTranslate } from "@/features/language/i18n";
+export function getErrorMessage(err: any, translateText = defaultTranslate): string {
   if (err?.isNetworkError) {
     return err?.code === "ECONNABORTED"
-      ? tr("Kết nối mạng chậm, yêu cầu bị hết thời gian chờ. Vui lòng thử lại.")
-      : tr("Không có kết nối mạng. Vui lòng kiểm tra và thử lại.");
+      ? translateText("Kết nối mạng chậm, yêu cầu bị hết thời gian chờ. Vui lòng thử lại.")
+      : translateText("Không có kết nối mạng. Vui lòng kiểm tra và thử lại.");
   }
 
   const data = err?.data ?? err?.error?.data;
-  if (!data) return tr("Có lỗi xảy ra, vui lòng thử lại.");
+  if (!data) return translateText("Có lỗi xảy ra, vui lòng thử lại.");
   if (typeof data === "string") return data;
 
   // Ưu tiên đọc lỗi chi tiết theo từng field trước (vd: {amount: "Số dư
@@ -40,7 +40,7 @@ export function getErrorMessage(err: any): string {
     return Array.isArray(val) ? String(val[0]) : String(val);
   }
 
-  return tr("Có lỗi xảy ra, vui lòng thử lại.");
+  return translateText("Có lỗi xảy ra, vui lòng thử lại.");
 }
 
 export function isNetworkError(err: any): boolean {

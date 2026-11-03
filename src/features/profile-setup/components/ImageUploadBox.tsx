@@ -50,6 +50,7 @@ function useImageSource(
   frontCamera: boolean,
   square: boolean,
 ) {
+  const { t: tr } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const openSheet = () => {
@@ -63,7 +64,7 @@ function useImageSource(
     await new Promise((resolve) => setTimeout(resolve, 350));
     const file =
       source === "camera"
-        ? await takePhoto({ front: frontCamera, square })
+        ? await takePhoto({ front: frontCamera, square }, tr)
         : await pickImage();
     if (file) onChange(file);
   };

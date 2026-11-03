@@ -90,7 +90,7 @@ export function ComplaintSheet({
 
   const addImage = async (fromCamera: boolean) => {
     if (images.length >= MAX_IMAGES) return;
-    const file = fromCamera ? await takePhoto() : await pickImage();
+    const file = fromCamera ? await takePhoto(undefined, tr) : await pickImage();
     if (file) setImages((prev) => [...prev, file]);
   };
 
@@ -108,7 +108,7 @@ export function ComplaintSheet({
       onClose();
       setDone(true);
     } catch (e) {
-      showErrorToast(tr("Không gửi được khiếu nại"), getErrorMessage(e));
+      showErrorToast(tr("Không gửi được khiếu nại"), getErrorMessage(e, tr));
     }
   };
 

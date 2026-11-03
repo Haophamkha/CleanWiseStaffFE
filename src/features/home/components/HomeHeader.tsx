@@ -20,7 +20,7 @@ export function HomeHeader(props: HomeHeaderProps) {
 
   const insets = useSafeAreaInsets();
   const isGreeting = props.variant === "greeting";
-  const today = useMemo(() => formatDayLabel(new Date().toISOString()), [tr]);
+  const today = useMemo(() => formatDayLabel(new Date().toISOString(), tr), [tr]);
 
   return (
     <View

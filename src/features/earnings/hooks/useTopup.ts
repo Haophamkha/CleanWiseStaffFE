@@ -101,12 +101,12 @@ export function useTopup(onClose: () => void) {
     setErrorText("");
     if (!amount || amount < TOPUP_MIN) {
       setErrorText(
-        tr("Số tiền nạp tối thiểu là {{value0}}đ.", { value0: TOPUP_MIN.toLocaleString(getLocale()) }),
+        tr("Số tiền nạp tối thiểu là {{value0}}đ.", { value0: TOPUP_MIN.toLocaleString(getLocale(tr)) }),
       );
       return;
     }
     if (amount > TOPUP_MAX) {
-      setErrorText(tr("Mỗi lần nạp tối đa {{value0}}đ.", { value0: TOPUP_MAX.toLocaleString(getLocale()) }));
+      setErrorText(tr("Mỗi lần nạp tối đa {{value0}}đ.", { value0: TOPUP_MAX.toLocaleString(getLocale(tr)) }));
       return;
     }
     try {
@@ -152,7 +152,7 @@ export function useTopup(onClose: () => void) {
   };
 
   return {
-    amountDisplay: rawInput ? Number(rawInput).toLocaleString(getLocale()) : "",
+    amountDisplay: rawInput ? Number(rawInput).toLocaleString(getLocale(tr)) : "",
     handleChangeAmount: (t: string) => setRawInput(String(parseAmount(t))),
     quickAmounts: QUICK_AMOUNTS,
     pickAmount: (v: number) => setRawInput(String(v)),

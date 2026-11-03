@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import {
     useCreateBankPaymentMethodMutation,
     useGetBankCatalogQuery,
@@ -34,13 +34,13 @@ const optionIcon = (code: PaymentMethodOption["code"]): FeatherName => {
   return "credit-card";
 };
 
-const getFirstError = (error: any) => {
+const getFirstError = (error: any, translateText = defaultTranslate) => {
   const errors = error?.data?.errors;
   if (errors && typeof errors === "object") {
     const first = Object.values(errors).flat().find(Boolean);
     if (typeof first === "string") return first;
   }
-  return error?.data?.message || tr("Không thể lưu tài khoản. Vui lòng thử lại.");
+  return error?.data?.message || translateText("Không thể lưu tài khoản. Vui lòng thử lại.");
 };
 
 export function useAddPaymentMethod() {
@@ -190,7 +190,7 @@ export function useAddPaymentMethod() {
       }
       router.back();
     } catch (requestError) {
-      setError(getFirstError(requestError));
+      setError(getFirstError(requestError, tr));
     }
   };
 

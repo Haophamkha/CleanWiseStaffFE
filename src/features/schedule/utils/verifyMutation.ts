@@ -1,4 +1,4 @@
-import { translate as tr } from "@/features/language/i18n";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import { getErrorMessage, isNetworkError } from "@/utils/apiError";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
@@ -45,7 +45,7 @@ export async function verifyScheduleMutation({
   successMessage: string;
   errorTitle: string;
   onSuccess?: () => void;
-}): Promise<void> {
+}, translateText = defaultTranslate): Promise<void> {
   if (isUncertainError(err)) {
     const ok = await pollSchedules(refetch, (list) => {
       const updated = list.find((s) => s.id === scheduleId);
@@ -54,12 +54,12 @@ export async function verifyScheduleMutation({
     if (ok) {
       showSuccessToast(
         successTitle,
-        tr("{{value0}} (Mạng chập chờn nhưng hệ thống đã ghi nhận.)", { value0: successMessage }),
+        translateText("{{value0}} (Mạng chập chờn nhưng hệ thống đã ghi nhận.)", { value0: successMessage }),
       );
       onSuccess?.();
       return;
     }
   }
 
-  showErrorToast(errorTitle, getErrorMessage(err));
+  showErrorToast(errorTitle, getErrorMessage(err, translateText));
 }

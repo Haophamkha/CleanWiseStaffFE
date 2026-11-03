@@ -1,12 +1,12 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { Pressable, Text, View } from "react-native";
 
-function getLocalizedQuickReasons() {
+function getLocalizedQuickReasons(translateText = defaultTranslate) {
   return [
-    tr("Bận việc đột xuất"),
-    tr("Sức khỏe không tốt"),
-    tr("Trùng lịch khác"),
+    translateText("Bận việc đột xuất"),
+    translateText("Sức khỏe không tốt"),
+    translateText("Trùng lịch khác"),
   ];
 }
 
@@ -21,7 +21,7 @@ export function CancelReasonChips({ value, onSelect }: CancelReasonChipsProps) {
 
   return (
     <View className="flex-row flex-wrap mb-3" style={{ gap: 8 }}>
-      {getLocalizedQuickReasons().map((r) => {
+      {getLocalizedQuickReasons(tr).map((r) => {
         const active = value.trim() === r;
         return (
           <Pressable

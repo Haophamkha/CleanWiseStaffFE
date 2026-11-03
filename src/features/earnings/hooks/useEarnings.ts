@@ -1,5 +1,6 @@
+import { localizeTransactionNote } from "@/features/earnings/utils/localizeTransactionNote";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 
 import {
@@ -44,10 +45,10 @@ export type WalletTxRowView = {
   statusText: string | null;
 };
 
-function getLocalizedPeriodTabs(): PeriodTab[] {
+function getLocalizedPeriodTabs(translateText = defaultTranslate): PeriodTab[] {
   return [
-    { key: "week", label: tr("Tuần này") },
-    { key: "month", label: tr("Tháng này") },
+    { key: "week", label: translateText("Tuần này") },
+    { key: "month", label: translateText("Tháng này") },
   ];
 }
 
@@ -83,21 +84,21 @@ export function useEarnings() {
     summary && p
       ? {
           wallet: {
-            balanceText: formatVnd(summary.wallet_balance),
-            commissionOwedText: formatVnd(summary.commission_owed),
-            pendingReleaseText: formatVnd(summary.pending_release),
+            balanceText: formatVnd(summary.wallet_balance, tr),
+            commissionOwedText: formatVnd(summary.commission_owed, tr),
+            pendingReleaseText: formatVnd(summary.pending_release, tr),
             hasPending: Number(summary.pending_release) > 0,
           },
           period: {
             rangeText: `${formatDayMonth(p.start)} - ${formatDayMonth(p.end)}`,
-            incomeText: formatVnd(p.income),
+            incomeText: formatVnd(p.income, tr),
             completedJobs: String(p.completed_jobs),
-            grossText: formatVnd(p.gross_amount),
-            series: summary.series as SeriesPoint[],
+            grossText: formatVnd(p.gross_amount, tr),
+            series: (summary.series as SeriesPoint[]).map(point => ({ ...point, label: tr(point.label) })),
           },
           settlement: {
-            onlineText: `+${formatVnd(p.online_earned)}`,
-            cashText: `-${formatVnd(p.cash_commission)}`,
+            onlineText: `+${formatVnd(p.online_earned, tr)}`,
+            cashText: `-${formatVnd(p.cash_commission, tr)}`,
           },
         }
       : null;
@@ -111,12 +112,12 @@ export function useEarnings() {
       id: item.id,
       isCash,
       pending,
-      serviceName: item.service_name,
+      serviceName: tr(item.service_name),
       metaText: `${item.booking_code} · ${formatEarningDateTime(item.completed_at)}`,
-      methodText: tr("{{value0}} · đơn {{value1}}", { value0: isCash ? tr("Tiền mặt · hoa hồng đã trừ ví") : tr("Online · app chuyển bạn"), value1: formatVnd(item.gross_amount) }),
+      methodText: tr("{{value0}} · đơn {{value1}}", { value0: isCash ? tr("Tiền mặt · hoa hồng đã trừ ví") : tr("Online · app chuyển bạn"), value1: formatVnd(item.gross_amount, tr) }),
       amountText: isCash
-        ? `-${formatVnd(item.commission_amount)}`
-        : `+${formatVnd(item.worker_amount)}`,
+        ? `-${formatVnd(item.commission_amount, tr)}`
+        : `+${formatVnd(item.worker_amount, tr)}`,
       amountColor: isCash
         ? COLORS.danger
         : pending
@@ -133,16 +134,16 @@ export function useEarnings() {
         id: tx.id,
         code: tx.code ?? null,
         isCredit,
-        title: tx.type_display,
-        subText: tx.note || tx.booking_code || "",
+        title: tr(tx.type_display),
+        subText: tx.note ? localizeTransactionNote(tx.note, tr) : tx.booking_code || "",
         timeText: formatEarningDateTime(tx.created_at),
-        amountText: `${isCredit ? "+" : "-"}${formatVnd(tx.amount)}`,
+        amountText: `${isCredit ? "+" : "-"}${formatVnd(tx.amount, tr)}`,
         amountColor: failed
           ? COLORS.inkMuted
           : isCredit
             ? COLORS.success
             : COLORS.danger,
-        statusText: tx.status !== "SUCCESS" ? tx.status_display : null,
+        statusText: tx.status !== "SUCCESS" ? tr(tx.status_display) : null,
       };
     },
   );
@@ -150,7 +151,7 @@ export function useEarnings() {
   return {
     period,
     setPeriod,
-    periodTabs: getLocalizedPeriodTabs(),
+    periodTabs: getLocalizedPeriodTabs(tr),
     isLoading: summaryQuery.isLoading,
     isError: summaryQuery.isError || !data,
     isRefreshing,

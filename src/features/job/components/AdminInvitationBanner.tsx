@@ -72,7 +72,7 @@ export function InvitationActions({
       setAction(null);
       Alert.alert(
         tr("Không thể phản hồi"),
-        getErrorMessage(error) ||
+        getErrorMessage(error, tr) ||
           tr("Vui lòng tải lại để kiểm tra trạng thái lời mời."),
       );
     }
@@ -148,7 +148,7 @@ export function AdminInvitationBanner({
         {tr("Người gửi:")}{" "}{invitation.sender_name}
       </Text>
       <Text className="text-ink-muted text-xs mt-1">
-        {tr("Hạn phản hồi:")}{" "}{formatDateTime(invitation.expires_at)}
+        {tr("Hạn phản hồi:")}{" "}{formatDateTime(invitation.expires_at, tr)}
       </Text>
       {active ? (
         <>

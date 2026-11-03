@@ -1,4 +1,4 @@
-import { translate as tr } from "@/features/language/i18n";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 type RouteInput = {
   target?: string | null;
   type?: string | null;
@@ -57,36 +57,36 @@ interface NotificationTypeMeta {
   iconName: string;
 }
 
-function getLocalizedNotificationTypeMap(): Record<string, NotificationTypeMeta> {
+function getLocalizedNotificationTypeMap(translateText = defaultTranslate): Record<string, NotificationTypeMeta> {
   return {
     BOOKING: {
-      label: tr("Đơn hàng"),
+      label: translateText("Đơn hàng"),
       iconLibrary: "material-community",
       iconName: "broom",
     },
     PAYMENT: {
-      label: tr("Thanh toán"),
+      label: translateText("Thanh toán"),
       iconLibrary: "feather",
       iconName: "check-circle",
     },
     ASSIGNMENT: {
-      label: tr("Phân công"),
+      label: translateText("Phân công"),
       iconLibrary: "feather",
       iconName: "user-check",
     },
     COMPLAINT: {
-      label: tr("Khiếu nại"),
+      label: translateText("Khiếu nại"),
       iconLibrary: "feather",
       iconName: "alert-circle",
     },
     SYSTEM: {
-      label: tr("Hệ thống"),
+      label: translateText("Hệ thống"),
       iconLibrary: "feather",
       iconName: "bell",
     },
   };
 }
 
-export function getNotificationTypeMeta(type: string): NotificationTypeMeta {
-  return getLocalizedNotificationTypeMap()[type] ?? getLocalizedNotificationTypeMap().SYSTEM;
+export function getNotificationTypeMeta(type: string, translateText = defaultTranslate): NotificationTypeMeta {
+  return getLocalizedNotificationTypeMap(translateText)[type] ?? getLocalizedNotificationTypeMap(translateText).SYSTEM;
 }

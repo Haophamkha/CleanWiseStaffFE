@@ -1,3 +1,4 @@
+import { localizeKnownMessage } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -47,7 +48,7 @@ export function WorkingAreasPicker({ form }: { form: WorkingAreasState }) {
             style={{ marginTop: 2 }}
           />
           <Text className="flex-1 text-danger text-sm leading-5 ml-2.5">
-            {form.error}
+            {localizeKnownMessage(form.error, tr)}
           </Text>
         </View>
       )}

@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
@@ -36,23 +36,23 @@ type Row =
   | { kind: "header"; key: string; label: string; running: boolean }
   | { kind: "item"; key: string; item: MyDisplayItem };
 
-function getLocalizedEmpty(): Record<MyJobsTab, { title: string; message: string }> {
+function getLocalizedEmpty(translateText = defaultTranslate): Record<MyJobsTab, { title: string; message: string }> {
   return {
     upcoming: {
-      title: tr("Chưa có buổi sắp tới"),
-      message: tr("Vào tab Khả dụng để nhận việc"),
+      title: translateText("Chưa có buổi sắp tới"),
+      message: translateText("Vào tab Khả dụng để nhận việc"),
     },
     today: {
-      title: tr("Hôm nay bạn không có buổi nào"),
-      message: tr("Kéo xuống để làm mới"),
+      title: translateText("Hôm nay bạn không có buổi nào"),
+      message: translateText("Kéo xuống để làm mới"),
     },
     completed: {
-      title: tr("Chưa có buổi nào hoàn thành"),
-      message: tr("Các buổi đã làm xong sẽ hiện ở đây"),
+      title: translateText("Chưa có buổi nào hoàn thành"),
+      message: translateText("Các buổi đã làm xong sẽ hiện ở đây"),
     },
     cancelled: {
-      title: tr("Không có buổi nào bị hủy"),
-      message: tr("Kéo xuống để làm mới"),
+      title: translateText("Không có buổi nào bị hủy"),
+      message: translateText("Kéo xuống để làm mới"),
     },
   };
 }
@@ -73,7 +73,7 @@ function anchorOf(item: MyDisplayItem): WorkerMySchedule {
   return pending[0] ?? s[0];
 }
 
-function buildRows(items: MyDisplayItem[]): Row[] {
+function buildRows(items: MyDisplayItem[], translateText = defaultTranslate): Row[] {
   const rows: Row[] = [];
   let lastKey = "";
 
@@ -84,12 +84,12 @@ function buildRows(items: MyDisplayItem[]): Row[] {
 
     if (key !== lastKey) {
       lastKey = key;
-      const rel = relativeDayLabel(a.scheduled_start);
-      const day = formatDayLabel(a.scheduled_start);
+      const rel = relativeDayLabel(a.scheduled_start, translateText);
+      const day = formatDayLabel(a.scheduled_start, translateText);
       rows.push({
         kind: "header",
         key: `h-${rows.length}`,
-        label: running ? tr("Đang thực hiện") : rel ? `${rel} · ${day}` : day,
+        label: running ? translateText("Đang thực hiện") : rel ? `${rel} · ${day}` : day,
         running,
       });
     }
@@ -141,7 +141,7 @@ export function MyJobsList({
 
   const { COLORS } = useAppTheme();
 
-  const rows = useMemo(() => buildRows(state.items), [state.items, tr]);
+  const rows = useMemo(() => buildRows(state.items, tr), [state.items, tr]);
 
   const renderItem = useCallback(
     ({ item: row, index }: { item: Row; index: number }) => {
@@ -232,8 +232,8 @@ export function MyJobsList({
           ) : (
             <EmptyState
               icon="clipboard"
-              title={getLocalizedEmpty()[tab].title}
-              message={getLocalizedEmpty()[tab].message}
+              title={getLocalizedEmpty(tr)[tab].title}
+              message={getLocalizedEmpty(tr)[tab].message}
             />
           )}
         </View>

@@ -19,6 +19,22 @@ void i18n.init({
 export function translate(key: string, options?: TOptions): string {
   return i18n.t(key, options ?? {}) as string;
 }
-export function getLocale(): "vi-VN" | "en-US" {
+// Pass the subscribed translator from renders so compiler memoization tracks locale changes.
+export function getLocale(_translateText?: typeof translate): "vi-VN" | "en-US" {
   return i18n.resolvedLanguage === "en" ? "en-US" : "vi-VN";
+}
+
+const messageKeys = new Map<string, string>();
+for (const dictionary of [vi, en]) {
+  for (const [key, value] of Object.entries(dictionary)) {
+    if (!key.includes("{{")) messageKeys.set(value, key);
+  }
+}
+
+// Validation errors can remain in screen state while the language changes.
+// Recover their bundled key instead of displaying the previous translation.
+// Unknown server messages are preserved. Use only for app error messages.
+export function localizeKnownMessage(message: string, translateText = translate): string {
+  const key = messageKeys.get(message);
+  return key ? translateText(key) : message;
 }

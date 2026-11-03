@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ON_DARK, RADIUS, SHADOWS } from "@/constants/theme";
@@ -6,7 +8,7 @@ import { formatDuration } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-function formatTime(iso: string) {
+function formatTime(iso: string, translateText = defaultTranslate) {
   const d = new Date(iso);
   return `${d.getHours().toString().padStart(2, "0")}:${d
     .getMinutes()
@@ -23,6 +25,7 @@ export function TodayScheduleCard({
   schedule: s,
   onPress,
 }: TodayScheduleCardProps) {
+  const { t: tr } = useTranslation();
   const { COLORS } = useAppTheme();
 
   return (
@@ -38,7 +41,7 @@ export function TodayScheduleCard({
           style={{ minWidth: 70 }}
         >
           <Text className="text-white text-xl font-extrabold">
-            {formatTime(s.scheduled_start)}
+            {formatTime(s.scheduled_start, tr)}
           </Text>
           <View
             style={{
@@ -52,7 +55,7 @@ export function TodayScheduleCard({
             className="text-xs font-bold"
             style={{ color: ON_DARK.textSoft }}
           >
-            {formatTime(s.scheduled_end)}
+            {formatTime(s.scheduled_end, tr)}
           </Text>
         </View>
 
@@ -64,7 +67,7 @@ export function TodayScheduleCard({
             className="text-ink text-base font-extrabold mt-2"
             numberOfLines={2}
           >
-            {s.service_name}
+            {tr(s.service_name)}
           </Text>
           <View className="flex-row items-center mt-1">
             <Feather name="clock" size={13} color={COLORS.inkMuted} />

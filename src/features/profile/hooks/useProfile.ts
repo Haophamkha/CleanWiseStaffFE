@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import type { ThemeColors } from "@/constants/theme";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
 
@@ -33,35 +33,35 @@ export type MenuGroup = {
 };
 
 export function getProfileStatusInfo(
-  COLORS: ThemeColors,
+  COLORS: ThemeColors, translateText = defaultTranslate,
 ): Record<ProfileStatus, ProfileStatusInfo> {
   return {
     DRAFT: {
-      label: tr("Chưa hoàn tất hồ sơ"),
+      label: translateText("Chưa hoàn tất hồ sơ"),
       color: COLORS.danger,
       bg: COLORS.dangerLight,
       text: COLORS.danger,
     },
     PENDING: {
-      label: tr("Đang chờ duyệt"),
+      label: translateText("Đang chờ duyệt"),
       color: COLORS.warning,
       bg: COLORS.warningLight,
       text: COLORS.warningDark,
     },
     ACTIVE: {
-      label: tr("Đang làm việc"),
+      label: translateText("Đang làm việc"),
       color: COLORS.success,
       bg: COLORS.successLight,
       text: COLORS.success,
     },
     REJECTED: {
-      label: tr("Hồ sơ bị từ chối"),
+      label: translateText("Hồ sơ bị từ chối"),
       color: COLORS.danger,
       bg: COLORS.dangerLight,
       text: COLORS.danger,
     },
     SUSPENDED: {
-      label: tr("Tạm khóa"),
+      label: translateText("Tạm khóa"),
       color: COLORS.danger,
       bg: COLORS.dangerLight,
       text: COLORS.danger,
@@ -69,56 +69,56 @@ export function getProfileStatusInfo(
   };
 }
 
-function buildMenuGroups(): MenuGroup[] {
+function buildMenuGroups(translateText = defaultTranslate): MenuGroup[] {
   return [
     {
-      title: tr("Tài khoản"),
+      title: translateText("Tài khoản"),
       layout: "list",
       items: [
         {
           icon: "user",
-          label: tr("Thông tin cá nhân"),
+          label: translateText("Thông tin cá nhân"),
           onPress: () => router.push("/(profile-setup)/personal-info"),
         },
         {
           icon: "map-pin",
-          label: tr("Khu vực hoạt động"),
+          label: translateText("Khu vực hoạt động"),
           onPress: () => router.push("/(profile-setup)/working-areas"),
         },
         {
           icon: "folder",
-          label: tr("Hồ sơ của tôi"),
+          label: translateText("Hồ sơ của tôi"),
           onPress: () => router.push("/(profile-setup)/my-profile"),
         },
         {
           icon: "credit-card",
-          label: tr("Tài khoản ngân hàng"),
+          label: translateText("Tài khoản ngân hàng"),
           onPress: () => router.push("/payment-methods" as any),
         },
         {
           icon: "trending-up",
-          label: tr("Thu nhập"),
+          label: translateText("Thu nhập"),
           onPress: () => router.push("/earnings" as any),
         },
         {
           icon: "alert-circle",
-          label: tr("Khiếu nại của tôi"),
+          label: translateText("Khiếu nại của tôi"),
           onPress: () => router.push("/complaints" as any),
         },
       ],
     },
     {
-      title: tr("Ứng dụng"),
+      title: translateText("Ứng dụng"),
       layout: "support",
       items: [
         {
           icon: "settings",
-          label: tr("Cài đặt"),
+          label: translateText("Cài đặt"),
           onPress: () => router.push("/settings" as any),
         },
         {
           icon: "info",
-          label: tr("Về CleanWise"),
+          label: translateText("Về CleanWise"),
           onPress: () => router.push("/about" as any),
         },
       ],
@@ -144,7 +144,7 @@ export function useProfile() {
   const rating = profile?.average_rating ? Number(profile.average_rating) : 0;
 
   const statusInfo: ProfileStatusInfo | null = profile
-    ? (getProfileStatusInfo(COLORS)[profile.status] ?? {
+    ? (getProfileStatusInfo(COLORS, tr)[profile.status] ?? {
         label: profile.status,
         color: COLORS.inkSoft,
         bg: COLORS.accentLight,
@@ -174,7 +174,7 @@ export function useProfile() {
     ratingText: rating.toFixed(1),
     totalJobs: profile?.total_completed_jobs ?? 0,
     statusInfo,
-    menuGroups: buildMenuGroups(),
+    menuGroups: buildMenuGroups(tr),
     handleLogout,
     logoutConfirmVisible,
     requestLogout,

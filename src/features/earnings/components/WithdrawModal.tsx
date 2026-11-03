@@ -86,7 +86,7 @@ export default function WithdrawModal({
               color: COLORS.primaryDark,
             }}
           >
-            {formatVnd(w.submittedAmount)}
+            {formatVnd(w.submittedAmount, tr)}
           </Text>
           {!!w.record && (
             <Text
@@ -133,7 +133,7 @@ export default function WithdrawModal({
           }}
         >
           {tr("Mã gồm 6 số đã gửi tới email của bạn để xác nhận rút")}{" "}
-          {formatVnd(w.submittedAmount)}.
+          {formatVnd(w.submittedAmount, tr)}.
         </Text>
 
         <OtpInput value={w.otp} onChange={w.setOtp} invalid={!!w.message} />

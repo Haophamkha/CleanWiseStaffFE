@@ -1,5 +1,5 @@
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr, getLocale } from "@/features/language/i18n";
 import {
     chatApi,
     useGetConversationsQuery,
@@ -25,26 +25,26 @@ export type ChatInboxRow = {
   unreadLabel: string;
 };
 
-function formatListTime(iso: string | null): string {
+function formatListTime(iso: string | null, translateText = defaultTranslate): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (date.toDateString() === new Date().toDateString()) {
-    return date.toLocaleTimeString(getLocale(), {
+    return date.toLocaleTimeString(getLocale(translateText), {
       hour: "2-digit",
       minute: "2-digit",
     });
   }
-  return date.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" });
+  return date.toLocaleDateString(getLocale(translateText), { day: "2-digit", month: "2-digit" });
 }
 
-function toRow(item: ChatConversation): ChatInboxRow {
+function toRow(item: ChatConversation, translateText = defaultTranslate): ChatInboxRow {
   return {
     id: item.id,
     name: item.other_user.name,
     avatar: item.other_user.avatar,
     bookingCode: item.latest_assignment?.booking_code ?? null,
-    preview: item.last_message || tr("Bắt đầu trò chuyện"),
-    timeLabel: formatListTime(item.last_message_at),
+    preview: item.last_message || translateText("Bắt đầu trò chuyện"),
+    timeLabel: formatListTime(item.last_message_at, translateText),
     unread: item.unread_count > 0,
     unreadLabel: item.unread_count > 99 ? "99+" : String(item.unread_count),
   };
@@ -146,7 +146,7 @@ export function useChatInbox() {
     if (data?.next && !isFetching) setPage((value) => value + 1);
   };
 
-  const rows = useMemo(() => items.map(toRow), [items, tr]);
+  const rows = useMemo(() => items.map(item => toRow(item, tr)), [items, tr]);
   const status: "guest" | "loading" | "error" | "ready" = !user
     ? "guest"
     : isLoading && !data

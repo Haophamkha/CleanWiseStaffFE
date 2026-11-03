@@ -1,5 +1,5 @@
+import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { NotificationBellButton } from "@/components/common/NotificationBellButton";
 import { RADIUS, TYPE } from "@/constants/theme";
@@ -12,14 +12,14 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function getLocalizedTabs(): { key: Tab; label: string; subtitle: string }[] {
+function getLocalizedTabs(translateText = defaultTranslate): { key: Tab; label: string; subtitle: string }[] {
   return [
     {
       key: "available",
-      label: tr("Khả dụng"),
-      subtitle: tr("Chọn việc phù hợp để nhận"),
+      label: translateText("Khả dụng"),
+      subtitle: translateText("Chọn việc phù hợp để nhận"),
     },
-    { key: "mine", label: tr("Của tôi"), subtitle: tr("Các buổi bạn đã nhận") },
+    { key: "mine", label: translateText("Của tôi"), subtitle: translateText("Các buổi bạn đã nhận") },
   ];
 }
 
@@ -82,10 +82,10 @@ export function JobsHeader({
   const placed = useRef(false);
 
   const activeIndex = Math.max(
-    getLocalizedTabs().findIndex((t) => t.key === tab),
+    getLocalizedTabs(tr).findIndex((t) => t.key === tab),
     0,
   );
-  const tabWidth = Math.max((trackWidth - TRACK_PADDING * 2) / getLocalizedTabs().length, 0);
+  const tabWidth = Math.max((trackWidth - TRACK_PADDING * 2) / getLocalizedTabs(tr).length, 0);
 
   useEffect(() => {
     if (!trackWidth) return;
@@ -150,7 +150,7 @@ export function JobsHeader({
           >
             {tr("Công việc")}</Text>
           <Text className="text-ink text-xs mt-0.5" style={{ opacity: 0.75 }}>
-            {getLocalizedTabs()[activeIndex].subtitle}
+            {getLocalizedTabs(tr)[activeIndex].subtitle}
           </Text>
         </View>
         <View className="w-11 h-11 rounded-full bg-surface items-center justify-center overflow-hidden">
@@ -178,7 +178,7 @@ export function JobsHeader({
           }}
         />
         <View className="flex-row">
-          {getLocalizedTabs().map((t) => (
+          {getLocalizedTabs(tr).map((t) => (
             <Pressable
               key={t.key}
               onPress={() => onSwitchTab(t.key)}

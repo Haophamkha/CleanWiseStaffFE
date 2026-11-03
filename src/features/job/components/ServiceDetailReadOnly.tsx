@@ -1,5 +1,6 @@
+import { localizeServiceField } from "@/features/profile-setup/utils/localizeService";
+import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
-import { translate as tr, getLocale } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { RADIUS, SHADOWS } from "@/constants/theme";
 import type {
@@ -18,15 +19,15 @@ type ServiceDetailReadOnlyProps = {
   hideSchedule?: boolean;
 };
 
-function getLocalizedWeekdayLabels(): Record<string, string> {
+function getLocalizedWeekdayLabels(translateText = defaultTranslate): Record<string, string> {
   return {
-    MON: tr("Thứ 2"),
-    TUE: tr("Thứ 3"),
-    WED: tr("Thứ 4"),
-    THU: tr("Thứ 5"),
-    FRI: tr("Thứ 6"),
-    SAT: tr("Thứ 7"),
-    SUN: tr("Chủ nhật"),
+    MON: translateText("Thứ 2"),
+    TUE: translateText("Thứ 3"),
+    WED: translateText("Thứ 4"),
+    THU: translateText("Thứ 5"),
+    FRI: translateText("Thứ 6"),
+    SAT: translateText("Thứ 7"),
+    SUN: translateText("Chủ nhật"),
   };
 }
 
@@ -72,22 +73,22 @@ function optionLabel(options: FieldOption[], raw: unknown): string {
   return findOption(options, raw)?.label ?? String(raw);
 }
 
-function formatDateValue(raw: unknown): string {
+function formatDateValue(raw: unknown, translateText = defaultTranslate): string {
   const d = new Date(String(raw));
   if (Number.isNaN(d.getTime())) return String(raw);
-  return d.toLocaleDateString(getLocale(), {
+  return d.toLocaleDateString(getLocale(translateText), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 }
 
-function formatTimeValue(raw: unknown): string {
+function formatTimeValue(raw: unknown, translateText = defaultTranslate): string {
   const str = String(raw);
   if (/^\d{1,2}:\d{2}/.test(str)) return str.slice(0, 5);
   const d = new Date(str);
   if (!Number.isNaN(d.getTime())) {
-    return d.toLocaleTimeString(getLocale(), {
+    return d.toLocaleTimeString(getLocale(translateText), {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -148,7 +149,7 @@ function FieldRow({
 function formatSimpleValue(
   field: FormField,
   raw: unknown,
-  scope: Record<string, unknown>,
+  scope: Record<string, unknown>, translateText = defaultTranslate,
 ): string {
   switch (field.type) {
     case "WEEKDAY_MULTI_SELECT": {
@@ -158,7 +159,7 @@ function formatSimpleValue(
         .map((v) =>
           options.length > 0
             ? optionLabel(options, v)
-            : (getLocalizedWeekdayLabels()[String(v)] ?? String(v)),
+            : (getLocalizedWeekdayLabels(translateText)[String(v)] ?? String(v)),
         )
         .join(", ");
     }
@@ -167,11 +168,11 @@ function formatSimpleValue(
     case "TEXTAREA":
       return String(raw);
     case "BOOLEAN":
-      return raw ? tr("Có") : tr("Không");
+      return raw ? translateText("Có") : translateText("Không");
     case "DATE":
-      return formatDateValue(raw);
+      return formatDateValue(raw, translateText);
     case "TIME":
-      return formatTimeValue(raw);
+      return formatTimeValue(raw, translateText);
     default:
       return String(raw);
   }
@@ -201,7 +202,7 @@ function TaskChecklistBlock({ label, text }: { label: string; text: string }) {
             color={COLORS.success}
             style={{ marginTop: 2 }}
           />
-          <Text className="text-ink text-sm ml-2 flex-1">{line}</Text>
+          <Text className="text-ink text-sm ml-2 flex-1">{tr(line)}</Text>
         </View>
       ))}
     </View>
@@ -273,6 +274,7 @@ function FieldList({
   taskChecklist?: string | null;
   hideSchedule?: boolean;
 }) {
+  const { t: tr } = useTranslation();
   const visible = fields.filter((f) => {
     if (hideSchedule && (f.type === "DATE" || f.type === "TIME")) return false;
     if (f.type === "TASK_CHECKLIST") return !!taskChecklist;
@@ -364,7 +366,7 @@ function FieldList({
             label={field.label}
           >
             <Text className="text-ink text-sm font-medium">
-              {formatSimpleValue(field, raw, values)}
+              {formatSimpleValue(field, raw, values, tr)}
             </Text>
           </FieldRow>
         );
@@ -399,7 +401,7 @@ export function ServiceDetailReadOnly({
       <Text className="text-ink text-base font-extrabold mb-3">
         {tr("Thông tin dịch vụ")}</Text>
       <FieldList
-        fields={fields}
+        fields={fields.map(field => localizeServiceField(field, tr))}
         values={scope}
         taskChecklist={taskChecklist}
         hideSchedule={hideSchedule}
