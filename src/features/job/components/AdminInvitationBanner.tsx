@@ -1,8 +1,11 @@
 import { useTranslation } from "react-i18next";
 
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { RADIUS, TYPE } from "@/constants/theme";
 import { useRespondInvitationMutation } from "@/features/job/api/jobsApi";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
+import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { getErrorMessage } from "@/utils/apiError";
 import { formatDateTime } from "@/utils/format";
 import * as Crypto from "expo-crypto";
@@ -33,6 +36,7 @@ export function InvitationActions({
   scheduleId,
 }: BaseProps) {
   const { t: tr } = useTranslation();
+  const { COLORS } = useAppTheme();
 
   const remaining = useRemaining(invitation.expires_at);
   const active = invitation.status === "PENDING" && remaining > 0;
@@ -82,19 +86,28 @@ export function InvitationActions({
 
   return (
     <>
-      <TouchableOpacity
+      <PrimaryButton
+        label={tr("Nhận việc")}
         disabled={isLoading}
         onPress={() => setAction("accept")}
-        className="bg-primary-fill rounded-xl p-3.5 items-center"
-      >
-        <Text className="text-white font-semibold">{tr("Nhận việc")}</Text>
-      </TouchableOpacity>
+      />
       <TouchableOpacity
+        activeOpacity={0.85}
         disabled={isLoading}
         onPress={() => setAction("decline")}
-        className="mt-3 border border-line bg-surface rounded-xl p-3 items-center"
+        className="mt-3 flex-row items-center justify-center bg-danger-light"
+        style={{
+          borderWidth: 1.5,
+          borderColor: COLORS.danger,
+          borderRadius: RADIUS.pill,
+          paddingVertical: 15,
+          paddingHorizontal: 22,
+          opacity: isLoading ? 0.55 : 1,
+        }}
       >
-        <Text className="text-ink font-semibold">{tr("Từ chối")}</Text>
+        <Text className="text-[13px]" style={[TYPE.button, { color: COLORS.danger }]}>
+          {tr("Từ chối").toUpperCase()}
+        </Text>
       </TouchableOpacity>
       <ConfirmModal
         visible={action !== null}
@@ -153,9 +166,11 @@ export function AdminInvitationBanner({
       {active ? (
         <>
           <Text className="text-ink mt-3">
-            {tr("Bạn có lời mời nhận việc mới. Vui lòng xem thông tin và xác nhận trước thời hạn.")}</Text>
+            {tr("Bạn có lời mời nhận việc mới. Vui lòng xem thông tin và xác nhận trước thời hạn.")}
+          </Text>
           <Text className="text-primary text-sm mt-3">
-            {tr("Còn")}{" "}{Math.ceil(remaining / 60000)} {tr("phút để phản hồi.")}</Text>
+            {tr("Còn")}{" "}{Math.ceil(remaining / 60000)} {tr("phút để phản hồi.")}
+          </Text>
           {inlineActions ? (
             <View className="mt-3">
               <InvitationActions
@@ -175,7 +190,8 @@ export function AdminInvitationBanner({
           )}
 
           <Text className="text-ink-muted text-sm mt-3">
-            {tr("Lời mời này không còn chờ phản hồi. Nếu buổi làm vẫn đang mở, bạn có thể nhận từ danh sách chung.")}</Text>
+            {tr("Lời mời này không còn chờ phản hồi. Nếu buổi làm vẫn đang mở, bạn có thể nhận từ danh sách chung.")}
+          </Text>
         </>
       )}
       {invitation.status === "ACCEPTED" && (

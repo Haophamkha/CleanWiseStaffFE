@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 import { AvailableJobCard } from "@/features/job/components/AvailableJobCard";
 import { JobsListFooter } from "@/features/job/components/JobsListFooter";
+import { Feather } from "@expo/vector-icons";
 import type { JobsListState } from "@/features/job/hooks/useJobs";
 import type { OpenJob } from "@/features/job/types/jobNav";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
@@ -81,14 +82,35 @@ export function AvailableJobsList({
       maxToRenderPerBatch={8}
       windowSize={7}
       removeClippedSubviews
-      ListHeaderComponent={
+            ListHeaderComponent={
         state.total > 0 ? (
-          <View className="self-start bg-accent-light rounded-full px-3 py-1.5 mb-3">
-            <Text className="text-ink-soft text-xs font-semibold">
+          <View
+            className="flex-row items-center"
+            style={{ marginBottom: 12, paddingHorizontal: 2 }}
+          >
+            <Text className="text-ink font-extrabold text-[17px]">
               {dayFiltered
-                ? tr("{{value0}} đơn có buổi trống trong ngày này", { value0: state.total , count: state.total})
-                : tr("{{value0}} đơn đang chờ nhận", { value0: state.total , count: state.total})}
+                ? tr("Việc trống trong ngày")
+                : tr("Việc đang chờ nhận")}
             </Text>
+            <View
+              className="items-center justify-center"
+              style={{
+                minWidth: 26,
+                height: 22,
+                paddingHorizontal: 8,
+                marginLeft: 8,
+                borderRadius: 11,
+                backgroundColor: COLORS.primaryLight,
+              }}
+            >
+              <Text
+                className="font-extrabold text-[12.5px]"
+                style={{ color: COLORS.primaryDark }}
+              >
+                {state.total}
+              </Text>
+            </View>
           </View>
         ) : null
       }
