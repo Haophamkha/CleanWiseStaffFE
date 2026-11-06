@@ -158,9 +158,14 @@ export type Paginated<T> = {
   page_size: number;
 };
 
+export type AvailableSort = "time" | "area" | "distance";
+
 export type AvailableJobsPagedArgs = {
   page: number;
   page_size?: number;
   date_from?: string;
   date_to?: string;
+  sort?: AvailableSort;
+  lat?: number;
+  lng?: number;
 };
