@@ -2,6 +2,7 @@ import { ActiveProfileGate } from "@/components/common/ActiveProfileGate";
 import { AvailableJobsList } from "@/features/job/components/AvailableJobsList";
 import { JobsHeader } from "@/features/job/components/JobsHeader";
 import { MyJobsList } from "@/features/job/components/MyJobsList";
+import { SortBar } from "@/features/job/components/SortBar";
 import { useJobs } from "@/features/job/hooks/useJobs";
 import { View } from "react-native";
 
@@ -22,14 +23,17 @@ function JobsContent() {
       />
 
       {jobs.tab === "available" ? (
-        <AvailableJobsList
-          state={jobs.available}
-          dayFiltered={jobs.dayFiltered}
-          onClearDay={() => jobs.setDay(null)}
-          onOpen={jobs.openJob}
-          onScrollStart={jobs.markScrolled}
-          onEndReached={jobs.onEndReached}
-        />
+        <>
+          <SortBar value={jobs.sort} onChange={jobs.selectSort} />
+          <AvailableJobsList
+            state={jobs.available}
+            dayFiltered={jobs.dayFiltered}
+            onClearDay={() => jobs.setDay(null)}
+            onOpen={jobs.openJob}
+            onScrollStart={jobs.markScrolled}
+            onEndReached={jobs.onEndReached}
+          />
+        </>
       ) : (
         <MyJobsList
           state={jobs.mine}

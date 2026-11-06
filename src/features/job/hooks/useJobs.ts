@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import {
   useGetAvailableJobsPagedQuery,
   useGetMyJobCountsQuery,
@@ -8,6 +7,7 @@ import { usePagedJobs } from "@/features/job/hooks/usePagedJobs";
 import type { OpenJob, Tab } from "@/features/job/types/jobNav";
 import type {
   AvailableJobsPagedArgs,
+  AvailableSort,
   MyJobsPagedArgs,
   MyJobsTab,
   WorkerMySchedule,
@@ -18,8 +18,10 @@ import { groupMySchedules } from "@/features/schedule/utils/myScheduleGrouping";
 import { useSingleNavigate } from "@/hooks/useSingleNavigate";
 import { useAppSelector } from "@/store/hooks";
 import { buildDayChips, DAY_CHIP_COUNT } from "@/utils/dayChips";
+import * as Location from "expo-location";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type AvailableFilters = Omit<AvailableJobsPagedArgs, "page">;
 type MyFilters = Omit<MyJobsPagedArgs, "page">;
@@ -71,15 +73,42 @@ export function useJobs() {
 
   const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT, tr), [tr]);
 
+  const [sort, setSort] = useState<AvailableSort>("time");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
+
+  const selectSort = useCallback(async (next: AvailableSort) => {
+    if (next === "distance") {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const pos =
+          (await Location.getLastKnownPositionAsync()) ??
+          (await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          }));
+        if (!pos) return;
+        setCoords({
+          lat: Number(pos.coords.latitude.toFixed(3)),
+          lng: Number(pos.coords.longitude.toFixed(3)),
+        });
+      } catch {
+        return;
+      }
+    }
+    setSort(next);
+  }, []);
+
   const availableFilters = useMemo<AvailableFilters>(
-    () =>
-      day
-        ? {
-            date_from: day,
-            date_to: day,
-          }
-        : {},
-    [day],
+    () => ({
+      ...(day ? { date_from: day, date_to: day } : {}),
+      ...(sort !== "time" ? { sort } : {}),
+      ...(sort === "distance" && coords
+        ? { lat: coords.lat, lng: coords.lng }
+        : {}),
+    }),
+    [day, sort, coords],
   );
 
   const dayFiltered = day !== null;
@@ -208,5 +237,8 @@ export function useJobs() {
 
     markScrolled,
     onEndReached,
+
+    sort,
+    selectSort,
   };
 }
