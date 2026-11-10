@@ -189,7 +189,7 @@ export default function JobDetailScreen() {
         icon="alert-triangle"
         title={actions.cancelConfirm.title}
         message={actions.cancelConfirm.message}
-        confirmLabel={tr("Hủy nhận việc")}
+        confirmLabel={actions.cancelConfirm.label}
         cancelLabel={tr("Giữ lại")}
         loading={actions.isCancelling}
         onConfirm={actions.confirmCancel}

@@ -97,7 +97,7 @@ function buildMenuGroups(translateText = defaultTranslate): MenuGroup[] {
         },
         {
           icon: "trending-up",
-          label: translateText("Thu nhập"),
+          label: translateText("Ví"),
           onPress: () => router.push("/earnings" as any),
         },
         {

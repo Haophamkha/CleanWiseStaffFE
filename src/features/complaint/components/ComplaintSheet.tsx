@@ -36,6 +36,7 @@ type Props = {
   bookingId: number;
   scheduleId: number;
   scheduleStatus?: string;
+  discipline?: { caseId: number; issueTypeId: number };
   onClose: () => void;
 };
 
@@ -44,17 +45,18 @@ export function ComplaintSheet({
   bookingId,
   scheduleId,
   scheduleStatus,
+  discipline,
   onClose,
 }: Props) {
   const { t: tr } = useTranslation();
 
-  const { COLORS, mode: themeMode } = useAppTheme();
+  const { COLORS, OVERLAY, mode: themeMode } = useAppTheme();
 
   const insets = useSafeAreaInsets();
   const missed = scheduleStatus === "MISSED";
   const { data: allTypes = [], isLoading } = useGetComplaintIssueTypesQuery(
     undefined,
-    { skip: !visible },
+    { skip: !visible || !!discipline },
   );
   const types = useMemo(
     () =>
@@ -70,6 +72,8 @@ export function ComplaintSheet({
   const [content, setContent] = useState("");
   const [images, setImages] = useState<PickedFile[]>([]);
   const [done, setDone] = useState(false);
+  const selectedIssue = discipline?.issueTypeId ?? issueTypeId;
+  const canSubmit = !!selectedIssue && !submitting && (!discipline || !!content.trim());
 
   // Buổi bị tự hủy chỉ có 1 loại sự cố -> chọn sẵn.
   useEffect(() => {
@@ -90,17 +94,19 @@ export function ComplaintSheet({
 
   const addImage = async (fromCamera: boolean) => {
     if (images.length >= MAX_IMAGES) return;
-    const file = fromCamera ? await takePhoto(undefined, tr) : await pickImage();
+    const options = { includeWebFile: true };
+    const file = fromCamera ? await takePhoto(options, tr) : await pickImage(options);
     if (file) setImages((prev) => [...prev, file]);
   };
 
   const submit = async () => {
-    if (!issueTypeId || submitting) return;
+    if (!selectedIssue || !canSubmit) return;
     try {
       await createComplaint({
         bookingId,
         scheduleId,
-        issueTypeId,
+        issueTypeId: selectedIssue,
+        disciplineCaseId: discipline?.caseId,
         content,
         images,
       }).unwrap();
@@ -123,7 +129,7 @@ export function ComplaintSheet({
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1 justify-end"
-          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+          style={{ backgroundColor: OVERLAY }}
         >
           <Pressable className="flex-1" onPress={close} />
           <View
@@ -140,7 +146,7 @@ export function ComplaintSheet({
                 <Feather name="alert-circle" size={18} color={COLORS.danger} />
               </View>
               <Text className="text-ink text-base font-extrabold flex-1">
-                {missed ? tr("Khiếu nại buổi bị tự hủy") : tr("Báo sự cố / Khiếu nại")}
+                {discipline ? tr("Xem xét điểm tín nhiệm") : missed ? tr("Khiếu nại buổi bị tự hủy") : tr("Báo sự cố / Khiếu nại")}
               </Text>
               <Pressable onPress={close} hitSlop={10}>
                 <Feather name="x" size={22} color={COLORS.ink} />
@@ -156,50 +162,48 @@ export function ComplaintSheet({
                   {tr("Buổi này bị hệ thống tự hủy vì chưa check-in đúng hạn. Nếu bạn đã đến và làm việc, hãy mô tả và đính kèm ảnh minh chứng để CleanWise xem xét.")}</Text>
               ) : null}
 
-              <Text className="text-ink text-sm font-semibold mb-2">
-                {tr("Loại sự cố")}</Text>
-              {isLoading ? (
-                <ActivityIndicator color={COLORS.primary} />
-              ) : (
-                <View className="flex-row flex-wrap mb-4" style={{ gap: 8 }}>
-                  {types.map((t) => {
-                    const active = issueTypeId === t.id;
-                    return (
-                      <Pressable
-                        key={t.id}
-                        onPress={() => setIssueTypeId(t.id)}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: active }}
-                        className={`rounded-full px-3.5 justify-center border ${
-                          active
-                            ? "bg-ink-panel border-ink"
-                            : "bg-surface border-line"
-                        }`}
-                        style={{ minHeight: 36 }}
-                      >
-                        <Text
-                          className={`text-xs font-semibold ${
-                            active ? "text-white" : "text-ink-soft"
-                          }`}
-                        >
-                          {t.name}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+              {!discipline && (
+                <>
+                  <Text className="text-ink text-sm font-semibold mb-2">
+                    {tr("Loại sự cố")}
+                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator color={COLORS.primary} />
+                  ) : (
+                    <View className="flex-row flex-wrap mb-4" style={{ gap: 8 }}>
+                      {types.map((type) => {
+                        const active = issueTypeId === type.id;
+                        return (
+                          <Pressable
+                            key={type.id}
+                            onPress={() => setIssueTypeId(type.id)}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: active }}
+                            className={`rounded-full px-3.5 justify-center border ${
+                              active ? "bg-ink-panel border-ink" : "bg-surface border-line"
+                            }`}
+                            style={{ minHeight: 36 }}
+                          >
+                            <Text className={`text-xs font-semibold ${active ? "text-white" : "text-ink-soft"}`}>
+                              {type.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  )}
+                </>
               )}
 
               <Text className="text-ink text-sm font-semibold mb-2">
-                {tr("Mô tả")}<Text className="text-ink-muted font-normal">
-                  {" "}
-                  {tr("(không bắt buộc)")}</Text>
+                {tr("Mô tả")}
+                {!discipline && <Text className="text-ink-muted font-normal"> {tr("(không bắt buộc)")}</Text>}
               </Text>
               <TextInput keyboardAppearance={themeMode}
                 value={content}
                 onChangeText={setContent}
                 placeholder={
-                  missed
+                  discipline ? tr("Mô tả lý do bạn muốn CleanWise xem xét lại.") : missed
                     ? tr("Ví dụ: Tôi đến đúng giờ nhưng GPS lỗi nên không check-in được...")
                     : tr("Ví dụ: Khách không thanh toán tiền mặt sau khi hoàn thành...")
                 }
@@ -261,12 +265,12 @@ export function ComplaintSheet({
 
             <PressableScale
               onPress={submit}
-              disabled={!issueTypeId || submitting}
+              disabled={!canSubmit}
               accessibilityRole="button"
               className="bg-danger-fill rounded-full items-center justify-center mt-2"
               style={{
                 height: 48,
-                opacity: !issueTypeId || submitting ? 0.45 : 1,
+                opacity: !canSubmit ? 0.45 : 1,
               }}
             >
               {submitting ? (

@@ -37,7 +37,7 @@ export type ChatListItem =
       kind: "system";
       key: string;
       title: string;
-      assignment: string | null;
+      assignment: ChatAssignment | null;
       text: string;
       timeLabel: string;
     }
@@ -431,9 +431,7 @@ export function useChatRoom(id: number) {
           kind: "system",
           key: String(item.id),
           title: tr("Thông báo lịch làm"),
-          assignment: related
-            ? `${related.service_name} · ${related.booking_code}`
-            : null,
+          assignment: related ?? null,
           text: item.message,
           timeLabel: new Date(item.created_at).toLocaleString(getLocale(tr), {
             hour: "2-digit",

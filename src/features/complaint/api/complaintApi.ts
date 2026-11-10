@@ -49,6 +49,7 @@ export type CreateComplaintArgs = {
   issueTypeId: number;
   content?: string;
   images: PickedFile[];
+  disciplineCaseId?: number;
 };
 
 const unwrapList = <T>(r: any): T[] => {
@@ -97,19 +98,24 @@ export const complaintApi = baseApi.injectEndpoints({
     }),
 
     createComplaint: builder.mutation<unknown, CreateComplaintArgs>({
-      query: ({ bookingId, scheduleId, issueTypeId, content, images }) => {
+      query: ({ bookingId, scheduleId, issueTypeId, content, images, disciplineCaseId }) => {
         const formData = new FormData();
         formData.append("booking", String(bookingId));
         formData.append("schedule", String(scheduleId));
         formData.append("issue_type", String(issueTypeId));
+        if (disciplineCaseId) formData.append("discipline_case", String(disciplineCaseId));
         if (content?.trim()) formData.append("content", content.trim());
-        images.forEach((img) =>
+        for (const img of images) {
+          if (img.file) {
+            formData.append("attachments", img.file);
+            continue;
+          }
           formData.append("attachments", {
             uri: img.uri,
             name: img.name,
             type: img.type,
-          } as any),
-        );
+          } as any);
+        }
         return {
           url: "/api/worker/complaints/",
           method: "POST",
@@ -117,7 +123,7 @@ export const complaintApi = baseApi.injectEndpoints({
           timeout: UPLOAD_TIMEOUT_MS,
         };
       },
-      invalidatesTags: [{ type: "Complaints", id: "LIST" }],
+      invalidatesTags: [{ type: "Complaints", id: "LIST" }, { type: "Complaints", id: "DISCIPLINE" }],
     }),
 
     cancelComplaint: builder.mutation<unknown, number>({
@@ -128,6 +134,7 @@ export const complaintApi = baseApi.injectEndpoints({
       invalidatesTags: (_r, _e, id) => [
         { type: "Complaints", id },
         { type: "Complaints", id: "LIST" },
+        { type: "Complaints", id: "DISCIPLINE" },
       ],
     }),
   }),

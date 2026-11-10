@@ -93,6 +93,32 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
+    getWorkerServiceDecision: builder.query<{ action: "SERVICE_APPROVED" | "SERVICE_REJECTED" | null; reason: string }, void>({
+      query: () => ({ url: "/api/auth/worker/profile/service-request/", method: "GET" }),
+      transformResponse: unwrapResponse,
+      providesTags: ["Profile"],
+    }),
+
+    requestWorkerServiceChange: builder.mutation<WorkerProfileResponse, number>({
+      query: (service_id) => ({
+        url: "/api/auth/worker/profile/service-request/",
+        method: "POST",
+        data: { service_id },
+      }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: ["Profile"],
+    }),
+
+    requestWorkerEmailChange: builder.mutation<unknown, { email: string; password: string }>({
+      query: (data) => ({ url: "/api/auth/worker/email-change/request/", method: "POST", data }),
+    }),
+
+    confirmWorkerEmailChange: builder.mutation<{ email: string }, { email: string; password: string; code: string }>({
+      query: (data) => ({ url: "/api/auth/worker/email-change/confirm/", method: "POST", data }),
+      transformResponse: unwrapResponse,
+      invalidatesTags: ["Profile"],
+    }),
+
     updateWorkerProfile: builder.mutation<
       WorkerProfileResponse,
       UpdateWorkerProfileRequest
@@ -103,7 +129,12 @@ export const authApi = baseApi.injectEndpoints({
       // transformResponse cũng không tự áp dụng với queryFn nên phải gọi
       // unwrapResponse thủ công ở đây.
       async queryFn(fields, _queryApi, _extraOptions, baseQuery) {
-        const formData = await buildWorkerProfileFormData(fields);
+        let formData: FormData;
+        try {
+          formData = await buildWorkerProfileFormData(fields);
+        } catch {
+          return { error: { data: { message: "Không đọc được ảnh hồ sơ. Vui lòng chọn lại." } } };
+        }
         const result = await baseQuery({
           url: "/api/auth/worker/profile/",
           method: "PATCH",
@@ -200,6 +231,10 @@ export const {
   useVerifyResetOtpMutation,
   useResetPasswordMutation,
   useGetWorkerProfileQuery,
+  useGetWorkerServiceDecisionQuery,
+  useRequestWorkerServiceChangeMutation,
+  useRequestWorkerEmailChangeMutation,
+  useConfirmWorkerEmailChangeMutation,
   useUpdateWorkerProfileMutation,
   useSubmitWorkerProfileMutation,
   useGetActiveServicesQuery,

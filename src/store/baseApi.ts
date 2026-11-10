@@ -50,6 +50,7 @@ export const registerAuthDispatch = (dispatch: Dispatch<UnknownAction>) => {
  * ======================================================= */
 
 const SENSITIVE_KEYS = [
+  "code",
   "account_number",
   "password",
   "password_confirm",

@@ -368,11 +368,20 @@ function WalletTxRow({ row, last }: { row: WalletTxRowView; last: boolean }) {
         <Text className="text-ink text-sm" style={TYPE.label} numberOfLines={1}>
           {row.title}
         </Text>
-        {!!row.subText && (
+        {row.subText ? (
           <Text className="text-ink-soft text-xs mt-0.5" numberOfLines={2}>
             {row.subText}
           </Text>
-        )}
+        ) : row.bookingCode ? (
+          <Text
+            className="text-ink-soft text-xs mt-0.5"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
+            {row.bookingCode}
+          </Text>
+        ) : null}
         <Text className="text-ink-muted text-xs mt-0.5">
           {row.timeText}
           {row.statusText ? ` · ${row.statusText}` : ""}
