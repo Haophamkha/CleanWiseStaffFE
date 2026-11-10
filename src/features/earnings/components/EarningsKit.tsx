@@ -89,29 +89,6 @@ export function WalletCard({
               {wallet.commissionOwedText}
             </Text>
           </View>
-
-          {wallet.hasPending && (
-            <View className="mt-3">
-              <View className="flex-row items-center justify-between">
-                <Text
-                  className="text-xs flex-1 pr-3"
-                  style={{ color: ON_DARK.textSoft }}
-                >
-                  {tr("Đang chờ giải ngân")}</Text>
-                <Text
-                  className="text-sm"
-                  style={[TYPE.label, { color: ON_DARK.text }]}
-                >
-                  {wallet.pendingReleaseText}
-                </Text>
-              </View>
-              <Text
-                className="text-[11px] mt-1"
-                style={{ color: ON_DARK.textSoft }}
-              >
-                {tr("Tối đa 24 giờ sau khi hoàn thành")}</Text>
-            </View>
-          )}
         </View>
       </View>
     </View>
@@ -260,7 +237,7 @@ export function SettlementCard({
       <Text className="text-ink text-base font-extrabold mb-1">
         {tr("Đối soát với CleanWise")}</Text>
       <StatRow
-        label={tr("Đơn online (app giữ tiền, vào ví sau tối đa 24 giờ)")}
+        label={tr("Đơn online (vào ví khi hoàn thành)")}
         value={settlement.onlineText}
         valueColor={COLORS.success}
       />
@@ -308,7 +285,7 @@ function HistoryRow({ row, last }: { row: HistoryRowView; last: boolean }) {
         <Text className="text-ink-soft text-xs mt-0.5">{row.methodText}</Text>
         {row.pending && (
           <Text className="text-warning-dark text-xs mt-0.5" style={TYPE.label}>
-            {tr("Đang chờ giải ngân")}</Text>
+            {tr("Chưa ghi có")}</Text>
         )}
       </View>
 

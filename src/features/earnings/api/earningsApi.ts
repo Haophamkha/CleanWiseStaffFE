@@ -7,7 +7,7 @@ export type EarningPaymentMethod = "CASH" | "ONLINE";
 export type EarningsSummary = {
   wallet_balance: string;
   commission_owed: string;
-  /** Online đang giữ, chưa vào ví (tối đa 24 giờ) */
+  /** Khoản online chưa ghi có, giữ trường này để tương thích API cũ. */
   pending_release: string;
   period: {
     type: EarningPeriod;

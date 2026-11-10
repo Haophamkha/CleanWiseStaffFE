@@ -16,7 +16,7 @@ import type {
   WorkerMySchedule,
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
-import { getSessionInteraction } from "@/features/schedule/utils/scheduleStatus";
+import { getCheckOutAvailability, getSessionInteraction } from "@/features/schedule/utils/scheduleStatus";
 import {
   isUncertainError,
   pollSchedules,
@@ -639,6 +639,12 @@ export function useJobActions({
   };
 
   const handleCheckOut = async (completionNote?: string) => {
+    if (mineItem?.status !== "IN_PROGRESS") return;
+    const availability = getCheckOutAvailability(mineItem, tr);
+    if (!availability.canFinish) {
+      showErrorToast(tr("Không thể hoàn thành"), availability.message);
+      return;
+    }
     try {
       const failedUploadTypes = await uploadAllStagedImages();
 

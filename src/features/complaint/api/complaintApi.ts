@@ -38,7 +38,7 @@ export type ComplaintDetail = ComplaintListItem & {
   content: string;
   resolution_note: string | null;
   resolved_at: string | null;
-  outcome: "" | "REFUND_CUSTOMER" | "PAY_WORKER";
+  outcome: "" | "REFUND_CUSTOMER" | "PAY_WORKER" | "RECOVER_WORKER_EARNING";
   my_amount: string | null; // + đã cộng / - đã trừ vào ví của chính bạn
   attachments: ComplaintAttachment[];
 };
