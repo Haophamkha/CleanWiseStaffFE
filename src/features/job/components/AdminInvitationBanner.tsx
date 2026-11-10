@@ -9,6 +9,7 @@ import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { getErrorMessage } from "@/utils/apiError";
 import { formatDateTime } from "@/utils/format";
 import * as Crypto from "expo-crypto";
+import { goBackOrReplace } from "@/utils/navigation";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
@@ -70,7 +71,7 @@ export function InvitationActions({
           tr("Đã từ chối lời mời"),
           tr("Bạn đã từ chối lời mời nhận buổi làm này."),
         );
-        router.back();
+        goBackOrReplace("/(tabs)/jobs");
       }
     } catch (error) {
       setAction(null);

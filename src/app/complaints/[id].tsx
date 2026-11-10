@@ -16,7 +16,8 @@ import { getErrorMessage } from "@/utils/apiError";
 import { formatCurrency, formatDateTime } from "@/utils/format";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import { Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,7 +83,7 @@ export default function ComplaintDetailScreen() {
           icon="alert-circle"
           title={tr("Không tìm thấy khiếu nại")}
           actionLabel={tr("Quay lại")}
-          onAction={() => router.back()}
+          onAction={() => goBackOrReplace("/complaints")}
         />
       </View>
     );
@@ -97,7 +98,7 @@ export default function ComplaintDetailScreen() {
       <DetailHeader
         title={tr("Chi tiết khiếu nại")}
         subtitle={data.code ?? `#${data.id}`}
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace("/complaints")}
       />
 
       <ScrollView

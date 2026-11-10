@@ -13,6 +13,7 @@ import {
     stepRoute,
 } from "@/features/profile-setup/utils/rejectionFlow";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
+import { goBackOrReplace } from "@/utils/navigation";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -169,7 +170,7 @@ export function usePersonalInfo() {
       }
 
       showSuccessToast(tr("Thành công"), tr("Đã cập nhật thông tin cá nhân."));
-      router.back();
+      goBackOrReplace("/(tabs)/profile");
     } catch (e: any) {
       const message =
         e?.data?.message || tr("Cập nhật thất bại, vui lòng thử lại.");

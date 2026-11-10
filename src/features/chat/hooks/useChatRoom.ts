@@ -16,7 +16,8 @@ import {
 import type { ChatAssignment, ChatMessage } from "@/features/chat/types/chat";
 import { useAppSelector } from "@/store/hooks";
 import { showErrorToast } from "@/utils/toast";
-import { router, useFocusEffect } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Alert,
@@ -540,6 +541,6 @@ export function useChatRoom(id: number) {
     reload,
     onScroll,
     onContentSizeChange,
-    goBack: () => router.back(),
+    goBack: () => goBackOrReplace("/(tabs)/messages"),
   };
 }

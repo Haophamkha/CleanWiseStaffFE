@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,7 +11,7 @@ type Props = {
   title: string;
   /** Dòng phụ dưới tiêu đề (tùy chọn) */
   subtitle?: string;
-  /** Ghi đè hành vi nút quay lại (mặc định: router.back()) */
+  /** Ghi đè nút quay lại cho màn hình có luồng riêng. */
   onBack?: () => void;
   backDisabled?: boolean;
 };
@@ -29,7 +29,7 @@ export function SimpleHeader({ title, subtitle, onBack, backDisabled }: Props) {
       style={{ paddingTop: insets.top + 8 }}
     >
       <TouchableOpacity
-        onPress={onBack ?? (() => router.back())}
+        onPress={onBack ?? (() => goBackOrReplace("/(tabs)/profile"))}
         disabled={backDisabled}
         hitSlop={8}
         accessibilityRole="button"

@@ -13,7 +13,7 @@ import type {
 } from "@/features/payment/types/PaymentMethod";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
 import type { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
 import { useMemo, useState, type ComponentProps } from "react";
 import { Alert } from "react-native";
 
@@ -113,7 +113,7 @@ export function useAddPaymentMethod() {
       setStep("options");
       setError("");
     } else {
-      router.back();
+      goBackOrReplace("/payment-methods");
     }
   };
 
@@ -185,10 +185,10 @@ export function useAddPaymentMethod() {
           tr("Tài khoản đã được lưu"),
           verificationError?.data?.message ?? tr("Bạn có thể thử lại trong danh sách tài khoản."),
         );
-        router.back();
+        goBackOrReplace("/payment-methods");
         return;
       }
-      router.back();
+      goBackOrReplace("/payment-methods");
     } catch (requestError) {
       setError(getFirstError(requestError, tr));
     }
@@ -200,7 +200,7 @@ export function useAddPaymentMethod() {
       await confirmVerification({ id: otpMethodId, otp }).unwrap();
       showSuccessToast(tr("Xác minh Sandbox TINGEE thành công"));
       setOtpMethodId(null);
-      router.back();
+      goBackOrReplace("/payment-methods");
     } catch (verificationError: any) {
       showErrorToast(tr("OTP chưa hợp lệ"), verificationError?.data?.message ?? tr("Vui lòng thử lại."));
     }

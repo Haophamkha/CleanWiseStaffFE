@@ -9,6 +9,7 @@ import type { AppNotification } from "@/features/notification/types/Notification
 import { resolveNotificationRoute } from "@/features/notification/utils/notificationMeta";
 import { useAppSelector } from "@/store/hooks";
 import { startOfDay } from "@/utils/format";
+import { goBackOrReplace } from "@/utils/navigation";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -144,7 +145,7 @@ export function useNotifications() {
     );
   };
 
-  const handleBack = () => router.back();
+  const handleBack = () => goBackOrReplace("/(tabs)/home");
 
   return {
     rows,

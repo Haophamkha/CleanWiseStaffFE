@@ -14,8 +14,9 @@ import {
   formatDuration,
   formatTime,
 } from "@/utils/format";
+import { goBackOrReplace } from "@/utils/navigation";
 import type { Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useMemo, type ComponentProps } from "react";
 import { Alert, Linking } from "react-native";
 
@@ -68,6 +69,10 @@ export function useJobDetail() {
   const isMine = source === "mine";
   const isSingleSessionView = view === "session";
   const paramBookingId = Number(bookingIdParam) || undefined;
+  const goBack = () => goBackOrReplace({
+    pathname: "/(tabs)/jobs",
+    params: { tab: isMine ? "mine" : "available" },
+  });
 
   const {
     item,
@@ -117,6 +122,7 @@ export function useJobDetail() {
     openSessions,
     refetchBookingSchedules,
     refetchMineSchedules,
+    goBack,
   });
 
   const showImages =
@@ -271,6 +277,6 @@ export function useJobDetail() {
     openDirections,
     destination,
     showRouteMap: destination !== null && !isSingleSessionView,
-    goBack: () => router.back(),
+    goBack,
   };
 }

@@ -11,6 +11,7 @@ import { ComplaintTabs, type ComplaintTab } from "@/features/complaint/component
 import { DisciplinePanel } from "@/features/complaint/components/DisciplinePanel";
 import { formatDateTime } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
+import { goBackOrReplace } from "@/utils/navigation";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
@@ -40,7 +41,7 @@ export default function ComplaintListScreen() {
             ? tr("{{value0}} khiếu nại", { value0: data.length , count: data.length})
             : tr("Theo dõi các khiếu nại của bạn")
         }
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace("/(tabs)/profile")}
       />
 
       <ComplaintTabs value={tab} onChange={setTab} />
