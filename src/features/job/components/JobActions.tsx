@@ -8,6 +8,7 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { ON_DARK, RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { ComplaintAction } from "@/features/complaint/components/ComplaintAction";
 import { CancelReasonChips } from "@/features/job/components/CancelReasonChips";
+import { CancellationImpact } from "@/features/job/components/CancellationImpact";
 import type { JobActionsState } from "@/features/job/hooks/useJobDetail";
 import type {
   WorkerMySchedule,
@@ -385,7 +386,8 @@ function CancelBlock({
 
   const { COLORS, mode: themeMode } = useAppTheme();
 
-  if (!mineItem.can_cancel) {
+  const beforeStart = new Date(mineItem.scheduled_start).getTime() > Date.now();
+  if (!mineItem.can_cancel && !beforeStart && !actions.showCancelForm) {
     return (
       <FadeInView delay={180}>
         <View className="flex-row items-start bg-warning-light rounded-2xl p-4">
@@ -417,7 +419,7 @@ function CancelBlock({
         >
           <Feather name="x-circle" size={16} color={COLORS.danger} />
           <Text className="text-danger text-xs ml-2" style={TYPE.button}>
-            {tr("HỦY NHẬN VIỆC")}</Text>
+            {mineItem.can_cancel ? tr("HỦY NHẬN VIỆC") : tr("Báo không thể đến")}</Text>
         </PressableScale>
       </FadeInView>
     );
@@ -436,7 +438,7 @@ function CancelBlock({
             <Feather name="x-circle" size={16} color={COLORS.danger} />
           </View>
           <Text className="text-ink font-extrabold text-base flex-1">
-            {tr("Lý do hủy")}</Text>
+            {actions.cancelPreview?.requires_review ? tr("Báo không thể đến") : tr("Lý do hủy")}</Text>
         </View>
 
         <CancelReasonChips
@@ -454,19 +456,20 @@ function CancelBlock({
           style={{ minHeight: 80, textAlignVertical: "top" }}
         />
 
+        <CancellationImpact actions={actions} />
         <PressableScale
           onPress={actions.requestCancel}
-          disabled={actions.isCancelling || reasonEmpty}
+          disabled={actions.isCancelling || reasonEmpty || !actions.canSubmitCancel}
           accessibilityRole="button"
           containerStyle={{ marginBottom: 6 }}
           className="bg-danger-fill rounded-full items-center justify-center"
           style={{
             height: 48,
-            opacity: actions.isCancelling || reasonEmpty ? 0.45 : 1,
+            opacity: actions.isCancelling || reasonEmpty || !actions.canSubmitCancel ? 0.45 : 1,
           }}
         >
           <Text className="text-white text-xs" style={TYPE.button}>
-            {tr("XÁC NHẬN HỦY")}</Text>
+            {actions.cancelPreview?.requires_review ? tr("Gửi báo vắng") : tr("XÁC NHẬN HỦY")}</Text>
         </PressableScale>
         <PressableScale
           onPress={() => actions.setShowCancelForm(false)}

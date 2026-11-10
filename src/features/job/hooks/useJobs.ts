@@ -3,6 +3,7 @@ import {
   useGetMyJobCountsQuery,
   useGetMyJobsPagedQuery,
 } from "@/features/job/api/jobsApi";
+import { useAvailableJobCount } from "@/features/job/hooks/useAvailableJobCount";
 import { usePagedJobs } from "@/features/job/hooks/usePagedJobs";
 import type { OpenJob, Tab } from "@/features/job/types/jobNav";
 import type {
@@ -70,6 +71,7 @@ export function useJobs() {
   refetchMyCountsRef.current = refetchMyCounts;
 
   const [day, setDay] = useState<string | null>(null);
+  const availableCount = useAvailableJobCount();
 
   const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT, tr), [tr]);
 
@@ -148,14 +150,22 @@ export function useJobs() {
   const refreshTick = useAppSelector((s) => s.notification.refreshTick);
 
   const lastTick = useRef(refreshTick);
+  const lastCount = useRef(availableCount);
 
   useEffect(() => {
-    if (lastTick.current === refreshTick) return;
-
+    const notificationChanged = lastTick.current !== refreshTick;
+    const countChanged =
+      lastCount.current !== undefined &&
+      availableCount !== undefined &&
+      lastCount.current !== availableCount;
     lastTick.current = refreshTick;
-    currentRef.current.refresh();
-    refetchMyCountsRef.current();
-  }, [refreshTick]);
+    lastCount.current = availableCount;
+
+    if (notificationChanged || (tab === "available" && countChanged)) {
+      currentRef.current.refresh();
+    }
+    if (notificationChanged) refetchMyCountsRef.current();
+  }, [availableCount, refreshTick, tab]);
 
   const switchTab = useCallback(
     (next: Tab) => {

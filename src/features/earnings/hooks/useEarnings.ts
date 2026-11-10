@@ -39,6 +39,7 @@ export type WalletTxRowView = {
   isCredit: boolean;
   title: string;
   subText: string;
+  bookingCode: string | null;
   timeText: string;
   amountText: string;
   amountColor: string;
@@ -133,7 +134,8 @@ export function useEarnings() {
         code: tx.code ?? null,
         isCredit,
         title: tr(tx.type_display),
-        subText: tx.note ? localizeTransactionNote(tx.note, tr) : tx.booking_code || "",
+        subText: tx.note ? localizeTransactionNote(tx.note, tr) : "",
+        bookingCode: tx.booking_code ?? null,
         timeText: formatEarningDateTime(tx.created_at),
         amountText: `${isCredit ? "+" : "-"}${formatVnd(tx.amount, tr)}`,
         amountColor: failed

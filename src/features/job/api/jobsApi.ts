@@ -128,6 +128,16 @@ export const jobsApi = baseApi.injectEndpoints({
       ...pagedCacheConfig<WorkerSchedule, AvailableJobsPagedArgs>(),
     }),
 
+    getAvailableJobCount: builder.query<number, void>({
+      query: () => ({
+        url: "/api/worker/schedules/available/",
+        method: "GET",
+        params: { page: 1, page_size: 1, group_by: "booking" },
+      }),
+      transformResponse: (response) => unwrapPaginated<WorkerSchedule>(response).count,
+      providesTags: [{ type: "AvailableSchedules", id: "LIST" }],
+    }),
+
     getMyJobsPaged: builder.query<Paginated<WorkerMySchedule>, MyJobsPagedArgs>(
       {
         query: ({ page, ...filters }) => ({
@@ -280,18 +290,22 @@ export const jobsApi = baseApi.injectEndpoints({
         assignmentId: number;
         reason: string;
         idempotencyKey: string;
+        reportLate?: boolean;
+        expectedDeduction: number;
+        expectedScore: number;
       }
     >({
-      query: ({ assignmentId, reason, idempotencyKey }) => ({
-        url: `/api/worker/assignments/${assignmentId}/cancel/`,
+      query: ({ assignmentId, reason, idempotencyKey, reportLate, expectedDeduction, expectedScore }) => ({
+        url: `/api/worker/assignments/${assignmentId}/${reportLate ? "report-absence" : "cancel"}/`,
         method: "POST",
-        data: { reason },
+        data: { reason, expected_deduction: expectedDeduction, expected_score: expectedScore },
         headers: {
           "Idempotency-Key": idempotencyKey,
         },
       }),
       transformResponse: unwrapResponse,
       invalidatesTags: [
+        { type: "Complaints", id: "DISCIPLINE" },
         {
           type: "AvailableSchedules",
           id: "LIST",
@@ -497,6 +511,7 @@ export const jobsApi = baseApi.injectEndpoints({
 
 export const {
   useGetAvailableJobsPagedQuery,
+  useGetAvailableJobCountQuery,
   useGetMyJobsPagedQuery,
   useGetAvailableSchedulesQuery,
   useGetMySchedulesQuery,

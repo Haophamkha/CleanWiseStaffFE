@@ -16,6 +16,9 @@ export function usePagedJobs<T, F extends object>(
   const filterKey = JSON.stringify(filters);
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
+  if (pageState.key !== filterKey) {
+    setPageState({ key: filterKey, page: 1 });
+  }
 
   const query = useQuery({ ...filters, page });
   const { currentData: data, isFetching, refetch } = query;

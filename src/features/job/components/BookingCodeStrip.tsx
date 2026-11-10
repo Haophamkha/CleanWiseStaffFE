@@ -12,7 +12,7 @@ export function BookingCodeStrip({ code }: { code: string }) {
 
   return (
     <View
-      className="flex-row items-center rounded-xl px-3 py-2 mb-2.5"
+      className="flex-row items-center rounded-xl px-3 py-2.5 mb-3"
       style={{ backgroundColor: COLORS.accentLight }}
     >
       <Text
@@ -25,9 +25,9 @@ export function BookingCodeStrip({ code }: { code: string }) {
         selectable
         numberOfLines={1}
         adjustsFontSizeToFit
-        minimumFontScale={0.6}
-        className="flex-1 text-ink text-[13.5px] font-extrabold"
-        style={{ fontFamily: MONO, letterSpacing: 0.3 }}
+        minimumFontScale={0.7}
+        className="text-ink text-[15px] font-extrabold flex-1"
+        style={{ fontFamily: MONO, letterSpacing: 0.8 }}
       >
         {code}
       </Text>

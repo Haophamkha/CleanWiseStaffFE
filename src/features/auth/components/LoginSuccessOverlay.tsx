@@ -463,8 +463,7 @@ export function LoginSuccessOverlay({
                 inputRange: [0, 1],
                 outputRange: [CIRCUMFERENCE, 0],
               })}
-              rotation={-90}
-              origin={`${C}, ${C}`}
+              transform={`rotate(-90 ${C} ${C})`}
             />
             <AnimatedPath
               d={CHECK_PATH}

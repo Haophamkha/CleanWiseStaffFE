@@ -131,6 +131,7 @@ export const AvailableJobCard = memo(function AvailableJobCard({
           >
             {item.address_ward ? `${item.address_ward}, ` : ""}
             {item.address_city}
+            {item.distance_km != null ? ` · ${item.distance_km.toFixed(1)} km` : ""}
           </Text>
         </View>
 

@@ -112,7 +112,12 @@ export default function ComplaintDetailScreen() {
             {data.issue_type_name}
           </Text>
 
-          <Text className="text-ink-soft text-xs mb-3">
+          <Text
+            className="text-ink-soft text-xs mb-3"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {data.booking_code
               ? tr("Đơn {{value0}}", { value0: data.booking_code })
               : tr("Đơn #{{value0}}", { value0: data.booking })}
