@@ -11,6 +11,7 @@ export type PickedFile = {
   uri: string;
   name: string;
   type: string;
+  file?: File;
 };
 
 export type RegisteredService = {
@@ -53,6 +54,7 @@ export type WorkerProfileResponse = {
   experience_years: number;
   identity_number: string;
   registered_service: RegisteredService | null;
+  requested_service?: RegisteredService | null;
   portrait: string | null;
   identity_front: string | null;
   identity_back: string | null;

@@ -70,7 +70,7 @@ function formatIsoDate(iso: string, translateText = defaultTranslate) {
 }
 
 function getUpdateRoute(profile: WorkerProfileResponse) {
-  if (profile.status === "REJECTED") {
+  if (profile.status === "REJECTED" || (profile.status === "DRAFT" && profile.rejection_reason)) {
     const steps = getRejectedSteps(profile.rejected_fields);
     if (steps.length > 0) return stepRoute(steps[0]);
   }

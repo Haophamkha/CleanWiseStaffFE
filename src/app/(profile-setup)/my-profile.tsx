@@ -13,6 +13,7 @@ import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
 import { useMyProfile } from "@/features/profile-setup/hooks/useMyProfile";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, type Href } from "expo-router";
 
 export default function MyProfileScreen() {
   const { t: tr } = useTranslation();
@@ -67,6 +68,15 @@ export default function MyProfileScreen() {
             certificate={v.certificate}
           />
         </Section>
+
+        <View className="mt-4">
+          <PrimaryButton
+            accessibilityRole="button"
+            label={tr("Cập nhật thông tin và tài khoản")}
+            icon="settings"
+            onPress={() => router.push("/profile-updates" as Href)}
+          />
+        </View>
 
         {v.approvalRows && (
           <Section title={tr("Phê duyệt")}>
