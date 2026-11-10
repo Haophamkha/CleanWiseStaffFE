@@ -105,13 +105,17 @@ export const complaintApi = baseApi.injectEndpoints({
         formData.append("issue_type", String(issueTypeId));
         if (disciplineCaseId) formData.append("discipline_case", String(disciplineCaseId));
         if (content?.trim()) formData.append("content", content.trim());
-        images.forEach((img) =>
+        for (const img of images) {
+          if (img.file) {
+            formData.append("attachments", img.file);
+            continue;
+          }
           formData.append("attachments", {
             uri: img.uri,
             name: img.name,
             type: img.type,
-          } as any),
-        );
+          } as any);
+        }
         return {
           url: "/api/worker/complaints/",
           method: "POST",

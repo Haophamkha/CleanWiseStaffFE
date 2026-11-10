@@ -50,7 +50,7 @@ export function ComplaintSheet({
 }: Props) {
   const { t: tr } = useTranslation();
 
-  const { COLORS, mode: themeMode } = useAppTheme();
+  const { COLORS, OVERLAY, mode: themeMode } = useAppTheme();
 
   const insets = useSafeAreaInsets();
   const missed = scheduleStatus === "MISSED";
@@ -94,7 +94,8 @@ export function ComplaintSheet({
 
   const addImage = async (fromCamera: boolean) => {
     if (images.length >= MAX_IMAGES) return;
-    const file = fromCamera ? await takePhoto(undefined, tr) : await pickImage();
+    const options = { includeWebFile: true };
+    const file = fromCamera ? await takePhoto(options, tr) : await pickImage(options);
     if (file) setImages((prev) => [...prev, file]);
   };
 
@@ -128,7 +129,7 @@ export function ComplaintSheet({
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1 justify-end"
-          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+          style={{ backgroundColor: OVERLAY }}
         >
           <Pressable className="flex-1" onPress={close} />
           <View

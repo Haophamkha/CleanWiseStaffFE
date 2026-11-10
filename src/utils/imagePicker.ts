@@ -3,13 +3,19 @@ import type { PickedFile } from "@/features/profile-setup/types/WorkerProfile";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Linking } from "react-native";
 
-const toPickedFile = (asset: ImagePicker.ImagePickerAsset): PickedFile => ({
+type PickImageOptions = { includeWebFile?: boolean };
+
+const toPickedFile = (
+  asset: ImagePicker.ImagePickerAsset,
+  { includeWebFile }: PickImageOptions,
+): PickedFile => ({
   uri: asset.uri,
   name: asset.fileName ?? asset.uri.split("/").pop() ?? "photo.jpg",
   type: asset.mimeType ?? "image/jpeg",
+  ...(includeWebFile && asset.file ? { file: asset.file } : {}),
 });
 
-export async function pickImage(): Promise<PickedFile | null> {
+export async function pickImage(options: PickImageOptions = {}): Promise<PickedFile | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) return null;
 
@@ -20,10 +26,10 @@ export async function pickImage(): Promise<PickedFile | null> {
   });
 
   if (result.canceled || !result.assets?.[0]) return null;
-  return toPickedFile(result.assets[0]);
+  return toPickedFile(result.assets[0], options);
 }
 
-type TakePhotoOptions = {
+type TakePhotoOptions = PickImageOptions & {
   /** true = camera trước (selfie), mặc định camera sau */
   front?: boolean;
   /** true = cho cắt vuông sau khi chụp (ảnh chân dung) */
@@ -57,5 +63,5 @@ export async function takePhoto(
   });
 
   if (result.canceled || !result.assets?.[0]) return null;
-  return toPickedFile(result.assets[0]);
+  return toPickedFile(result.assets[0], options);
 }
