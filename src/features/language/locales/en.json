@@ -1118,5 +1118,7 @@
   "Thu nhập {{value0}} đã được cộng vào ví của bạn.": "Earnings of {{value0}} were added to your wallet.",
   "Sau khi xem xét, CleanWise đã hoàn tiền cho khách nên buổi này không tính thu nhập.": "After review, CleanWise refunded the customer, so this session does not generate earnings.",
   "{{value0}}.": "{{value0}}.",
-  "{{value0}}đ": "{{value0}} VND"
+  "{{value0}}đ": "{{value0}} VND",
+  "Việc trống trong ngày": "Open jobs today",
+"Việc đang chờ nhận": "Jobs waiting to be claimed"
 }

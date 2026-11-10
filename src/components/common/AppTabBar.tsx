@@ -1,7 +1,7 @@
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { TYPE } from "@/constants/theme";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import {
   Animated,
@@ -302,11 +302,8 @@ function CenterItem({
   );
 }
 
-export default function AppTabBar({
-  state,
-  descriptors,
-  navigation,
-}: BottomTabBarProps) {
+export default function AppTabBar({ state, descriptors }: BottomTabBarProps) {
+  const router = useRouter();
   const { COLORS, isDark } = useAppTheme();
 
   const insets = useSafeAreaInsets();
@@ -379,18 +376,9 @@ export default function AppTabBar({
               typeof options.title === "string" ? options.title : route.name;
 
             const onPress = () => {
-              const event = navigation.emit({
-                type: "tabPress",
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (!focused && !event.defaultPrevented) {
-                navigation.navigate(route.name, route.params);
-              }
+              if (!focused) router.navigate(`/(tabs)/${route.name}` as any);
             };
-            const onLongPress = () => {
-              navigation.emit({ type: "tabLongPress", target: route.key });
-            };
+            const onLongPress = () => {};
 
             if (route.name === CENTER_ROUTE) {
               return (

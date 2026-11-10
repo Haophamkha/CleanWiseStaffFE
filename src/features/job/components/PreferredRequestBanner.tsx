@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { RADIUS, TYPE } from "@/constants/theme";
 
 import { useDeclinePreferredMutation } from "@/features/job/api/jobsApi";
 import { Feather } from "@expo/vector-icons";
@@ -22,7 +23,6 @@ function useMinutesLeft(until: string) {
 /** Thẻ thông tin ở đầu trang. */
 export function PreferredRequestBanner({ until }: { until: string }) {
   const { t: tr } = useTranslation();
-
   const { COLORS } = useAppTheme();
 
   const minutes = useMinutesLeft(until);
@@ -45,9 +45,11 @@ export function PreferredRequestBanner({ until }: { until: string }) {
         </View>
         <View className="flex-1">
           <Text className="font-bold text-[14px] text-ink">
-            {tr("Khách chỉ định bạn")}</Text>
+            {tr("Khách chỉ định bạn")}
+          </Text>
           <Text className="text-ink-muted text-xs mt-0.5">
-            {tr("Còn")}{" "}{minutes} {tr("phút để nhận. Sau đó đơn mở cho tất cả nhân viên.")}</Text>
+            {tr("Còn")} {minutes} {tr("phút để nhận. Sau đó đơn mở cho tất cả nhân viên.")}
+          </Text>
         </View>
       </View>
     </View>
@@ -65,6 +67,7 @@ export function PreferredDeclineButton({
   onDeclined: () => void;
 }) {
   const { t: tr } = useTranslation();
+  const { COLORS } = useAppTheme();
 
   const minutes = useMinutesLeft(until);
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -95,12 +98,20 @@ export function PreferredDeclineButton({
   return (
     <>
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.85}
         onPress={() => setConfirmVisible(true)}
-        className="mt-3 items-center py-3 rounded-xl border border-line bg-surface"
+        className="mt-3 flex-row items-center justify-center bg-danger-light"
+        style={{
+          borderWidth: 1.5,
+          borderColor: COLORS.danger,
+          borderRadius: RADIUS.pill,
+          paddingVertical: 15,
+          paddingHorizontal: 22,
+        }}
       >
-        <Text className="font-semibold text-[14px] text-ink">
-          {tr("Từ chối yêu cầu")}</Text>
+        <Text className="text-[13px]" style={[TYPE.button, { color: COLORS.danger }]}>
+          {tr("Từ chối yêu cầu").toUpperCase()}
+        </Text>
       </TouchableOpacity>
 
       <ConfirmModal
