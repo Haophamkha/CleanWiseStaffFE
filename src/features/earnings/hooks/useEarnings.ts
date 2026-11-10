@@ -86,8 +86,6 @@ export function useEarnings() {
           wallet: {
             balanceText: formatVnd(summary.wallet_balance, tr),
             commissionOwedText: formatVnd(summary.commission_owed, tr),
-            pendingReleaseText: formatVnd(summary.pending_release, tr),
-            hasPending: Number(summary.pending_release) > 0,
           },
           period: {
             rangeText: `${formatDayMonth(p.start)} - ${formatDayMonth(p.end)}`,
@@ -104,7 +102,7 @@ export function useEarnings() {
       : null;
 
   // Tiền mặt: hoa hồng đã trừ thẳng vào ví (số âm).
-  // Online: app giữ tiền, vào ví sau tối đa 24 giờ (wallet_credited_at rỗng = đang chờ).
+  // Online đã thanh toán được ghi có ngay khi hoàn thành buổi.
   const historyRows: HistoryRowView[] = history.map((item) => {
     const isCash = item.payment_method === "CASH";
     const pending = !isCash && !item.wallet_credited_at;

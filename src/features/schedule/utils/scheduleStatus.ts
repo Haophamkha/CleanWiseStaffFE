@@ -4,6 +4,7 @@ import { getScheduleStatus } from "@/components/ui/StatusBadge";
 
 import type {
   PaymentStatus,
+  WorkerMySchedule,
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
 import { startOfDay } from "@/utils/format";
@@ -72,6 +73,33 @@ export function getCheckInAvailability(
     return { canStart: false, reason: "too_late" };
   }
   return { canStart: true };
+}
+
+export function getCheckOutAvailability(
+  schedule: Pick<WorkerMySchedule, "scheduled_end" | "check_out_until">,
+  translateText = defaultTranslate,
+  now = Date.now(),
+): { canFinish: true } | { canFinish: false; message: string } {
+  const end = new Date(schedule.scheduled_end).getTime();
+  if (!Number.isFinite(end)) {
+    return { canFinish: false, message: translateText("Không xác định được giờ kết thúc.") };
+  }
+  if (now < end) {
+    return {
+      canFinish: false,
+      message: translateText("Có thể check-out từ {{value0}}", {
+        value0: formatTimeLabel(new Date(end), translateText),
+      }),
+    };
+  }
+  // Cached responses from older versions of the API may omit the deadline.
+  const deadline = schedule.check_out_until
+    ? new Date(schedule.check_out_until).getTime()
+    : end + 30 * 60_000;
+  if (!Number.isFinite(deadline) || now > deadline) {
+    return { canFinish: false, message: translateText("Đã hết hạn tự check-out") };
+  }
+  return { canFinish: true };
 }
 
 export function getSessionInteraction(

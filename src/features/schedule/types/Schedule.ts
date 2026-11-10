@@ -87,6 +87,7 @@ export interface WorkerMySchedule extends WorkerSchedule {
   receiver_phone: string;
   can_cancel: boolean;
   cancel_deadline: string;
+  check_out_until?: string | null;
   completed_sessions?: number | null;
   accepted_sessions?: number | null;
   images: ScheduleImage[];

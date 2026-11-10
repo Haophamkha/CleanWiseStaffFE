@@ -13,9 +13,9 @@ import type {
   WorkerMySchedule,
   WorkerSchedule,
 } from "@/features/schedule/types/Schedule";
-import { getCheckInAvailability } from "@/features/schedule/utils/scheduleStatus";
+import { getCheckInAvailability, getCheckOutAvailability } from "@/features/schedule/utils/scheduleStatus";
 import { Feather } from "@expo/vector-icons";
-import { useState, type ComponentProps } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import { ActivityIndicator, Text, TextInput, View } from "react-native";
 
 type FeatherName = ComponentProps<typeof Feather>["name"];
@@ -55,6 +55,7 @@ function HeroAction({
       disabled={inactive}
       accessibilityRole="button"
       accessibilityLabel={title}
+      accessibilityHint={subtitle}
       containerStyle={{ marginBottom: 12 }}
       className={`flex-row items-center px-4 py-3.5 ${
         tone === "primary" ? "bg-primary-fill" : "bg-ink-panel"
@@ -94,7 +95,7 @@ function HeroAction({
           {subtitle}
         </Text>
       </View>
-      <Feather name="arrow-right" size={20} color={ON_DARK.text} />
+      <Feather name={disabled ? "lock" : "arrow-right"} size={20} color={ON_DARK.text} />
     </PressableScale>
   );
 }
@@ -202,7 +203,10 @@ function CheckInBlock({
   );
 }
 
-function CheckOutBlock({ actions }: { actions: JobActionsState }) {
+function CheckOutBlock({ schedule, actions }: {
+  schedule: WorkerMySchedule;
+  actions: JobActionsState;
+}) {
   const { t: tr } = useTranslation();
 
   const { COLORS, mode: themeMode } = useAppTheme();
@@ -210,9 +214,16 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
   const loading = actions.isCheckingOut;
   const [visible, setVisible] = useState(false);
   const [note, setNote] = useState("");
+  const [now, setNow] = useState(Date.now);
+  const availability = getCheckOutAvailability(schedule, tr, now);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const open = () => {
-    if (loading) return;
+    if (loading || !getCheckOutAvailability(schedule, tr).canFinish) return;
     setNote("");
     setVisible(true);
   };
@@ -222,7 +233,7 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
     setNote("");
   };
   const confirm = () => {
-    if (loading) return;
+    if (loading || !getCheckOutAvailability(schedule, tr).canFinish) return;
     const trimmed = note.trim();
     setVisible(false);
     actions.handleCheckOut(trimmed);
@@ -233,9 +244,10 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
       <FadeInView delay={60}>
         <HeroAction
           title={tr("Hoàn thành công việc")}
-          subtitle={tr("Xác nhận đã làm xong buổi này")}
-          icon="check-circle"
+          subtitle={availability.canFinish ? tr("Xác nhận đã làm xong buổi này") : availability.message}
+          icon={availability.canFinish ? "check-circle" : "clock"}
           tone="dark"
+          disabled={!availability.canFinish}
           loading={loading}
           loadingLabel={tr("Đang xử lý...")}
           onPress={open}
@@ -243,7 +255,7 @@ function CheckOutBlock({ actions }: { actions: JobActionsState }) {
       </FadeInView>
 
       <ConfirmModal
-        visible={visible}
+        visible={visible && availability.canFinish}
         tone="dark"
         icon="check-circle"
         title={tr("Hoàn thành buổi làm")}
@@ -514,7 +526,7 @@ export function JobActions({
       ) : null}
 
       {mineItem?.status === "IN_PROGRESS" ? (
-        <CheckOutBlock actions={actions} />
+        <CheckOutBlock schedule={mineItem} actions={actions} />
       ) : null}
 
       {mineItem?.status === "COMPLETED" &&

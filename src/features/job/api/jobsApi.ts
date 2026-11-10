@@ -345,6 +345,7 @@ export const jobsApi = baseApi.injectEndpoints({
       }),
       transformResponse: unwrapResponse,
       invalidatesTags: (_result, _error, { scheduleId }) => [
+        "Wallet",
         {
           type: "MySchedules",
           id: scheduleId,
