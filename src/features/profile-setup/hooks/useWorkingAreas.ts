@@ -6,7 +6,7 @@ import {
 } from "@/features/auth/api/authApi";
 import { useAreaSelection } from "@/features/profile-setup/hooks/useAreaSelection";
 import { showErrorToast, showSuccessToast } from "@/utils/toast";
-import { router } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
 import { useEffect, useState } from "react";
 
 export function useWorkingAreas() {
@@ -49,7 +49,7 @@ export function useWorkingAreas() {
     try {
       await updateWorkingAreas(areaIds).unwrap();
       showSuccessToast(tr("Thành công"), tr("Đã cập nhật khu vực hoạt động."));
-      router.back();
+      goBackOrReplace("/(tabs)/profile");
     } catch (e: any) {
       const message =
         e?.data?.message || tr("Cập nhật khu vực thất bại, vui lòng thử lại.");

@@ -4,7 +4,8 @@ import { useAppTheme } from "@/features/theme/ThemeProvider";
 
 import { useGetHelpArticleQuery } from "@/features/chatbot/api/chatbotApi";
 import { Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
+import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,7 +20,7 @@ export default function HelpDetail() {
   return (
     <View className="flex-1 bg-canvas" style={{ paddingTop: insets.top }}>
       <View className="flex-row items-center px-4 py-3">
-        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center" accessibilityLabel={tr("Quay lại")}>
+        <TouchableOpacity onPress={() => goBackOrReplace("/help")} className="w-10 h-10 items-center justify-center" accessibilityLabel={tr("Quay lại")}>
           <Feather name="arrow-left" size={22} color={COLORS.ink} />
         </TouchableOpacity>
         <Text className="text-ink text-lg font-extrabold ml-1 flex-1" numberOfLines={1}>{data?.title ?? tr("Hướng dẫn")}</Text>

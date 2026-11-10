@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { goBackOrReplace } from "@/utils/navigation";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -24,7 +24,7 @@ export function StepHeader({ step, totalSteps }: Props) {
     <View className="bg-canvas" style={{ paddingTop: insets.top + 8 }}>
       <View className="flex-row items-center px-3 pb-3">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace("/(tabs)/profile")}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={tr("Quay lại")}

@@ -47,6 +47,7 @@ type Args = {
     data?: WorkerSchedule[];
   }>;
   refetchMineSchedules: () => Promise<unknown>;
+  goBack: () => void;
 };
 
 type CancellationTerms = { reportLate: boolean; expectedDeduction: number; expectedScore: number };
@@ -62,6 +63,7 @@ export function useJobActions({
   openSessions,
   refetchBookingSchedules,
   refetchMineSchedules,
+  goBack,
 }: Args) {
   const { t: tr } = useTranslation();
 
@@ -135,7 +137,7 @@ export function useJobActions({
       visible: false,
     }));
 
-    router.back();
+    goBack();
   };
 
   const openSuccessModal = (payload: {
@@ -457,7 +459,7 @@ export function useJobActions({
         terms.reportLate ? tr("Đã gửi báo vắng") : tr("Đã hủy nhận việc"),
         terms.reportLate ? tr("Điểm đang chờ xác minh.") : tr("Bạn đã hủy nhận buổi làm này."),
       );
-      router.back();
+      goBack();
     } catch (err) {
       void refetchCancelPreview();
       await verifyScheduleMutation({
@@ -470,7 +472,7 @@ export function useJobActions({
         errorTitle: tr("Không thể hủy"),
         onSuccess: () => {
           cancelKey.resetKey();
-          router.back();
+          goBack();
         },
       }, tr);
     }
