@@ -35,12 +35,12 @@ export default function EarningsScreen() {
 
   return (
     <View className="flex-1 bg-canvas">
-      <SimpleHeader title={tr("Thu nhập")} />
+      <SimpleHeader title={tr("Ví")} />
 
       {e.isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={COLORS.primary} size="large" />
-          <Text className="text-ink-soft mt-3">{tr("Đang tải thu nhập...")}</Text>
+          <Text className="text-ink-soft mt-3">{tr("Đang tải ví...")}</Text>
         </View>
       ) : e.isError || !e.data ? (
         <View className="flex-1 justify-center px-5">
