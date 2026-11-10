@@ -7,6 +7,7 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RADIUS, SHADOWS, TYPE } from "@/constants/theme";
 import { CancelReasonChips } from "@/features/job/components/CancelReasonChips";
+import { CancellationImpact } from "@/features/job/components/CancellationImpact";
 import type { JobActionsState } from "@/features/job/hooks/useJobDetail";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import { getSessionInteraction } from "@/features/schedule/utils/scheduleStatus";
@@ -247,7 +248,7 @@ function SessionRow({
                 <Feather name="x-circle" size={15} color={COLORS.danger} />
               </View>
               <Text className="text-ink text-sm font-extrabold flex-1">
-                {tr("Hủy nhận buổi này")}</Text>
+                {actions.cancelPreview?.requires_review ? tr("Báo không thể đến") : tr("Hủy nhận buổi này")}</Text>
             </View>
 
             <CancelReasonChips
@@ -265,18 +266,19 @@ function SessionRow({
               style={{ minHeight: 64, textAlignVertical: "top" }}
             />
 
+            <CancellationImpact actions={actions} />
             <PressableScale
               onPress={() => actions.requestCancelSession(session)}
-              disabled={actions.isCancelling || reasonEmpty}
+              disabled={actions.isCancelling || reasonEmpty || !actions.canSubmitCancel}
               accessibilityRole="button"
               className="bg-danger-fill rounded-full items-center justify-center"
               style={{
                 height: 46,
-                opacity: actions.isCancelling || reasonEmpty ? 0.45 : 1,
+                opacity: actions.isCancelling || reasonEmpty || !actions.canSubmitCancel ? 0.45 : 1,
               }}
             >
               <Text className="text-white text-xs" style={TYPE.button}>
-                {tr("HỦY NHẬN BUỔI NÀY")}</Text>
+                {actions.cancelPreview?.requires_review ? tr("Gửi báo vắng") : tr("HỦY NHẬN BUỔI NÀY")}</Text>
             </PressableScale>
           </View>
         ) : null}

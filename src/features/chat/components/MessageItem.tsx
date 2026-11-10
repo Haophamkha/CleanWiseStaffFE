@@ -127,9 +127,19 @@ export function MessageItem({
                 <Text className="text-base font-extrabold text-ink">
                   {item.title}
                 </Text>
-                {!!item.assignment && (
-                  <Text className="text-xs text-ink-soft mt-0.5">
-                    {item.assignment}
+                {!!item.assignment?.service_name && (
+                  <Text className="text-xs text-ink-soft mt-0.5" numberOfLines={1}>
+                    {item.assignment.service_name}
+                  </Text>
+                )}
+                {!!item.assignment?.booking_code && (
+                  <Text
+                    className="text-xs text-ink-soft mt-0.5"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                  >
+                    {item.assignment.booking_code}
                   </Text>
                 )}
               </View>

@@ -46,6 +46,7 @@ export interface WorkerSchedule {
   address_ward: string | null;
   address_latitude: string | null;
   address_longitude: string | null;
+  distance_km?: number | null;
   delivery_city?: string | null;
   delivery_ward?: string | null;
   customer_avatar: string | null;

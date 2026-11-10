@@ -49,7 +49,7 @@ export function useTabsRealtime() {
           forceRefetch: true,
         }),
       );
-      dispatch(baseApi.util.invalidateTags(["MySchedules", "Profile"]));
+      dispatch(baseApi.util.invalidateTags(["MySchedules", "Profile", "AvailableSchedules"]));
     },
   );
 

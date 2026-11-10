@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { useLazyGetAssignmentConversationQuery } from "@/features/chat/api/chatApi";
+import { useGetCancellationPreviewQuery } from "@/features/complaint/api/disciplineApi";
 import {
   useCancelAssignmentMutation,
   useCheckInMutation,
@@ -48,10 +49,8 @@ type Args = {
   refetchMineSchedules: () => Promise<unknown>;
 };
 
-type PendingCancel =
-  | { type: "session"; session: WorkerSchedule }
-  | { type: "job" }
-  | null;
+type CancellationTerms = { reportLate: boolean; expectedDeduction: number; expectedScore: number };
+type PendingCancel = (CancellationTerms & { session?: WorkerSchedule }) | null;
 
 export function useJobActions({
   scheduleId,
@@ -100,6 +99,25 @@ export function useJobActions({
   const [showCancelForm, setShowCancelForm] = useState(false);
 
   const [pendingCancel, setPendingCancel] = useState<PendingCancel>(null);
+  const cancelAssignmentId = showCancelForm
+    ? mineItem?.assignment_id
+    : bookingSchedules.find((session) => session.id === expandedSessionId)?.assignment_id;
+  const {
+    currentData: cancelPreview,
+    isFetching: isLoadingCancelPreview,
+    isError: isCancelPreviewError,
+    refetch: refetchCancelPreview,
+  } = useGetCancellationPreviewQuery(cancelAssignmentId ?? 0, {
+    skip: !cancelAssignmentId,
+    refetchOnMountOrArgChange: true,
+  });
+  const canSubmitCancel = !isLoadingCancelPreview && !isCancelPreviewError &&
+    !!(cancelPreview?.can_cancel || cancelPreview?.requires_review);
+  const cancellationTerms = cancelPreview && {
+    reportLate: cancelPreview.requires_review,
+    expectedDeduction: cancelPreview.deduction,
+    expectedScore: cancelPreview.projected_score,
+  };
 
   const [successModal, setSuccessModal] = useState<{
     visible: boolean;
@@ -203,7 +221,7 @@ export function useJobActions({
     }
   };
 
-  const handleCancelSession = async (session: WorkerSchedule) => {
+  const handleCancelSession = async (session: WorkerSchedule, terms: CancellationTerms) => {
     if (!session.assignment_id) return;
 
     if (sessionCancelReason.trim().length === 0) {
@@ -216,6 +234,7 @@ export function useJobActions({
         assignmentId: session.assignment_id,
         reason: sessionCancelReason.trim(),
         idempotencyKey: cancelSessionKey.getKey(),
+        ...terms,
       }).unwrap();
 
       cancelSessionKey.resetKey();
@@ -223,10 +242,11 @@ export function useJobActions({
       setExpandedSessionId(null);
       setSessionCancelReason("");
       showSuccessToast(
-        tr("Đã hủy nhận buổi"),
+        terms.reportLate ? tr("Đã gửi báo vắng") : tr("Đã hủy nhận buổi"),
         tr("Buổi làm đã được mở lại cho người khác."),
       );
     } catch (err) {
+      void refetchCancelPreview();
       await verifyScheduleMutation({
         err,
         scheduleId: session.id,
@@ -415,7 +435,7 @@ export function useJobActions({
           : tr("Buổi làm này sẽ được xếp vào lịch của bạn."),
   };
 
-  const handleCancel = async () => {
+  const handleCancel = async (terms: CancellationTerms) => {
     if (!mineItem?.assignment_id) return;
 
     if (reason.trim().length === 0) {
@@ -428,13 +448,18 @@ export function useJobActions({
         assignmentId: mineItem.assignment_id,
         reason: reason.trim(),
         idempotencyKey: cancelKey.getKey(),
+        ...terms,
       }).unwrap();
 
       cancelKey.resetKey();
 
-      showSuccessToast(tr("Đã hủy nhận việc"), tr("Bạn đã hủy nhận buổi làm này."));
+      showSuccessToast(
+        terms.reportLate ? tr("Đã gửi báo vắng") : tr("Đã hủy nhận việc"),
+        terms.reportLate ? tr("Điểm đang chờ xác minh.") : tr("Bạn đã hủy nhận buổi làm này."),
+      );
       router.back();
     } catch (err) {
+      void refetchCancelPreview();
       await verifyScheduleMutation({
         err,
         scheduleId,
@@ -453,30 +478,30 @@ export function useJobActions({
 
   // Hủy: kiểm tra lý do → hiện hộp xác nhận → mới gọi API
   const requestCancelSession = (session: WorkerSchedule) => {
-    if (!session.assignment_id) return;
+    if (!session.assignment_id || !canSubmitCancel || !cancellationTerms) return;
     if (sessionCancelReason.trim().length === 0) {
       showWarningToast(tr("Thiếu thông tin"), tr("Vui lòng nhập lý do hủy."));
       return;
     }
-    setPendingCancel({ type: "session", session });
+    setPendingCancel({ session, ...cancellationTerms });
   };
 
   const requestCancel = () => {
-    if (!mineItem?.assignment_id) return;
+    if (!mineItem?.assignment_id || !canSubmitCancel || !cancellationTerms) return;
     if (reason.trim().length === 0) {
       showWarningToast(tr("Thiếu thông tin"), tr("Vui lòng nhập lý do hủy."));
       return;
     }
-    setPendingCancel({ type: "job" });
+    setPendingCancel(cancellationTerms);
   };
 
   const confirmCancel = async () => {
     const pending = pendingCancel;
     if (!pending) return;
-    if (pending.type === "session") {
-      await handleCancelSession(pending.session);
+    if (pending.session) {
+      await handleCancelSession(pending.session, pending);
     } else {
-      await handleCancel();
+      await handleCancel(pending);
     }
     setPendingCancel(null);
   };
@@ -489,17 +514,20 @@ export function useJobActions({
   const cancelConfirm = {
     visible: pendingCancel !== null,
     title:
-      pendingCancel?.type === "session"
+      pendingCancel?.reportLate ? tr("Báo không thể đến?") : pendingCancel?.session
         ? tr("Hủy nhận buổi này?")
         : tr("Hủy nhận việc này?"),
     message:
-      pendingCancel?.type === "session"
+      pendingCancel?.reportLate
+        ? tr("Buổi sẽ được mở lại để tìm người thay. Điểm sẽ được xem xét sau khi xác minh.")
+        : pendingCancel?.session
         ? tr("Buổi {{value0}}, {{value1}} sẽ được mở lại cho nhân viên khác nhận.", { value0: formatDayLabel(
             pendingCancel.session.scheduled_start, tr,
           ), value1: formatTime(
             pendingCancel.session.scheduled_start, tr,
           ) })
         : tr("Bạn sẽ không còn được xếp vào buổi làm này và việc sẽ được mở lại cho nhân viên khác."),
+    label: pendingCancel?.reportLate ? tr("Gửi báo vắng") : tr("Hủy nhận việc"),
   };
 
   const handleOpenChat = async () => {
@@ -707,6 +735,11 @@ export function useJobActions({
     handleSessionPress,
     requestCancelSession,
     isCancelling,
+    cancelPreview,
+    isLoadingCancelPreview,
+    isCancelPreviewError,
+    refetchCancelPreview,
+    canSubmitCancel,
 
     reason,
     setReason,

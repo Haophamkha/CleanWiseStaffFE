@@ -4,21 +4,25 @@ import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { DetailHeader } from "@/components/common/DetailHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { RADIUS, SHADOWS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import { useGetMyComplaintsQuery } from "@/features/complaint/api/complaintApi";
 import { ComplaintStatusBadge } from "@/features/complaint/components/ComplaintStatusBadge";
+import { ComplaintTabs, type ComplaintTab } from "@/features/complaint/components/ComplaintTabs";
+import { DisciplinePanel } from "@/features/complaint/components/DisciplinePanel";
 import { formatDateTime } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ComplaintListScreen() {
   const { t: tr } = useTranslation();
 
-  const { COLORS } = useAppTheme();
+  const { COLORS, SHADOWS } = useAppTheme();
 
   const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState<ComplaintTab>("complaints");
 
   const {
     data = [],
@@ -39,7 +43,8 @@ export default function ComplaintListScreen() {
         onBack={() => router.back()}
       />
 
-      {isLoading ? (
+      <ComplaintTabs value={tab} onChange={setTab} />
+      {tab === "discipline" ? <DisciplinePanel /> : isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={COLORS.primary} />
         </View>
@@ -104,6 +109,8 @@ export default function ComplaintListScreen() {
                     <Text
                       className="text-ink-soft text-[11px] mt-0.5"
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
                     >
                       {tr("Đơn")}{" "}{item.booking_code}
                     </Text>

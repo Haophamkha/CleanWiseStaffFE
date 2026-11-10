@@ -70,7 +70,12 @@ export function JobInfoCard({
     >
       <View className="flex-row items-center justify-between mb-3">
         <View className="bg-canvas rounded-full px-3 py-1 mr-2 flex-shrink">
-          <Text className="text-ink-muted text-xs" numberOfLines={1}>
+          <Text
+            className="text-ink-muted text-xs"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {summary.codeLine}
           </Text>
         </View>
