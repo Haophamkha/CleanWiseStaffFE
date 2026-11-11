@@ -1,5 +1,5 @@
 import { useAppTheme } from "@/features/theme/ThemeProvider";
-import { useAvailableJobCount } from "@/features/job/hooks/useAvailableJobCount";
+import { useAppSelector } from "@/store/hooks";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,7 @@ import { Pressable, Text, View } from "react-native";
 export function NotificationBellButton() {
   const { COLORS } = useAppTheme();
   const { t: tr } = useTranslation();
-  const count = useAvailableJobCount() ?? 0;
+  const count = useAppSelector((state) => state.notification.unreadCount);
 
   return (
     <Pressable
@@ -17,7 +17,7 @@ export function NotificationBellButton() {
       accessibilityRole="button"
       accessibilityLabel={
         count > 0
-          ? tr("Thông báo, {{count}} công việc khả dụng", { count })
+          ? tr("Thông báo, {{count}} chưa đọc", { count })
           : tr("Thông báo")
       }
       className="relative"

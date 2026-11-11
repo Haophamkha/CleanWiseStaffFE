@@ -1,4 +1,5 @@
 import { translate as defaultTranslate } from "@/features/language/i18n";
+import type { Href } from "expo-router";
 type RouteInput = {
   target?: string | null;
   type?: string | null;
@@ -12,13 +13,17 @@ type RouteInput = {
  * Xác định route điều hướng khi nhấn vào thông báo.
  * Dùng chung cho các màn hình thông báo trong ứng dụng.
  */
-export function resolveNotificationRoute(i: RouteInput): any | null {
+export function resolveNotificationRoute(i: RouteInput): Href | null {
   if (i.target === "wallet") {
     return "/earnings";
   }
 
   if (i.target === "none") {
     return null;
+  }
+
+  if (i.target === "discipline") {
+    return { pathname: "/complaints", params: { tab: "discipline" } };
   }
 
   if (i.scheduleId && i.bookingId) {
@@ -33,6 +38,10 @@ export function resolveNotificationRoute(i: RouteInput): any | null {
         ...(available && i.view !== "session" ? {} : { view: "session" }),
       },
     };
+  }
+
+  if (i.source === "available") {
+    return { pathname: "/(tabs)/jobs", params: { tab: "available" } };
   }
 
   if (i.type === "SYSTEM") {

@@ -5,7 +5,7 @@ type Translate = typeof import("@/features/language/i18n").translate;
 const FIXED_COPY = new Set([
   "Hồ sơ đã được duyệt 🎉", "CleanWise đã phê duyệt hồ sơ của bạn. Bạn có thể bắt đầu nhận lịch.",
   "Bạn đã bị gỡ khỏi lịch làm", "Bạn đã được gỡ khỏi lịch làm", "Bạn đã bị gỡ khỏi buổi làm",
-  "Có lịch mới", "Bạn có lịch mới", "Sắp đến giờ làm", "Khách đã hủy buổi làm",
+  "Có lịch mới", "Bạn có lịch mới", "Có công việc mới", "Sắp đến giờ làm", "Khách đã hủy buổi làm",
   "Hồ sơ chưa được duyệt", "Khách chỉ định bạn", "Lời mời nhận việc từ admin",
   "Lời mời đã hết hạn", "Lời chỉ định đã bị thu hồi", "Đơn đã bị CleanWise hủy",
   "Đơn đã bị khách hàng hủy", "Số dư ví được điều chỉnh", "Rút tiền thành công",

@@ -1,14 +1,17 @@
 import { useTranslation } from "react-i18next";
 
+import { STORAGE_KEYS } from "@/config/constants";
 import {
   useMarkNotificationReadMutation,
   useRegisterPushTokenMutation,
 } from "@/features/notification/api/notificationApi";
 import { resolveNotificationRoute } from "@/features/notification/utils/notificationMeta";
+import { storage } from "@/utils/storage";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
+import { useEffect, useRef } from "react";
+import { AppState, Platform } from "react-native";
+import type { NotificationResponse } from "expo-notifications";
 
 const handledResponses = new Set<string>();
 
@@ -18,39 +21,59 @@ const isExpoGo =
 export function usePushNotifications(enabled: boolean) {
   const { t: tr } = useTranslation();
 
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [registerToken] = useRegisterPushTokenMutation();
   const registeredRef = useRef(false);
   const [markRead] = useMarkNotificationReadMutation();
 
   useEffect(() => {
-    if (!enabled || isExpoGo || Platform.OS === "web") return;
+    if (!enabled) {
+      registeredRef.current = false;
+      return;
+    }
+    if (isExpoGo || (Platform.OS !== "android" && Platform.OS !== "ios")) return;
+    const platform = Platform.OS;
     let cancelled = false;
     let sub: { remove: () => void } | undefined;
+    let appState: { remove: () => void } | undefined;
 
-    const open = (response: any) => {
-      const id = response?.notification?.request?.identifier;
-      if (id) {
-        if (handledResponses.has(id)) return;
-        handledResponses.add(id);
-      }
-      const data = response?.notification?.request?.content?.data;
-      if (data?.notification_id) markRead(Number(data.notification_id));
+    const open = (response: NotificationResponse) => {
+      const { identifier, content } = response.notification.request;
+      if (cancelled || handledResponses.has(identifier)) return;
+      handledResponses.add(identifier);
+      const data = content.data ?? {};
+      const notificationId = Number(data.notification_id);
+      if (notificationId > 0) markRead(notificationId);
       const route = resolveNotificationRoute({
-        target: data?.target,
-        type: data?.type,
-        bookingId: data?.booking_id,
-        scheduleId: data?.schedule_id,
-        source: data?.source,
-        view: data?.invitation_id ? "session" : data?.view,
+        target: typeof data.target === "string" ? data.target : undefined,
+        type: typeof data.type === "string" ? data.type : undefined,
+        bookingId: Number(data.booking_id),
+        scheduleId: Number(data.schedule_id),
+        source: typeof data.source === "string" ? data.source : undefined,
+        view: data.invitation_id || data.view === "session" ? "session" : undefined,
       });
-      router.push((route ?? "/notifications") as any);
+      router.push(route ?? "/notifications");
     };
 
-    (async () => {
+    const setup = async () => {
       const Notifications = await import("expo-notifications");
       if (cancelled) return;
-      if (Platform.OS === "android") {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+      const openAndClear = (response: NotificationResponse) => {
+        open(response);
+        Notifications.clearLastNotificationResponseAsync().catch(() => {});
+      };
+      sub = Notifications.addNotificationResponseReceivedListener(openAndClear);
+      const last = await Notifications.getLastNotificationResponseAsync();
+      if (cancelled) return;
+      if (last) openAndClear(last);
+      if (platform === "android") {
         await Notifications.setNotificationChannelAsync("default", {
           name: tr("Thông báo chung"),
           importance: Notifications.AndroidImportance.MAX,
@@ -59,17 +82,43 @@ export function usePushNotifications(enabled: boolean) {
           sound: "default",
         });
       }
-      const last = await Notifications.getLastNotificationResponseAsync();
-      if (last) open(last);
-      sub = Notifications.addNotificationResponseReceivedListener(open);
-      if (cancelled) sub.remove();
-    })();
+      if (cancelled) return;
+
+      let registering = false;
+      const register = async (askPermission: boolean) => {
+        if (cancelled || registeredRef.current || registering) return;
+        registering = true;
+        try {
+          let permission = await Notifications.getPermissionsAsync();
+          if (cancelled) return;
+          if (!permission.granted && permission.canAskAgain && askPermission) {
+            permission = await Notifications.requestPermissionsAsync();
+          }
+          if (cancelled || !permission.granted) return;
+          const projectId = Constants.easConfig?.projectId ?? Constants.expoConfig?.extra?.eas?.projectId;
+          const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
+          if (cancelled) return;
+          await storage.setItem(STORAGE_KEYS.PUSH_TOKEN, token);
+          if (cancelled) return;
+          await registerToken({ token, platform }).unwrap();
+          if (!cancelled) registeredRef.current = true;
+        } catch {
+          // Retry when the app returns to the foreground.
+        } finally {
+          registering = false;
+        }
+      };
+      appState = AppState.addEventListener("change", (state) => {
+        if (state === "active") void register(false);
+      });
+      void register(true);
+    };
+    setup().catch(() => {});
 
     return () => {
       cancelled = true;
       sub?.remove();
+      appState?.remove();
     };
-  }, [enabled, tr]);
-
-  return { expoPushToken };
+  }, [enabled, markRead, registerToken, tr]);
 }

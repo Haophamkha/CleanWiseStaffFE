@@ -57,29 +57,46 @@ export function useNotifications() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const unreadCount = useAppSelector((s) => s.notification.unreadCount);
 
-  // currentData: chỉ có dữ liệu của đúng `page` hiện tại (data thì giữ trang cũ)
-  const { currentData, isFetching, isLoading, refetch } =
-    useGetNotificationsQuery({ page, page_size: 20 });
+  const { currentData: firstPage, isFetching: isRefreshing, isLoading, isError, refetch } =
+    useGetNotificationsQuery({ page: 1, page_size: 20 }, {
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+      pollingInterval: 15000,
+      skipPollingIfUnfocused: true,
+    });
+  const { currentData: olderPage, isFetching } = useGetNotificationsQuery(
+    { page, page_size: 20 },
+    { skip: page === 1 },
+  );
   const [markRead] = useMarkNotificationReadMutation();
   const [markAllRead] = useMarkAllNotificationsReadMutation();
   const [clearAll] = useClearAllNotificationsMutation();
 
   useEffect(() => {
-    if (!currentData) return;
+    if (!firstPage) return;
     setItems((prev) =>
-      page === 1 ? currentData.results : mergeById(prev, currentData.results),
+      page === 1 ? firstPage.results : mergeById(prev, firstPage.results),
     );
-  }, [currentData, page]);
+  }, [firstPage, page]);
+
+  useEffect(() => {
+    if (!olderPage) return;
+    setItems((prev) => mergeById(
+      mergeById(prev, olderPage.results),
+      firstPage?.results ?? [],
+    ));
+  }, [olderPage, firstPage]);
 
   const rows = useMemo(() => buildRows(items, tr), [items, tr]);
 
   const handleLoadMore = () => {
-    if (currentData?.has_next && !isFetching) setPage((p) => p + 1);
+    const currentPage = page === 1 ? firstPage : olderPage;
+    if (currentPage?.has_next && !isFetching) setPage(page + 1);
   };
 
   const handleRefresh = () => {
-    if (page === 1) refetch();
-    else setPage(1);
+    setPage(1);
+    refetch();
   };
 
   const handlePressNotification = (n: AppNotification) => {
@@ -95,7 +112,7 @@ export function useNotifications() {
       bookingId: n.related_booking,
       scheduleId: n.related_schedule,
       source: n.navigation_source,
-      view: "session",
+      view: n.type === "ASSIGNMENT" ? "session" : undefined,
     });
     if (route) router.push(route);
   };
@@ -152,6 +169,8 @@ export function useNotifications() {
     hasItems: items.length > 0,
     unreadCount,
     isLoading,
+    isError,
+    isRefreshing,
     isLoadingMore: isFetching && page > 1,
     handleLoadMore,
     handleRefresh,
