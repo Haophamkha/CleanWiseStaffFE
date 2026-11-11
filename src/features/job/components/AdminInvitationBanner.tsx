@@ -8,7 +8,7 @@ import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { getErrorMessage } from "@/utils/apiError";
 import { formatDateTime } from "@/utils/format";
-import * as Crypto from "expo-crypto";
+import { uuid } from "expo";
 import { goBackOrReplace } from "@/utils/navigation";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -53,7 +53,7 @@ export function InvitationActions({
       await respond({
         invitationId: invitation.id,
         action,
-        idempotencyKey: Crypto.randomUUID(),
+        idempotencyKey: uuid.v4(),
       }).unwrap();
       setAction(null);
       if (action === "accept") {

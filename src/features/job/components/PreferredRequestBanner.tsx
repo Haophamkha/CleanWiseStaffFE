@@ -6,7 +6,7 @@ import { RADIUS, TYPE } from "@/constants/theme";
 
 import { useDeclinePreferredMutation } from "@/features/job/api/jobsApi";
 import { Feather } from "@expo/vector-icons";
-import * as Crypto from "expo-crypto";
+import { uuid } from "expo";
 import { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 
@@ -78,7 +78,7 @@ export function PreferredDeclineButton({
     try {
       await decline({
         bookingId,
-        idempotencyKey: Crypto.randomUUID(),
+        idempotencyKey: uuid.v4(),
       }).unwrap();
       setConfirmVisible(false);
       onDeclined();

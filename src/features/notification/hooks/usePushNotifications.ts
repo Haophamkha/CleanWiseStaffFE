@@ -7,6 +7,7 @@ import {
 } from "@/features/notification/api/notificationApi";
 import { resolveNotificationRoute } from "@/features/notification/utils/notificationMeta";
 import { storage } from "@/utils/storage";
+import { isRunningInExpoGo, requireOptionalNativeModule } from "expo";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -30,7 +31,9 @@ export function usePushNotifications(enabled: boolean) {
       registeredRef.current = false;
       return;
     }
-    if (isExpoGo || (Platform.OS !== "android" && Platform.OS !== "ios")) return;
+    if (isExpoGo || isRunningInExpoGo() || (Platform.OS !== "android" && Platform.OS !== "ios")) return;
+    // expo-notifications imports ExpoApplication before setup can run.
+    if (!requireOptionalNativeModule("ExpoApplication")) return;
     const platform = Platform.OS;
     let cancelled = false;
     let sub: { remove: () => void } | undefined;

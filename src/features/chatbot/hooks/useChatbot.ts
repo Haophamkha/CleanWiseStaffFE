@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import * as Crypto from "expo-crypto";
+import { uuid } from "expo";
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 import { baseApi } from "@/store/baseApi";
@@ -57,7 +57,7 @@ export function useChatbot() {
     async (raw: string, retryKey?: string) => {
       const text = raw.trim();
       if (!text || sending || loading || closed) return;
-      const key = retryKey ?? Crypto.randomUUID();
+      const key = retryKey ?? uuid.v4();
       const localId = `local-${key}`;
       setDraft("");
       setSending(true);

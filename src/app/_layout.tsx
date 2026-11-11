@@ -7,8 +7,10 @@ import { toastConfig } from "@/config/toastConfig";
 
 import { useAuthGuard } from "@/features/auth/hooks/useAuthGuard";
 import { store } from "@/store/store";
+import Feather from "@expo/vector-icons/Feather";
+import { loadAsync } from "expo-font";
 import { Stack } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -16,6 +18,13 @@ import {
 import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import "../global.css";
+
+if (Platform.OS === "web" && typeof window !== "undefined") {
+  // Register the font before Feather mounts so the browser can load it while the app renders.
+  void loadAsync(Feather.font).catch((error: unknown) => {
+    console.warn("Could not preload Feather icons.", error);
+  });
+}
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 

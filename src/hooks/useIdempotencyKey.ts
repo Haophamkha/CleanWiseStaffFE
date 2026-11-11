@@ -1,4 +1,4 @@
-import * as Crypto from "expo-crypto";
+import { uuid } from "expo";
 import { useRef } from "react";
 
 export function useIdempotencyKey() {
@@ -6,7 +6,7 @@ export function useIdempotencyKey() {
 
   const getKey = () => {
     if (!keyRef.current) {
-      keyRef.current = Crypto.randomUUID();
+      keyRef.current = uuid.v4();
     }
     return keyRef.current;
   };
