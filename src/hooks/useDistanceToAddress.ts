@@ -1,9 +1,9 @@
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 
-type Point = { latitude: number; longitude: number };
+export type GeoPoint = { latitude: number; longitude: number };
 
-function haversineKm(a: Point, b: Point): number {
+export function haversineKm(a: GeoPoint, b: GeoPoint): number {
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(b.latitude - a.latitude);
@@ -13,7 +13,7 @@ function haversineKm(a: Point, b: Point): number {
     Math.cos(toRad(a.latitude)) *
       Math.cos(toRad(b.latitude)) *
       Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
+  return 2 * R * Math.asin(Math.sqrt(Math.min(1, h)));
 }
 
 export function formatDistance(km: number): string {
@@ -22,7 +22,7 @@ export function formatDistance(km: number): string {
 }
 
 /** Khoảng cách (km) từ vị trí hiện tại đến destination. null nếu chưa có quyền/vị trí. */
-export function useDistanceToAddress(destination: Point | null): number | null {
+export function useDistanceToAddress(destination: GeoPoint | null): number | null {
   const [km, setKm] = useState<number | null>(null);
   const lat = destination?.latitude;
   const lng = destination?.longitude;

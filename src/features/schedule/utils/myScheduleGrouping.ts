@@ -4,6 +4,16 @@ export type MyDisplayItem =
   | { type: "single"; item: WorkerMySchedule }
   | { type: "package"; bookingId: number; sessions: WorkerMySchedule[] };
 
+export function getHighlightedSession(sessions: WorkerMySchedule[]): WorkerMySchedule {
+  const inProgress = sessions.find((session) => session.status === "IN_PROGRESS");
+  if (inProgress) return inProgress;
+
+  const pending = sessions.filter((session) => session.status === "PENDING").sort(
+    (a, b) => new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime(),
+  );
+  return pending[0] ?? sessions[0];
+}
+
 export function groupMySchedules(items: WorkerMySchedule[]): MyDisplayItem[] {
   const bucket = new Map<number, WorkerMySchedule[]>();
   const order: number[] = [];

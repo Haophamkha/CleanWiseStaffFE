@@ -12,7 +12,7 @@ import { DisciplinePanel } from "@/features/complaint/components/DisciplinePanel
 import { formatDateTime } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
 import { goBackOrReplace } from "@/utils/navigation";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,7 +23,8 @@ export default function ComplaintListScreen() {
   const { COLORS, SHADOWS } = useAppTheme();
 
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<ComplaintTab>("complaints");
+  const { tab: initialTab } = useLocalSearchParams<{ tab?: ComplaintTab }>();
+  const [tab, setTab] = useState<ComplaintTab>(initialTab === "discipline" ? "discipline" : "complaints");
 
   const {
     data = [],

@@ -16,9 +16,11 @@ import type {
 } from "@/features/schedule/types/Schedule";
 import type { MyDisplayItem } from "@/features/schedule/utils/myScheduleGrouping";
 import { groupMySchedules } from "@/features/schedule/utils/myScheduleGrouping";
+import type { GeoPoint } from "@/hooks/useDistanceToAddress";
 import { useSingleNavigate } from "@/hooks/useSingleNavigate";
 import { useAppSelector } from "@/store/hooks";
 import { buildDayChips, DAY_CHIP_COUNT } from "@/utils/dayChips";
+import { showWarningToast } from "@/utils/toast";
 import * as Location from "expo-location";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -26,6 +28,24 @@ import { useTranslation } from "react-i18next";
 
 type AvailableFilters = Omit<AvailableJobsPagedArgs, "page">;
 type MyFilters = Omit<MyJobsPagedArgs, "page">;
+
+async function readLocation(requestPermission: boolean): Promise<GeoPoint | null> {
+  const permission = await (requestPermission
+    ? Location.requestForegroundPermissionsAsync()
+    : Location.getForegroundPermissionsAsync());
+  if (!permission.granted) return null;
+
+  const position =
+    (await Location.getLastKnownPositionAsync({ maxAge: 120000 }).catch(() => null)) ??
+    (await Location.getCurrentPositionAsync({
+      accuracy: requestPermission ? Location.Accuracy.High : Location.Accuracy.Balanced,
+      mayShowUserSettingsDialog: requestPermission,
+    }));
+  return {
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
+  };
+}
 
 export type JobsListState<T> = {
   items: T[];
@@ -76,41 +96,71 @@ export function useJobs() {
   const dayChips = useMemo(() => buildDayChips(DAY_CHIP_COUNT, tr), [tr]);
 
   const [sort, setSort] = useState<AvailableSort>("time");
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
-    null,
+  const [location, setLocation] = useState<GeoPoint | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const sortRequest = useRef(0);
+  const locationRequest = useRef(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsLocating(false);
+      const request = ++locationRequest.current;
+      const applyLocation = (position: GeoPoint | null) => {
+        if (request === locationRequest.current) {
+          setLocation(position);
+          if (!position) setSort((previous) => previous === "distance" ? "time" : previous);
+        }
+      };
+      void readLocation(false).catch(() => null).then(applyLocation);
+      return () => {
+        locationRequest.current++;
+        sortRequest.current++;
+      };
+    }, []),
   );
 
+  const requestLocation = useCallback(async () => {
+    const lookup = ++locationRequest.current;
+    setIsLocating(true);
+    const position = await readLocation(true).catch(() => null);
+    if (lookup !== locationRequest.current) return undefined;
+    setLocation(position);
+    setIsLocating(false);
+    return position;
+  }, []);
+
+  const enableDistance = useCallback(async () => {
+    if (await requestLocation() === null) {
+      showWarningToast(tr("Không xác định được vị trí"), tr("Hãy bật vị trí và cấp quyền cho ứng dụng."));
+    }
+  }, [requestLocation, tr]);
+
   const selectSort = useCallback(async (next: AvailableSort) => {
+    const request = ++sortRequest.current;
     if (next === "distance") {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") return;
-        const pos =
-          (await Location.getLastKnownPositionAsync()) ??
-          (await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          }));
-        if (!pos) return;
-        setCoords({
-          lat: Number(pos.coords.latitude.toFixed(3)),
-          lng: Number(pos.coords.longitude.toFixed(3)),
-        });
-      } catch {
+      const position = await requestLocation();
+      if (position === undefined || request !== sortRequest.current) return;
+      if (!position) {
+        setSort("time");
+        showWarningToast(tr("Không lấy được vị trí. Danh sách đang xếp theo thời gian."));
         return;
       }
     }
     setSort(next);
-  }, []);
+  }, [requestLocation, tr]);
 
   const availableFilters = useMemo<AvailableFilters>(
     () => ({
       ...(day ? { date_from: day, date_to: day } : {}),
       ...(sort !== "time" ? { sort } : {}),
-      ...(sort === "distance" && coords
-        ? { lat: coords.lat, lng: coords.lng }
+      ...(sort === "distance" && location
+        ? {
+            lat: Number(location.latitude.toFixed(3)),
+            lng: Number(location.longitude.toFixed(3)),
+          }
         : {}),
     }),
-    [day, sort, coords],
+    [day, sort, location],
   );
 
   const dayFiltered = day !== null;
@@ -250,5 +300,8 @@ export function useJobs() {
 
     sort,
     selectSort,
+    location,
+    isLocating,
+    enableDistance,
   };
 }

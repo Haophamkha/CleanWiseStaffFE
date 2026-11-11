@@ -1,6 +1,6 @@
 import { useGetConversationsQuery } from "@/features/chat/api/chatApi";
 import { useChatSocket } from "@/features/chat/hooks/useChatSocket";
-import { notificationApi } from "@/features/notification/api/notificationApi";
+import { useGetUnreadCountQuery } from "@/features/notification/api/notificationApi";
 import {
     bumpRefreshTick,
     setUnreadCount,
@@ -16,6 +16,26 @@ export function useTabsRealtime() {
   });
 
   const dispatch = useAppDispatch();
+  useGetUnreadCountQuery(undefined, {
+    skip: !user,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    pollingInterval: 15000,
+    skipPollingIfUnfocused: true,
+  });
+
+  const refreshNotificationData = () => {
+    dispatch(bumpRefreshTick());
+    dispatch(
+      baseApi.util.invalidateTags([
+        "Notifications",
+        "MySchedules",
+        "AvailableSchedules",
+        "Profile",
+        { type: "Complaints", id: "DISCIPLINE" },
+      ]),
+    );
+  };
 
   useChatSocket(
     !!user,
@@ -30,26 +50,12 @@ export function useTabsRealtime() {
         if (typeof event.unread_count === "number") {
           dispatch(setUnreadCount(event.unread_count));
         }
-        dispatch(bumpRefreshTick());
-        dispatch(
-          baseApi.util.invalidateTags([
-            "Notifications",
-            "MySchedules",
-            "AvailableSchedules",
-            "Profile",
-          ]),
-        );
+        refreshNotificationData();
       }
     },
     () => {
       refetch();
-      dispatch(bumpRefreshTick());
-      dispatch(
-        notificationApi.endpoints.getUnreadCount.initiate(undefined, {
-          forceRefetch: true,
-        }),
-      );
-      dispatch(baseApi.util.invalidateTags(["MySchedules", "Profile", "AvailableSchedules"]));
+      refreshNotificationData();
     },
   );
 

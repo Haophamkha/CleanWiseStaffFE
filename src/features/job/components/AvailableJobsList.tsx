@@ -9,6 +9,7 @@ import { Feather } from "@expo/vector-icons";
 import type { JobsListState } from "@/features/job/hooks/useJobs";
 import type { OpenJob } from "@/features/job/types/jobNav";
 import type { WorkerSchedule } from "@/features/schedule/types/Schedule";
+import type { GeoPoint } from "@/hooks/useDistanceToAddress";
 import { useCallback } from "react";
 import {
   ActivityIndicator,
@@ -20,6 +21,7 @@ import {
 
 type AvailableJobsListProps = {
   state: JobsListState<WorkerSchedule>;
+  location: GeoPoint | null;
   dayFiltered: boolean;
   onClearDay: () => void;
   onOpen: OpenJob;
@@ -29,6 +31,7 @@ type AvailableJobsListProps = {
 
 export function AvailableJobsList({
   state,
+  location,
   dayFiltered,
   onClearDay,
   onOpen,
@@ -41,14 +44,9 @@ export function AvailableJobsList({
 
   const renderItem = useCallback(
     ({ item, index }: { item: WorkerSchedule; index: number }) => (
-      <AvailableJobCard
-        item={item}
-        onOpen={onOpen}
-        dayFiltered={dayFiltered}
-        index={index}
-      />
+      <AvailableJobCard item={item} location={location} onOpen={onOpen} index={index} />
     ),
-    [onOpen, dayFiltered, tr],
+    [location, onOpen],
   );
 
   if (state.isLoading) {
@@ -66,7 +64,8 @@ export function AvailableJobsList({
       data={state.items}
       keyExtractor={(item) => String(item.id)}
       renderItem={renderItem}
-      contentContainerStyle={{ padding: 20, paddingBottom: 24, flexGrow: 1 }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24, flexGrow: 1 }}
       refreshControl={
         <RefreshControl
           refreshing={state.isRefreshing}
@@ -82,36 +81,16 @@ export function AvailableJobsList({
       maxToRenderPerBatch={8}
       windowSize={7}
       removeClippedSubviews
-            ListHeaderComponent={
+      ListHeaderComponent={
         state.total > 0 ? (
-          <View
-            className="flex-row items-center"
-            style={{ marginBottom: 12, paddingHorizontal: 2 }}
-          >
-            <Text className="text-ink font-extrabold text-[17px]">
-              {dayFiltered
-                ? tr("Việc trống trong ngày")
-                : tr("Việc đang chờ nhận")}
-            </Text>
-            <View
-              className="items-center justify-center"
-              style={{
-                minWidth: 26,
-                height: 22,
-                paddingHorizontal: 8,
-                marginLeft: 8,
-                borderRadius: 11,
-                backgroundColor: COLORS.primaryLight,
-              }}
-            >
-              <Text
-                className="font-extrabold text-[12.5px]"
-                style={{ color: COLORS.primaryDark }}
-              >
-                {state.total}
-              </Text>
-            </View>
-          </View>
+          <Text className="mb-3 text-ink-soft text-xs font-semibold">
+            {tr(
+              dayFiltered
+                ? "{{value0}} đơn có buổi trống trong ngày này"
+                : "{{value0}} đơn đang chờ nhận",
+              { count: state.total, value0: state.total },
+            )}
+          </Text>
         ) : null
       }
       ListFooterComponent={

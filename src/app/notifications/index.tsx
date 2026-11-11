@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { TYPE } from "@/constants/theme";
 import NotificationItem from "@/features/notification/components/NotificationItem";
 import { NotificationsHeader } from "@/features/notification/components/NotificationsHeader";
@@ -38,7 +39,7 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={n.isLoading}
+            refreshing={n.isRefreshing}
             onRefresh={n.handleRefresh}
             tintColor={COLORS.primary}
             colors={[COLORS.primaryFill]}
@@ -67,7 +68,16 @@ export default function NotificationsScreen() {
           ) : null
         }
         ListEmptyComponent={
-          !n.isLoading ? (
+          n.isLoading ? (
+            <ActivityIndicator className="mt-24" color={COLORS.primary} />
+          ) : n.isError ? (
+            <EmptyState
+              icon="wifi-off"
+              title={tr("Không tải được thông báo")}
+              actionLabel={tr("Thử lại")}
+              onAction={n.handleRefresh}
+            />
+          ) : (
             <View className="items-center justify-center mt-24 px-8">
               <View className="w-20 h-20 rounded-full bg-accent-light items-center justify-center">
                 <Feather name="bell-off" size={30} color={COLORS.accentDark} />
@@ -77,7 +87,7 @@ export default function NotificationsScreen() {
               <Text className="text-ink-soft text-sm text-center mt-1.5 leading-5">
                 {tr("Thông báo về đơn việc, thanh toán và hệ thống sẽ hiện ở đây.")}</Text>
             </View>
-          ) : null
+          )
         }
       />
     </View>

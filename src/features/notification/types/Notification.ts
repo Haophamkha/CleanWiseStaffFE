@@ -16,7 +16,7 @@ export interface AppNotification {
   read_at: string | null;
   related_schedule: number | null;
   navigation_source?: "available" | "mine";
-  target?: "booking" | "wallet" | "none" | "";
+  target?: "booking" | "wallet" | "discipline" | "none" | "";
   created_at: string;
 }
 
