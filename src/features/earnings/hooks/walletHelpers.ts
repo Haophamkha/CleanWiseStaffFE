@@ -1,4 +1,4 @@
-import * as Crypto from "expo-crypto";
+import { uuid } from "expo";
 import { useRef } from "react";
 
 export const TOPUP_MIN = 1000;
@@ -14,7 +14,7 @@ export function useIntentKey() {
   const ref = useRef<{ sig: string; key: string } | null>(null);
   const getKey = (sig: string) => {
     if (!ref.current || ref.current.sig !== sig) {
-      ref.current = { sig, key: Crypto.randomUUID() };
+      ref.current = { sig, key: uuid.v4() };
     }
     return ref.current.key;
   };
