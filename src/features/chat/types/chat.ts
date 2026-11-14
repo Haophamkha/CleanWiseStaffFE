@@ -23,8 +23,8 @@ export type ChatAssignment = {
 
 export type ChatConversation = {
   id: number;
-  customer_id: number;
-  worker_id: number;
+  customer_id: number | null;
+  worker_id: number | null;
   status: "ACTIVE" | "CLOSED";
   created_at: string;
   updated_at: string;
