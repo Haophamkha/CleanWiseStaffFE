@@ -104,7 +104,9 @@ export function ChatRoom({
             {conversation.other_user.name}
           </Text>
           <Text className="text-xs text-ink-muted mt-0.5">
-            {staff ? tr("Khách hàng") : tr("Nhân viên phụ trách")}
+            {conversation.other_user.role === "ADMIN"
+              ? tr("Chăm sóc khách hàng")
+              : staff ? tr("Khách hàng") : tr("Nhân viên phụ trách")}
           </Text>
         </View>
       </View>
