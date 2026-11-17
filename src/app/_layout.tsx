@@ -6,6 +6,7 @@ import { NetworkBanner } from "@/components/common/NetworkBanner";
 import { toastConfig } from "@/config/toastConfig";
 
 import { useAuthGuard } from "@/features/auth/hooks/useAuthGuard";
+import { useStaffRealtime } from "@/features/chat/hooks/useStaffRealtime";
 import { store } from "@/store/store";
 import Feather from "@expo/vector-icons/Feather";
 import { loadAsync } from "expo-font";
@@ -32,6 +33,7 @@ function RootNavigator() {
   const { COLORS } = useAppTheme();
 
   const { ready } = useAuthGuard();
+  useStaffRealtime();
   const insets = useSafeAreaInsets();
 
   if (!ready) {

@@ -33,6 +33,18 @@ export type ComplaintListItem = {
 };
 
 export type ComplaintAttachment = { id: number; file: string };
+export type WorkerStatement = {
+  id: number;
+  complaint_code: string;
+  booking_code: string;
+  sequence: number | null;
+  request_message: string;
+  due_at: string;
+  status: "OPEN" | "SUBMITTED" | "EXPIRED" | "CLOSED";
+  response: string;
+  submitted_at: string | null;
+  attachments: ComplaintAttachment[];
+};
 
 export type ComplaintDetail = ComplaintListItem & {
   content: string;
@@ -61,6 +73,29 @@ const unwrapList = <T>(r: any): T[] => {
 
 export const complaintApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getWorkerStatements: builder.query<WorkerStatement[], void>({
+      query: () => ({ url: "/api/worker/complaint-statements/", method: "GET" }),
+      transformResponse: (response) => unwrapList<WorkerStatement>(response),
+      providesTags: [{ type: "Complaints", id: "STATEMENTS" }],
+    }),
+    submitWorkerStatement: builder.mutation<WorkerStatement, { id: number; response: string; photos: PickedFile[] }>({
+      query: ({ id, response, photos }) => {
+        const url = `/api/worker/complaint-statements/${id}/reply/`;
+        if (!photos.length) return { url, method: "POST", data: { response } };
+
+        const data = new FormData();
+        data.append("response", response);
+        for (const photo of photos) {
+          data.append("attachments", photo.file ?? {
+            uri: photo.uri, name: photo.name, type: photo.type,
+          } as unknown as Blob);
+        }
+        return { url, method: "POST", data, timeout: UPLOAD_TIMEOUT_MS };
+      },
+      transformResponse: (response: { data?: WorkerStatement } | WorkerStatement) =>
+        "data" in response && response.data ? response.data : response as WorkerStatement,
+      invalidatesTags: [{ type: "Complaints", id: "STATEMENTS" }],
+    }),
     getComplaintIssueTypes: builder.query<ComplaintIssueType[], void>({
       query: () => ({
         url: "/api/worker/complaint-issue-types/",
@@ -142,6 +177,8 @@ export const complaintApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetWorkerStatementsQuery,
+  useSubmitWorkerStatementMutation,
   useGetComplaintIssueTypesQuery,
   useGetMyComplaintsQuery,
   useGetComplaintDetailQuery,

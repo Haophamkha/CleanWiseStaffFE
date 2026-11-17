@@ -25,6 +25,9 @@ export function resolveNotificationRoute(i: RouteInput): Href | null {
   if (i.target === "discipline") {
     return { pathname: "/complaints", params: { tab: "discipline" } };
   }
+  if (i.target === "worker_statement") {
+    return { pathname: "/complaints", params: { tab: "statements" } };
+  }
 
   if (i.scheduleId && i.bookingId) {
     const available = i.source === "available";

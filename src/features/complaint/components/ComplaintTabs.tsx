@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
-export type ComplaintTab = "complaints" | "discipline";
+export type ComplaintTab = "complaints" | "discipline" | "statements";
 
 export function ComplaintTabs({ value, onChange }: {
   value: ComplaintTab;
@@ -10,6 +10,7 @@ export function ComplaintTabs({ value, onChange }: {
   const { t } = useTranslation();
   const tabs = [
     { key: "complaints", label: t("Khiếu nại") },
+    { key: "statements", label: t("Giải trình") },
     { key: "discipline", label: t("Điểm & xử lý") },
   ] as const;
 

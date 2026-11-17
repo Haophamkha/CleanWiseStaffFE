@@ -9,6 +9,7 @@ import { useGetMyComplaintsQuery } from "@/features/complaint/api/complaintApi";
 import { ComplaintStatusBadge } from "@/features/complaint/components/ComplaintStatusBadge";
 import { ComplaintTabs, type ComplaintTab } from "@/features/complaint/components/ComplaintTabs";
 import { DisciplinePanel } from "@/features/complaint/components/DisciplinePanel";
+import { WorkerStatementPanel } from "@/features/complaint/components/WorkerStatementPanel";
 import { formatDateTime } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
 import { goBackOrReplace } from "@/utils/navigation";
@@ -24,7 +25,7 @@ export default function ComplaintListScreen() {
 
   const insets = useSafeAreaInsets();
   const { tab: initialTab } = useLocalSearchParams<{ tab?: ComplaintTab }>();
-  const [tab, setTab] = useState<ComplaintTab>(initialTab === "discipline" ? "discipline" : "complaints");
+  const [tab, setTab] = useState<ComplaintTab>(initialTab === "discipline" || initialTab === "statements" ? initialTab : "complaints");
 
   const {
     data = [],
@@ -46,7 +47,7 @@ export default function ComplaintListScreen() {
       />
 
       <ComplaintTabs value={tab} onChange={setTab} />
-      {tab === "discipline" ? <DisciplinePanel /> : isLoading ? (
+      {tab === "statements" ? <WorkerStatementPanel /> : tab === "discipline" ? <DisciplinePanel /> : isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={COLORS.primary} />
         </View>

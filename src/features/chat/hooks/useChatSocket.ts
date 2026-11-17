@@ -12,12 +12,15 @@ export type ChatSocketEvent = {
   user_id?: number;
   is_typing?: boolean;
   unread_count?: number;
+  booking_id?: number;
+  notification?: { id: number; target: string };
 };
 
 export function useChatSocket(
   enabled: boolean,
   onEvent: (event: ChatSocketEvent) => void,
   onReconnect?: () => void,
+  watchedBookingId?: number,
 ) {
   const callback = useRef(onEvent);
   const reconnectCallback = useRef(onReconnect);
@@ -74,6 +77,9 @@ export function useChatSocket(
           if (event.type === "auth.ok") {
             authenticatedRef.current = true;
             attempts = 0;
+            if (watchedBookingId) {
+              connection.send(JSON.stringify({ type: "booking.watch", booking_id: watchedBookingId }));
+            }
             if (wasConnected) reconnectCallback.current?.();
             wasConnected = true;
           } else {
@@ -124,7 +130,7 @@ export function useChatSocket(
       socketRef.current = null;
       socket?.close();
     };
-  }, [enabled]);
+  }, [enabled, watchedBookingId]);
 
   return { sendTyping };
 }
