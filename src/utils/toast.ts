@@ -9,12 +9,13 @@ const DURATION: Record<ToastType, number> = {
   error: 5000,
 };
 
-const show = (type: ToastType, title: string, message?: string) => {
+const show = (type: ToastType, title: string, message?: string, onPress?: () => void) => {
   Toast.show({
     type,
     text1: title,
     text2: message,
     visibilityTime: DURATION[type],
+    onPress,
     props: { duration: DURATION[type] },
   });
 };
@@ -28,5 +29,5 @@ export const showErrorToast = (title: string, message?: string) =>
 export const showWarningToast = (title: string, message?: string) =>
   show("warning", title, message);
 
-export const showInfoToast = (title: string, message?: string) =>
-  show("info", title, message);
+export const showInfoToast = (title: string, message?: string, onPress?: () => void) =>
+  show("info", title, message, onPress);

@@ -228,32 +228,12 @@ export const jobsApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       transformResponse: (r: any) => unwrapList<WorkerSchedule>(r),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((s) => ({
-                type: "AvailableSchedules" as const,
-                id: s.id,
-              })),
-              {
-                type: "AvailableSchedules" as const,
-                id: "LIST",
-              },
-              {
-                type: "MySchedules" as const,
-                id: "LIST",
-              },
-            ]
-          : [
-              {
-                type: "AvailableSchedules" as const,
-                id: "LIST",
-              },
-              {
-                type: "MySchedules" as const,
-                id: "LIST",
-              },
-            ],
+      providesTags: (result, _error, bookingId) => [
+        { type: "BookingSchedules" as const, id: bookingId },
+        ...(result ?? []).map((s) => ({ type: "AvailableSchedules" as const, id: s.id })),
+        { type: "AvailableSchedules" as const, id: "LIST" },
+        { type: "MySchedules" as const, id: "LIST" },
+      ],
     }),
 
     claimSchedule: builder.mutation<

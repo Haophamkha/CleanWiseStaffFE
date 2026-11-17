@@ -49,28 +49,6 @@ export const registerAuthDispatch = (dispatch: Dispatch<UnknownAction>) => {
  * REQUEST INTERCEPTOR
  * ======================================================= */
 
-const SENSITIVE_KEYS = [
-  "code",
-  "account_number",
-  "password",
-  "password_confirm",
-  "new_password",
-  "new_password_confirm",
-  "refresh",
-  "access",
-];
-
-const redact = (body: unknown) => {
-  if (!body || typeof body !== "object") return body;
-  const copy: Record<string, unknown> = {
-    ...(body as Record<string, unknown>),
-  };
-  for (const key of SENSITIVE_KEYS) {
-    if (key in copy) copy[key] = "[REDACTED]";
-  }
-  return copy;
-};
-
 axiosInstance.interceptors.request.use(async (config) => {
   const isPublic = PUBLIC_ENDPOINTS.some((path) => config.url?.includes(path));
 
@@ -80,29 +58,6 @@ axiosInstance.interceptors.request.use(async (config) => {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-  }
-
-  if (__DEV__) {
-    let rawLoggedBody: unknown = config.data;
-
-    if (config.data instanceof FormData) {
-      rawLoggedBody = Object.fromEntries(
-        ((config.data as any)._parts ?? []).map(
-          ([key, value]: [string, any]) => [
-            key,
-            value && typeof value === "object" && "uri" in value
-              ? { uri: value.uri, type: value.type, name: value.name }
-              : value,
-          ],
-        ),
-      );
-    }
-
-    console.log("[REQUEST]", config.method?.toUpperCase(), config.url, {
-      hasAuthHeader: !!config.headers?.Authorization,
-      body: redact(rawLoggedBody),
-      timeout: config.timeout,
-    });
   }
 
   return config;
@@ -224,12 +179,7 @@ const setAuthHeader = (config: AxiosRequestConfig, token: string) => {
 };
 
 axiosInstance.interceptors.response.use(
-  (response) => {
-    if (__DEV__ && !response.config.url?.includes("/api/auth/")) {
-      console.log("[RESPONSE OK]", response.config.url, response.data);
-    }
-    return response;
-  },
+  undefined,
   async (error: AxiosError) => {
     const originalRequest = error.config as
       | (AxiosRequestConfig & { _retry?: boolean })
@@ -239,7 +189,6 @@ axiosInstance.interceptors.response.use(
       // ECONNABORTED kèm response undefined thường là timeout phía client
       console.log("[RESPONSE ERROR]", originalRequest?.url, {
         status: error.response?.status,
-        data: error.response?.data,
         code: error.code,
         message: error.message,
       });
@@ -422,6 +371,7 @@ export const baseApi = createApi({
     "PaymentMethods",
     "BankCatalog",
     "AvailableSchedules",
+    "BookingSchedules",
     "MySchedules",
     "ChatConversations",
     "Bookings",

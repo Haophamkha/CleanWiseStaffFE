@@ -23,7 +23,7 @@ type ToastCardProps = ToastConfigParams<{ duration?: number }> & {
   variant: "success" | "error" | "warning" | "info";
 };
 
-function ToastCard({ variant, text1, text2, props, hide }: ToastCardProps) {
+function ToastCard({ variant, text1, text2, props, hide, onPress }: ToastCardProps) {
   const { COLORS } = useAppTheme();
 
   const VARIANTS: Record<"success" | "error" | "warning" | "info", Variant> = {
@@ -68,7 +68,7 @@ function ToastCard({ variant, text1, text2, props, hide }: ToastCardProps) {
       style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <Pressable
-        onPress={() => hide()}
+        onPress={() => { hide(); onPress?.(); }}
         accessibilityRole="alert"
         className="bg-surface border border-line overflow-hidden"
         style={{ borderRadius: RADIUS.card }}

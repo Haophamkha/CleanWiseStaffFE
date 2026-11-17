@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next";
 
 import AppTabBar from "@/components/common/AppTabBar";
-import { useTabsRealtime } from "@/features/chat/hooks/useTabsRealtime";
+import { chatApi } from "@/features/chat/api/chatApi";
 import { useAvailableJobsBadge } from "@/features/job/hooks/useAvailableJobsBadge";
 import { Tabs } from "expo-router";
 
 export default function TabsLayout() {
   const { t: tr } = useTranslation();
 
-  const { unreadLabel } = useTabsRealtime();
+  const { data } = chatApi.endpoints.getConversations.useQueryState(1);
+  const unread = data?.total_unread ?? 0;
+  const unreadLabel = unread ? (unread > 99 ? "99+" : String(unread)) : undefined;
   const jobsBadge = useAvailableJobsBadge();
 
   return (

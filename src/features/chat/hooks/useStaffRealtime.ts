@@ -7,10 +7,15 @@ import {
 } from "@/features/notification/stores/notificationSlice";
 import { baseApi } from "@/store/baseApi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { showInfoToast } from "@/utils/toast";
+import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
-export function useTabsRealtime() {
+export function useStaffRealtime() {
+  const { t } = useTranslation();
+  const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
-  const { data: conversations, refetch } = useGetConversationsQuery(1, {
+  const { refetch } = useGetConversationsQuery(1, {
     skip: !user,
     refetchOnMountOrArgChange: 15,
   });
@@ -33,6 +38,7 @@ export function useTabsRealtime() {
         "AvailableSchedules",
         "Profile",
         { type: "Complaints", id: "DISCIPLINE" },
+        { type: "Complaints", id: "STATEMENTS" },
       ]),
     );
   };
@@ -51,6 +57,13 @@ export function useTabsRealtime() {
           dispatch(setUnreadCount(event.unread_count));
         }
         refreshNotificationData();
+        if (event.notification?.target === "worker_statement") {
+          showInfoToast(
+            t("Có khiếu nại cần giải trình"),
+            t("Mở mục Giải trình để phản hồi trước hạn."),
+            () => router.push({ pathname: "/complaints", params: { tab: "statements" } }),
+          );
+        }
       }
     },
     () => {
@@ -58,14 +71,4 @@ export function useTabsRealtime() {
       refreshNotificationData();
     },
   );
-
-  const unreadCount = user ? (conversations?.total_unread ?? 0) : 0;
-  const unreadLabel: string | undefined =
-    unreadCount > 0
-      ? unreadCount > 99
-        ? "99+"
-        : String(unreadCount)
-      : undefined;
-
-  return { unreadCount, unreadLabel };
 }
