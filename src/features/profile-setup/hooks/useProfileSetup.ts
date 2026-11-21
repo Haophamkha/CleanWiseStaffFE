@@ -138,7 +138,7 @@ export function useProfileSetup() {
   const experienceYears =
     draft.experienceYears ??
     (profile?.experience_years != null ? String(profile.experience_years) : "");
-  const serviceId = draft.serviceId ?? profile?.registered_service?.id ?? null;
+  const serviceId = locked("service_id") ? profile?.registered_service?.id ?? null : draft.serviceId ?? profile?.registered_service?.id ?? null;
   const areaIds =
     draft.areaIds ?? (workingQuery.data ?? []).map((w) => w.area.id);
   const areaSet = new Set(areaIds);
@@ -181,8 +181,9 @@ export function useProfileSetup() {
     });
   }, [servicesQuery.data, serviceSearch, tr]);
 
-  const selectService = (representativeId: number) =>
-    update({ serviceId: representativeId });
+  const selectService = (representativeId: number) => {
+    if (!locked("service_id")) update({ serviceId: representativeId });
+  };
 
   // ---------- Kiểm tra từng bước ----------
   const validate = (step: SetupStep): string | null => {

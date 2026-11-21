@@ -1,3 +1,4 @@
+import { readStartupPreferences } from "@/utils/startupPreferences";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { I18nextProvider } from "react-i18next";
@@ -16,12 +17,18 @@ export function AppLanguageProvider({ children }: { children: ReactNode }) {
     const restore = async () => {
       let next: AppLanguage = "vi";
       try {
-        const saved = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+        const [saved] = await readStartupPreferences();
         if (isAppLanguage(saved)) next = saved;
       } catch { /* Default to Vietnamese if storage is unavailable. */ }
       if (!mounted) return;
-      await i18n.changeLanguage(next);
-      if (mounted) { updateLanguage(next); setReady(true); }
+      try {
+        await i18n.changeLanguage(next);
+        if (mounted) updateLanguage(next);
+      } catch (error) {
+        console.warn("Could not restore app language.", error);
+      } finally {
+        if (mounted) setReady(true);
+      }
     };
     void restore();
     return () => { mounted = false; };

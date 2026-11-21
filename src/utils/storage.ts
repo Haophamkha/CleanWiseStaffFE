@@ -1,8 +1,10 @@
+import { createSessionStorage } from "./sessionStorage";
+import { decodeJwtPayload } from "@/features/auth/utils/jwt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-export const storage = {
+const backend = {
   async getItem(key: string): Promise<string | null> {
     if (Platform.OS === "web") {
       return AsyncStorage.getItem(key);
@@ -22,3 +24,5 @@ export const storage = {
     return SecureStore.deleteItemAsync(key);
   },
 };
+
+export const storage = createSessionStorage(backend, "cleanwise_staff_session_v1", "WORKER", (token) => decodeJwtPayload(token)?.role);

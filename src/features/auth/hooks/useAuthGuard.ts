@@ -1,98 +1,95 @@
-import { ALLOWED_APP_ROLE, STORAGE_KEYS } from "@/config/constants";
-import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
-import {
-  clearAuth,
-  setAuthStatus,
-  setUser,
-} from "@/features/auth/stores/authSlice";
+import { ALLOWED_APP_ROLE, ROUTES, STORAGE_KEYS } from "@/config/constants";
+import { useLazyGetWorkerProfileQuery } from "@/features/auth/api/authApi";
+import { clearAuth, setUser } from "@/features/auth/stores/authSlice";
 import type { UserResponse } from "@/features/auth/types/authResponse";
-import { decodeJwtPayload } from "@/features/auth/utils/jwt";
 import { usePushNotifications } from "@/features/notification/hooks/usePushNotifications";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { storage } from "@/utils/storage";
 import { useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const valid = (token: string | null) => !!token && token !== "null" && token !== "undefined";
 
 export function useAuthGuard() {
   const dispatch = useAppDispatch();
   const segments = useSegments();
   const router = useRouter();
-  const { user, status } = useAppSelector((s) => s.auth);
+  const { status } = useAppSelector((state) => state.auth);
+  const [getProfile] = useLazyGetWorkerProfileQuery();
+  const [phase, setPhase] = useState<"loading" | "success" | "routing" | "ready" | "error">("loading");
+  const attempt = useRef(0);
 
-  // 1. Lúc app khởi động: đọc token từ storage 1 lần duy nhất.
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-        const isValid = !!token && token !== "undefined" && token !== "null";
-
-        if (!isValid) {
-          dispatch(setAuthStatus("unauthenticated"));
-          return;
-        }
-
-        // Token có thể là của app khách còn sót lại trên cùng thiết bị.
-        const payload = decodeJwtPayload(token);
-        if (!payload || payload.role !== ALLOWED_APP_ROLE) {
-          await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
-          await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
-          dispatch(clearAuth());
-          return;
-        }
-
-        // Access token hết hạn cũng không sao: request đầu tiên nhận 401 sẽ
-        // được refresh tự động.
-        dispatch(setAuthStatus("authenticated"));
-      } catch {
-        dispatch(setAuthStatus("unauthenticated"));
+  const retry = useCallback(async () => {
+    const current = ++attempt.current;
+    setPhase("loading");
+    try {
+      const tokens = await Promise.all([
+        storage.getItem(STORAGE_KEYS.ACCESS_TOKEN), storage.getItem(STORAGE_KEYS.REFRESH_TOKEN),
+      ]);
+      if (!tokens.some(valid)) {
+        dispatch(clearAuth());
+        if (current === attempt.current) setPhase("ready");
+        return;
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 2. Mở lại app: có token nhưng Redux chưa có user -> nạp từ hồ sơ.
-  const { data: profile } = useGetWorkerProfileQuery(undefined, {
-    skip: status !== "authenticated" || !!user,
-  });
-
-  useEffect(() => {
-    if (status === "authenticated" && !user && profile) {
-      dispatch(
-        setUser({
-          id: profile.user_id,
-          username: profile.username,
-          email: profile.email,
-          phone_number: profile.phone_number,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          gender: profile.gender,
-          birth_date: profile.birth_date,
-          avatar: profile.portrait,
-          role: profile.role,
-          is_active: true,
-          date_joined: profile.created_at,
-        } as unknown as UserResponse),
-      );
+      // The worker API verifies the session/role. Do not erase a session merely
+      // because an older JWT lacks a role claim or only a refresh token remains.
+      const profile = await getProfile().unwrap();
+      if (current !== attempt.current) return;
+      if (profile.role && profile.role !== ALLOWED_APP_ROLE) {
+        await storage.clearSession();
+        dispatch(clearAuth());
+        setPhase("ready");
+        return;
+      }
+      await storage.persistSession();
+      if (current !== attempt.current) return;
+      dispatch(setUser({
+        id: profile.user_id, username: profile.username, email: profile.email,
+        phone_number: profile.phone_number, first_name: profile.first_name,
+        last_name: profile.last_name, gender: profile.gender, birth_date: profile.birth_date,
+        avatar: profile.portrait, role: profile.role || ALLOWED_APP_ROLE,
+        is_active: true, date_joined: profile.created_at,
+      } as UserResponse));
+      setPhase("success");
+    } catch {
+      if (current !== attempt.current) return;
+      try {
+        const tokens = await Promise.all([
+          storage.getItem(STORAGE_KEYS.ACCESS_TOKEN), storage.getItem(STORAGE_KEYS.REFRESH_TOKEN),
+        ]);
+        if (current !== attempt.current) return;
+        if (!tokens.some(valid)) {
+          dispatch(clearAuth());
+          setPhase("ready");
+        } else setPhase("error");
+      } catch { if (current === attempt.current) setPhase("error"); }
     }
-  }, [status, user, profile, dispatch]);
+  }, [dispatch, getProfile]);
 
-  // 3. Mỗi khi status hoặc route thay đổi: quyết định có redirect không.
   useEffect(() => {
-    if (status === "idle") return;
+    void retry();
+    return () => { attempt.current += 1; };
+  }, [retry]);
 
+  useEffect(() => {
+    if (phase === "routing" && segments[0] !== "(auth)") {
+      setPhase("ready");
+      return;
+    }
+    if (phase !== "ready" || status === "idle") return;
     const inAuthGroup = segments[0] === "(auth)";
-    const isRoot = (segments as string[]).length === 0; // index.tsx
-    const isAuthenticated = status === "authenticated";
+    const isRoot = (segments as string[]).length === 0;
+    if (status !== "authenticated" && !inAuthGroup && !isRoot) router.replace("/(auth)/login");
+    else if (status === "authenticated" && inAuthGroup) router.replace("/(tabs)/home");
+  }, [phase, status, segments, router]);
 
-    if (!isAuthenticated && !inAuthGroup && !isRoot) {
-      // Chặn cả (tabs), (profile-setup), earnings, jobs, payment-methods...
-      router.replace("/(auth)/login");
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace("/(tabs)/home");
-    }
-  }, [status, segments, router]);
-
-  usePushNotifications(status === "authenticated");
-
-  return { ready: status !== "idle" };
+  usePushNotifications(phase === "ready" && status === "authenticated");
+  const finish = useCallback(() => {
+    if (phase !== "success") return;
+    if (status === "authenticated" && segments[0] === "(auth)") {
+      setPhase("routing");
+      router.replace(ROUTES.HOME);
+    } else setPhase("ready");
+  }, [phase, status, segments, router]);
+  return { ready: phase === "ready", phase, retry, finish };
 }

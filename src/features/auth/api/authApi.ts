@@ -1,4 +1,3 @@
-import { STORAGE_KEYS } from "@/config/constants";
 import type {
   ForgotPasswordRequest,
   LoginRequest,
@@ -26,8 +25,7 @@ import { baseApi, UPLOAD_TIMEOUT_MS } from "@/store/baseApi";
 import { storage } from "@/utils/storage";
 
 export const saveTokens = async (access: string, refresh: string) => {
-  await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access);
-  await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh);
+  await storage.setSession(access, refresh);
 };
 
 const unwrapResponse = (response: any) => {
@@ -91,22 +89,6 @@ export const authApi = baseApi.injectEndpoints({
       }),
       transformResponse: unwrapResponse,
       providesTags: ["Profile"],
-    }),
-
-    getWorkerServiceDecision: builder.query<{ action: "SERVICE_APPROVED" | "SERVICE_REJECTED" | null; reason: string }, void>({
-      query: () => ({ url: "/api/auth/worker/profile/service-request/", method: "GET" }),
-      transformResponse: unwrapResponse,
-      providesTags: ["Profile"],
-    }),
-
-    requestWorkerServiceChange: builder.mutation<WorkerProfileResponse, number>({
-      query: (service_id) => ({
-        url: "/api/auth/worker/profile/service-request/",
-        method: "POST",
-        data: { service_id },
-      }),
-      transformResponse: unwrapResponse,
-      invalidatesTags: ["Profile"],
     }),
 
     requestWorkerEmailChange: builder.mutation<unknown, { email: string; password: string }>({
@@ -231,8 +213,7 @@ export const {
   useVerifyResetOtpMutation,
   useResetPasswordMutation,
   useGetWorkerProfileQuery,
-  useGetWorkerServiceDecisionQuery,
-  useRequestWorkerServiceChangeMutation,
+  useLazyGetWorkerProfileQuery,
   useRequestWorkerEmailChangeMutation,
   useConfirmWorkerEmailChangeMutation,
   useUpdateWorkerProfileMutation,
