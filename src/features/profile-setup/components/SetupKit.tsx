@@ -246,6 +246,7 @@ export function SearchBox({
 
 export function Choice({
   selected,
+  disabled = false,
   onPress,
   title,
   subtitle,
@@ -253,6 +254,7 @@ export function Choice({
   style,
 }: {
   selected: boolean;
+  disabled?: boolean;
   onPress: () => void;
   title: string;
   subtitle?: string;
@@ -264,13 +266,14 @@ export function Choice({
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={disabled}
       activeOpacity={0.8}
       accessibilityRole="button"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled }}
       className={`flex-row items-center bg-surface rounded-2xl px-3.5 py-3 border-[1.5px] ${
         selected ? "border-ink" : "border-line"
       }`}
-      style={[{ minHeight: 56 }, style]}
+      style={[{ minHeight: 56, opacity: disabled ? 0.6 : 1 }, style]}
     >
       {left}
       <View className="flex-1">

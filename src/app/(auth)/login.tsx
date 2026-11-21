@@ -11,7 +11,9 @@ import {
 } from "@/features/auth/components/AuthKit";
 import { LoginSuccessOverlay } from "@/features/auth/components/LoginSuccessOverlay";
 import { useLogin } from "@/features/auth/hooks/useLogin";
-import { Link } from "expo-router";
+import { ROUTES } from "@/config/constants";
+import { useAppSelector } from "@/store/hooks";
+import { Link, Redirect } from "expo-router";
 import { View } from "react-native";
 
 export default function LoginScreen() {
@@ -29,6 +31,11 @@ export default function LoginScreen() {
     successName,
     finishLogin,
   } = useLogin();
+
+  const user = useAppSelector((state) => state.auth.user);
+  // A restored session must not remain on a reopened login route. Keep the
+  // new-login success animation mounted until its own finish callback runs.
+  if (user && !showSuccess) return <Redirect href={ROUTES.HOME} />;
 
   return (
     <>

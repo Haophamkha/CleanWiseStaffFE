@@ -1,3 +1,4 @@
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { useTranslation } from "react-i18next";
 import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -67,7 +68,7 @@ export function TodayScheduleCard({
             className="text-ink text-base font-extrabold mt-2"
             numberOfLines={2}
           >
-            {tr(s.service_name)}
+            {tr(serviceDisplayName(s.service_name))}
           </Text>
           <View className="flex-row items-center mt-1">
             <Feather name="clock" size={13} color={COLORS.inkMuted} />

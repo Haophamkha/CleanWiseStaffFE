@@ -92,8 +92,8 @@ export function fieldRejectionNote(
 }
 
 /**
- * Field bị khóa (hiện dữ liệu cũ nhưng không cho sửa): hồ sơ đang REJECTED
- * và field này KHÔNG nằm trong danh sách admin đánh dấu sai.
+ * Khớp quyền sửa của backend theo trạng thái hồ sơ. REJECTED chỉ mở các
+ * trường được yêu cầu sửa; thông tin định danh đã gửi/duyệt chỉ được xem.
  */
 export function isFieldLocked(
   profile:
@@ -101,6 +101,13 @@ export function isFieldLocked(
     | undefined,
   field: string,
 ): boolean {
-  if (!profile || profile.status !== "REJECTED") return false;
-  return !(field in (profile.rejected_fields ?? {}));
+  if (!profile) return true;
+  if (profile.status === "REJECTED") return !(field in (profile.rejected_fields ?? {}));
+  if (profile.status === "DRAFT") return false;
+  // Match WorkerProfileUpdateSerializer: these fields require the profile
+  // review flow after submission/approval, while contact/work info stays editable.
+  return new Set([
+    "first_name", "last_name", "birth_date", "gender", "identity_number",
+    "service_id", "portrait", "identity_front", "identity_back", "certificate_file",
+  ]).has(field);
 }

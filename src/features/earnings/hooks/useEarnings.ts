@@ -1,3 +1,4 @@
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { localizeTransactionNote } from "@/features/earnings/utils/localizeTransactionNote";
 import { translate as defaultTranslate } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
@@ -111,7 +112,7 @@ export function useEarnings() {
       id: item.id,
       isCash,
       pending,
-      serviceName: tr(item.service_name),
+      serviceName: tr(serviceDisplayName(item.service_name)),
       metaText: `${item.booking_code} · ${formatEarningDateTime(item.completed_at)}`,
       methodText: tr("{{value0}} · đơn {{value1}}", { value0: isCash ? tr("Tiền mặt · hoa hồng đã trừ ví") : tr("Online · app chuyển bạn"), value1: formatVnd(item.gross_amount, tr) }),
       amountText: isCash

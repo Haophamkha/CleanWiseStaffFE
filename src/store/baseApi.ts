@@ -81,11 +81,7 @@ const doRefresh = async (): Promise<string> => {
   const data = response.data?.data ?? response.data;
   if (typeof data?.access !== "string") throw new Error("BAD_REFRESH_RESPONSE");
 
-  await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access);
-  // BE bật ROTATE_REFRESH_TOKENS: BẮT BUỘC lưu refresh mới
-  if (typeof data.refresh === "string") {
-    await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh);
-  }
+  await storage.setSession(data.access, typeof data.refresh === "string" ? data.refresh : refreshToken);
   return data.access;
 };
 
@@ -137,8 +133,7 @@ export const performLogout = async (
         .catch(() => {});
     }
 
-    await storage.deleteItem(STORAGE_KEYS.ACCESS_TOKEN);
-    await storage.deleteItem(STORAGE_KEYS.REFRESH_TOKEN);
+    await storage.clearSession();
     await storage.deleteItem(STORAGE_KEYS.PUSH_TOKEN);
   } catch (error) {
     console.error("[LOGOUT ERROR]", error);

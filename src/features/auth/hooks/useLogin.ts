@@ -22,16 +22,19 @@ export function useLogin() {
     null,
   );
   const finishedRef = useRef(false);
+  const submittingRef = useRef(false);
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
 
   const handleLogin = async () => {
+    if (submittingRef.current || successUser) return;
     const result = getLocalizedLoginSchema(tr).safeParse({ phone, password });
     if (!result.success) {
       setError(result.error.issues[0].message);
       return;
     }
     setError("");
+    submittingRef.current = true;
     try {
       const res = await login({ phone, password }).unwrap();
 
@@ -59,6 +62,8 @@ export function useLogin() {
           : getErrorMessage(e, tr);
       setError(message);
       if (e?.status !== 429) showErrorToast(tr("Đăng nhập thất bại"), message);
+    } finally {
+      submittingRef.current = false;
     }
   };
 

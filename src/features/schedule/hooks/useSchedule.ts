@@ -1,3 +1,4 @@
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
@@ -145,7 +146,7 @@ export function useSchedule() {
         startLabel: formatTime(s.scheduled_start, tr),
         endLabel: formatTime(s.scheduled_end, tr),
         durationLabel: formatLength(s.scheduled_start, s.scheduled_end, tr),
-        service: tr(s.service_name),
+        service: tr(serviceDisplayName(s.service_name)),
         location: `${s.address_ward ? `${s.address_ward}, ` : ""}${s.address_city}`,
         priceLabel: formatCurrency(s.price, tr) ?? "—",
         isLast: index === selectedList.length - 1,

@@ -92,8 +92,8 @@ export function usePersonalInfo() {
   useEffect(() => {
     if (profile && !prefilled) {
       const snapshot: FormSnapshot = {
-        firstName: profile.last_name ?? "",
-        lastName: profile.first_name ?? "",
+        firstName: profile.first_name ?? "",
+        lastName: profile.last_name ?? "",
         phoneNumber: profile.phone_number ?? "",
         gender: profile.gender ?? null,
         birthDate: profile.birth_date ?? "",
@@ -118,13 +118,13 @@ export function usePersonalInfo() {
   // Đã sửa so với dữ liệu ban đầu hay chưa (chữ so sánh sau khi trim)
   const isDirty =
     initial !== null &&
-    (firstName.trim() !== initial.firstName.trim() ||
-      lastName.trim() !== initial.lastName.trim() ||
-      phoneNumber.trim() !== initial.phoneNumber.trim() ||
-      gender !== initial.gender ||
-      birthDate !== initial.birthDate ||
-      bio.trim() !== initial.bio.trim() ||
-      experienceYears !== initial.experienceYears);
+    ((!firstNameLocked && firstName.trim() !== initial.firstName.trim()) ||
+      (!lastNameLocked && lastName.trim() !== initial.lastName.trim()) ||
+      (!phoneLocked && phoneNumber.trim() !== initial.phoneNumber.trim()) ||
+      (!genderLocked && gender !== initial.gender) ||
+      (!birthLocked && birthDate !== initial.birthDate) ||
+      (!bioLocked && bio.trim() !== initial.bio.trim()) ||
+      (!yearsLocked && experienceYears !== initial.experienceYears));
 
   // Luồng bị từ chối: nút "Tiếp tục" / "Hoàn tất & gửi lại" luôn bấm được
   // (có thể không cần sửa trường nào ở bước này). Chỉ luồng thường mới cần dirty + confirm.

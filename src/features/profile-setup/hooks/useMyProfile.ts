@@ -1,3 +1,4 @@
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { translate as defaultTranslate, getLocale } from "@/features/language/i18n";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -151,7 +152,7 @@ function buildView(profile: WorkerProfileResponse, COLORS: ThemeColors, translat
     { label: translateText("Số CCCD/CMND"), value: profile.identity_number },
     {
       label: translateText("Dịch vụ đăng ký"),
-      value: profile.registered_service?.name ?? translateText("Chưa chọn"),
+      value: profile.registered_service ? translateText(serviceDisplayName(profile.registered_service.name, profile.registered_service.section_code)) : translateText("Chưa chọn"),
     },
   ];
 

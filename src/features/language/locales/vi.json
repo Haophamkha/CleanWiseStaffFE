@@ -1,4 +1,5 @@
 {
+  "Dọn dẹp nhà": "Dọn dẹp nhà",
   "Giải trình": "Giải trình",
   "Có khiếu nại cần giải trình": "Có khiếu nại cần giải trình",
   "Mở mục Giải trình để phản hồi trước hạn.": "Mở mục Giải trình để phản hồi trước hạn.",
@@ -1205,5 +1206,17 @@
   "Điểm & xử lý": "Điểm & xử lý",
   "Trang trước": "Trang trước",
   "Trang sau": "Trang sau",
-  "Cảnh báo": "Cảnh báo"
+  "Cảnh báo": "Cảnh báo",
+  "SẴN SÀNG": "SẴN SÀNG",
+  "Mọi thứ đã sẵn sàng. Cùng vào CleanWise nhé!": "Mọi thứ đã sẵn sàng. Cùng vào CleanWise nhé!",
+  "Đang chuẩn bị không gian của bạn...": "Đang chuẩn bị không gian của bạn...",
+  "Kết nối thành công": "Kết nối thành công",
+  "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+  "CHÀO MỪNG TRỞ LẠI": "CHÀO MỪNG TRỞ LẠI",
+  "Kết nối đang gián đoạn": "Kết nối đang gián đoạn",
+  "Một chút nữa là sẵn sàng": "Một chút nữa là sẵn sàng",
+  "Chưa thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.": "Chưa thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.",
+  "Đang khôi phục phiên đăng nhập của bạn...": "Đang khôi phục phiên đăng nhập của bạn...",
+  "Đang kết nối an toàn": "Đang kết nối an toàn",
+  "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn.": "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn."
 }

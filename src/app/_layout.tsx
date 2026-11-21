@@ -1,5 +1,5 @@
 import { AppLanguageProvider } from "@/features/language/LanguageProvider";
-import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { SessionLoadingScreen } from "@/features/auth/components/SessionLoadingScreen";
 import { AppThemeProvider } from "@/features/theme/ThemeProvider";
 import * as SplashScreen from "expo-splash-screen";
 import { NetworkBanner } from "@/components/common/NetworkBanner";
@@ -11,7 +11,7 @@ import { store } from "@/store/store";
 import Feather from "@expo/vector-icons/Feather";
 import { loadAsync } from "expo-font";
 import { Stack } from "expo-router";
-import { ActivityIndicator, Platform, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -30,30 +30,27 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
-  const { COLORS } = useAppTheme();
-
-  const { ready } = useAuthGuard();
+  const { ready, phase, retry, finish } = useAuthGuard();
   useStaffRealtime();
   const insets = useSafeAreaInsets();
 
-  if (!ready) {
-    return (
-      <View className="flex-1 items-center justify-center bg-canvas">
-        <ActivityIndicator color={COLORS.primary} />
-      </View>
-    );
-  }
-
   return (
-    <>
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, opacity: ready ? 1 : 0 }} pointerEvents={ready ? "auto" : "none"}
+        accessibilityElementsHidden={!ready} importantForAccessibility={ready ? "auto" : "no-hide-descendants"}>
       <NetworkBanner />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="schedule" />
       </Stack>
+      </View>
+      {!ready && <View style={StyleSheet.absoluteFill}>
+        <SessionLoadingScreen error={phase === "error"} success={phase === "success" || phase === "routing"}
+          onRetry={() => { void retry(); }} onComplete={finish} />
+      </View>}
       <Toast config={toastConfig} topOffset={insets.top + 8} />
-    </>
+    </View>
   );
 }
 

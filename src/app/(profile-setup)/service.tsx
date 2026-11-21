@@ -42,6 +42,7 @@ export default function ServiceStep() {
           {s.serviceGroups.map((group) => (
             <Choice
               key={group.sectionCode}
+              disabled={s.locked("service_id")}
               selected={group.memberIds.includes(s.serviceId ?? -1)}
               onPress={() => s.selectService(group.representativeId)}
               title={group.name}

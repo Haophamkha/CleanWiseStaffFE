@@ -1,3 +1,4 @@
+import { readStartupPreferences } from "@/utils/startupPreferences";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "expo-router/react-navigation";
 import { APP_THEMES } from "@/constants/theme";
@@ -27,7 +28,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    AsyncStorage.getItem(THEME_STORAGE_KEY).then(value => {
+    readStartupPreferences().then(([, value]) => {
       if (mounted && isPreference(value)) updatePreference(value);
     }).catch(() => {}).finally(() => { if (mounted) setReady(true); });
     return () => { mounted = false; };
@@ -56,7 +57,6 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       for (const [name, value] of Object.entries(theme.variables)) document.documentElement.style.setProperty(name, value);
       document.documentElement.style.colorScheme = mode;
     }
-    SplashScreen.hideAsync().catch(() => {});
   }, [ready, theme, mode]);
 
   const value = useMemo(() => ({ ...theme, preference, setPreference }), [theme, preference, setPreference]);
@@ -66,9 +66,14 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       background: theme.COLORS.canvas, card: theme.COLORS.surface, text: theme.COLORS.ink, border: theme.COLORS.line },
   }), [theme]);
 
+  if (!ready) return null;
+
   return (
     <Context.Provider value={value}>
-      <View style={[{ flex: 1, backgroundColor: theme.COLORS.canvas }, vars(theme.variables)]}>
+      <View
+        style={[{ flex: 1, backgroundColor: theme.COLORS.canvas }, vars(theme.variables)]}
+        onLayout={ready ? () => { void SplashScreen.hideAsync().catch(() => {}); } : undefined}
+      >
         <StatusBar style={theme.isDark ? "light" : "dark"} />
         <NavigationThemeProvider value={navigationTheme}>{ready ? children : null}</NavigationThemeProvider>
       </View>
