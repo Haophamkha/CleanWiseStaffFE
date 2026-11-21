@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "booking_id": 100,
+    "booking_code": "QA-SERVICE-1",
+    "service_id": 12,
+    "service_name": "Dọn dẹp nhà - Ca lẻ",
+    "section_code": "HOME_CLEANING",
+    "total_sessions": 1,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Dọn dẹp nhà"
+  },
+  {
+    "id": 2,
+    "booking_id": 101,
+    "booking_code": "QA-SERVICE-2",
+    "service_id": 13,
+    "service_name": "Dọn dẹp nhà - Gói tháng",
+    "section_code": "HOME_CLEANING",
+    "total_sessions": 12,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Dọn dẹp nhà"
+  },
+  {
+    "id": 3,
+    "booking_id": 103,
+    "booking_code": "QA-SERVICE-3",
+    "service_id": 1003,
+    "service_name": "Vệ sinh máy lạnh - Ca lẻ",
+    "section_code": "APPLIANCE_CLEANING",
+    "total_sessions": 1,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Vệ sinh máy lạnh"
+  },
+  {
+    "id": 4,
+    "booking_id": 104,
+    "booking_code": "QA-SERVICE-4",
+    "service_id": 1004,
+    "service_name": "Vệ sinh máy lạnh - Gói tháng",
+    "section_code": "APPLIANCE_CLEANING",
+    "total_sessions": 12,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Vệ sinh máy lạnh"
+  },
+  {
+    "id": 5,
+    "booking_id": 105,
+    "booking_code": "QA-SERVICE-5",
+    "service_id": 1005,
+    "service_name": "Vệ sinh Sofa - Nệm - Rèm - Thảm - Ca lẻ",
+    "section_code": "UPHOLSTERY_CLEANING",
+    "total_sessions": 1,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Vệ sinh Sofa - Nệm - Rèm - Thảm"
+  },
+  {
+    "id": 6,
+    "booking_id": 106,
+    "booking_code": "QA-SERVICE-6",
+    "service_id": 1006,
+    "service_name": "Vệ sinh Sofa - Nệm - Rèm - Thảm - Gói tháng",
+    "section_code": "UPHOLSTERY_CLEANING",
+    "total_sessions": 12,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Vệ sinh Sofa - Nệm - Rèm - Thảm"
+  },
+  {
+    "id": 7,
+    "booking_id": 107,
+    "booking_code": "QA-SERVICE-7",
+    "service_id": 1007,
+    "service_name": "Lau kính - Ca lẻ",
+    "section_code": "QA_WINDOW_SERVICE",
+    "total_sessions": 1,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Lau kính"
+  },
+  {
+    "id": 8,
+    "booking_id": 108,
+    "booking_code": "QA-SERVICE-8",
+    "service_id": 1008,
+    "service_name": "Lau kính - Gói tháng",
+    "section_code": "QA_WINDOW_SERVICE",
+    "total_sessions": 12,
+    "scheduled_start": "2026-12-01T09:00:00+07:00",
+    "scheduled_end": "2026-12-01T11:00:00+07:00",
+    "price": "200000",
+    "status": "PENDING",
+    "address_city": "QA City",
+    "address_ward": "QA Ward",
+    "distance_km": null,
+    "service_data": {
+      "qa": true
+    },
+    "expected_service_name": "Lau kính"
+  }
+]

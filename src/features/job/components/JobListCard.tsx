@@ -1,3 +1,4 @@
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { useTranslation } from "react-i18next";
 import { Feather } from "@expo/vector-icons";
 import type { ReactNode } from "react";
@@ -33,7 +34,7 @@ export function JobListCard({
 }: JobListCardProps) {
   const { t: tr } = useTranslation();
   const { COLORS, SHADOWS, isDark } = useAppTheme();
-  const serviceName = tr(item.service_name);
+  const serviceName = tr(serviceDisplayName(item.service_name));
   const date = formatDayLabel(item.scheduled_start, tr);
   const time = `${formatTime(item.scheduled_start, tr)}–${formatTime(item.scheduled_end, tr)}`;
   const price = formatCurrency(item.price, tr);

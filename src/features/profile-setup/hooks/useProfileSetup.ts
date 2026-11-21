@@ -1,4 +1,4 @@
-import { translate as defaultTranslate } from "@/features/language/i18n";
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { useTranslation } from "react-i18next";
 import {
   useGetActiveServicesQuery,
@@ -74,13 +74,6 @@ const SUCCESS_ROUTE = "/(profile-setup)/success" as const;
 // CCCD 12 số (chuẩn mới từ 2021) hoặc CMND 9 số (giấy tờ cũ vẫn còn hiệu lực)
 const IDENTITY_NUMBER_REGEX = /^(\d{12}|\d{9})$/;
 const MAX_EXPERIENCE_YEARS = 60;
-
-// Tên hiển thị tuỳ chỉnh cho nhóm dịch vụ gồm nhiều service cùng làm được.
-function getLocalizedSectionDisplayName(translateText = defaultTranslate): Record<string, string> {
-  return {
-    HOME_CLEANING: translateText("Dọn dẹp nhà (ca lẻ & định kỳ)"),
-  };
-}
 
 export function useProfileSetup() {
   const { t: tr } = useTranslation();
@@ -158,7 +151,7 @@ export function useProfileSetup() {
     if (!services) return [];
     const keyword = serviceSearch.trim().toLowerCase();
     const filtered = keyword
-      ? services.filter((s) => tr(s.name).toLowerCase().includes(keyword))
+      ? services.filter((s) => tr(serviceDisplayName(s.name, s.section_code)).toLowerCase().includes(keyword) || tr(s.name).toLowerCase().includes(keyword))
       : services;
 
     const bySection = new Map<string, typeof services>();
@@ -174,7 +167,7 @@ export function useProfileSetup() {
         sectionCode,
         representativeId: rep.id,
         memberIds: sorted.map((s) => s.id),
-        name: getLocalizedSectionDisplayName(tr)[sectionCode] ?? rep.name,
+        name: tr(serviceDisplayName(rep.name, sectionCode)),
         description: tr(rep.description),
         image: rep.primary_image,
       };

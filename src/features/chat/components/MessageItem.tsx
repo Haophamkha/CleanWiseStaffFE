@@ -1,3 +1,4 @@
+import { serviceDisplayName } from "@/utils/serviceDisplayName";
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
@@ -129,7 +130,7 @@ export function MessageItem({
                 </Text>
                 {!!item.assignment?.service_name && (
                   <Text className="text-xs text-ink-soft mt-0.5" numberOfLines={1}>
-                    {item.assignment.service_name}
+                    {tr(serviceDisplayName(item.assignment.service_name))}
                   </Text>
                 )}
                 {!!item.assignment?.booking_code && (
