@@ -7,7 +7,7 @@ import type {
   WorkerMySchedule,
 } from "@/features/schedule/types/Schedule";
 import { useSingleNavigate } from "@/hooks/useSingleNavigate";
-import { formatCurrency, formatTime, pad2 } from "@/utils/format";
+import { formatCurrency, formatTime, pad2, toYMD } from "@/utils/format";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 
@@ -99,7 +99,7 @@ export function useSchedule() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   const { data, isLoading, isFetching, refetch } =
-    useGetMySchedulesQuery(undefined);
+    useGetMySchedulesQuery({ date_from: toYMD(weekStart), date_to: toYMD(addDays(weekStart, 6)), page_size: 50 } as any);
 
   const schedules = useMemo(() => (data ?? []) as WorkerMySchedule[], [data, tr]);
 

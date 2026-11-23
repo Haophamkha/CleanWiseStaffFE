@@ -123,7 +123,7 @@ export function MyJobsList({
       data={state.items}
       keyExtractor={(item) => item.type === "package" ? `pkg-${item.bookingId}` : `single-${item.item.id}`}
       renderItem={renderItem}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24, flexGrow: 1 }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24, flexGrow: 1 }}
       refreshControl={
         <RefreshControl
           refreshing={state.isRefreshing}

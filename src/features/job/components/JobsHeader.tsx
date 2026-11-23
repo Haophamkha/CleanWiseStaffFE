@@ -24,7 +24,7 @@ function getLocalizedTabs(translateText = defaultTranslate): { key: Tab; label: 
 }
 
 const TRACK_PADDING = 4;
-const TAB_HEIGHT = 44;
+const TAB_HEIGHT = 38;
 
 type JobsHeaderProps = {
   tab: Tab;
@@ -106,9 +106,9 @@ export function JobsHeader({
 
   return (
     <View
-      className="bg-accent-fill px-5 pb-5 overflow-hidden"
+      className="bg-accent-fill px-5 pb-3 overflow-hidden"
       style={{
-        paddingTop: insets.top + 12,
+        paddingTop: insets.top + 4,
         borderBottomLeftRadius: RADIUS.hero,
         borderBottomRightRadius: RADIUS.hero,
       }}
@@ -141,11 +141,11 @@ export function JobsHeader({
         }}
       />
 
-      <View className="flex-row items-center justify-between mb-4">
+      <View className="flex-row items-center justify-between mb-2.5">
         <View className="flex-1 mr-3">
           <Text
-            className="text-ink text-[28px] font-extrabold"
-            style={{ lineHeight: 34 }}
+            className="text-ink text-[24px] font-extrabold"
+            style={{ lineHeight: 30 }}
             numberOfLines={1}
           >
             {tr("Công việc")}</Text>
@@ -153,7 +153,7 @@ export function JobsHeader({
             {getLocalizedTabs(tr)[activeIndex].subtitle}
           </Text>
         </View>
-        <View className="w-11 h-11 rounded-full bg-surface items-center justify-center overflow-hidden">
+        <View className="w-10 h-10 rounded-full bg-surface items-center justify-center overflow-hidden">
           <NotificationBellButton />
         </View>
       </View>

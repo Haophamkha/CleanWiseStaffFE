@@ -65,7 +65,7 @@ export function AvailableJobsList({
       keyExtractor={(item) => String(item.id)}
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24, flexGrow: 1 }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24, flexGrow: 1 }}
       refreshControl={
         <RefreshControl
           refreshing={state.isRefreshing}
@@ -83,7 +83,7 @@ export function AvailableJobsList({
       removeClippedSubviews
       ListHeaderComponent={
         state.total > 0 ? (
-          <Text className="mb-3 text-ink-soft text-xs font-semibold">
+          <Text className="mb-2 text-ink-soft text-xs font-semibold">
             {tr(
               dayFiltered
                 ? "{{value0}} đơn có buổi trống trong ngày này"

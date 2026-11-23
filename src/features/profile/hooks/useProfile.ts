@@ -11,6 +11,13 @@ import type { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState, type ComponentProps } from "react";
 
+let navBusy = false;
+function goOnce(href: any) {
+  if (navBusy) return;
+  navBusy = true;
+  setTimeout(() => { navBusy = false; }, 1000);
+  router.push(href);
+}
 type FeatherName = ComponentProps<typeof Feather>["name"];
 
 export type ProfileStatusInfo = {
@@ -78,32 +85,32 @@ function buildMenuGroups(translateText = defaultTranslate): MenuGroup[] {
         {
           icon: "user",
           label: translateText("Thông tin cá nhân"),
-          onPress: () => router.push("/(profile-setup)/personal-info"),
+          onPress: () => goOnce("/(profile-setup)/personal-info"),
         },
         {
           icon: "map-pin",
           label: translateText("Khu vực hoạt động"),
-          onPress: () => router.push("/(profile-setup)/working-areas"),
+          onPress: () => goOnce("/(profile-setup)/working-areas"),
         },
         {
           icon: "folder",
           label: translateText("Hồ sơ của tôi"),
-          onPress: () => router.push("/(profile-setup)/my-profile"),
+          onPress: () => goOnce("/(profile-setup)/my-profile"),
         },
         {
           icon: "credit-card",
           label: translateText("Tài khoản ngân hàng"),
-          onPress: () => router.push("/payment-methods" as any),
+          onPress: () => goOnce("/payment-methods" as any),
         },
         {
           icon: "trending-up",
           label: translateText("Ví"),
-          onPress: () => router.push("/earnings" as any),
+          onPress: () => goOnce("/earnings" as any),
         },
         {
           icon: "alert-circle",
           label: translateText("Khiếu nại của tôi"),
-          onPress: () => router.push("/complaints" as any),
+          onPress: () => goOnce("/complaints" as any),
         },
       ],
     },
@@ -114,12 +121,12 @@ function buildMenuGroups(translateText = defaultTranslate): MenuGroup[] {
         {
           icon: "settings",
           label: translateText("Cài đặt"),
-          onPress: () => router.push("/settings" as any),
+          onPress: () => goOnce("/settings" as any),
         },
         {
           icon: "info",
           label: translateText("Về CleanWise"),
-          onPress: () => router.push("/about" as any),
+          onPress: () => goOnce("/about" as any),
         },
       ],
     },

@@ -10,7 +10,8 @@ import { useStaffRealtime } from "@/features/chat/hooks/useStaffRealtime";
 import { store } from "@/store/store";
 import Feather from "@expo/vector-icons/Feather";
 import { loadAsync } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
+import { useEffect } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import {
   SafeAreaProvider,
@@ -19,6 +20,7 @@ import {
 import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import "../global.css";
+import { notifyPathChange } from "@/utils/navLock";
 
 if (Platform.OS === "web" && typeof window !== "undefined") {
   // Register the font before Feather mounts so the browser can load it while the app renders.
@@ -33,6 +35,8 @@ function RootNavigator() {
   const { ready, phase, retry, finish } = useAuthGuard();
   useStaffRealtime();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  useEffect(() => { notifyPathChange(); }, [pathname]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -43,6 +47,7 @@ function RootNavigator() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="schedule" />
+        <Stack.Screen name="complaints/[id]" options={{ presentation: "transparentModal", animation: "fade" }} />
       </Stack>
       </View>
       {!ready && <View style={StyleSheet.absoluteFill}>

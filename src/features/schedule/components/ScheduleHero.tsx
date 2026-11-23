@@ -8,9 +8,9 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const CELL_HEIGHT = 72;
+const CELL_HEIGHT = 58;
 const CELL_GAP = 3;
-const CELL_RADIUS = 16;
+const CELL_RADIUS = 14;
 
 type ScheduleHeroProps = {
   monthLabel: string;
@@ -69,13 +69,13 @@ function DayCell({
           color: weekdayColor,
           fontSize: 11,
           fontWeight: "600",
-          marginBottom: 4,
+          marginBottom: 2,
         }}
       >
         {day.weekday}
       </Animated.Text>
       <Animated.Text
-        style={{ color: numberColor, fontSize: 18, fontWeight: "800" }}
+        style={{ color: numberColor, fontSize: 16, fontWeight: "800" }}
       >
         {day.dayNumber}
       </Animated.Text>
@@ -135,9 +135,9 @@ export function ScheduleHero({
 
   return (
     <View
-      className="bg-ink-panel px-5 pb-6 overflow-hidden"
+      className="bg-ink-panel px-5 pb-3 overflow-hidden"
       style={{
-        paddingTop: insets.top + 8,
+        paddingTop: insets.top + 4,
         borderBottomLeftRadius: RADIUS.hero,
         borderBottomRightRadius: RADIUS.hero,
       }}
@@ -176,7 +176,7 @@ export function ScheduleHero({
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={tr("Quay lại")}
-          className="w-11 h-11 rounded-full items-center justify-center mr-3"
+          className="w-9 h-9 rounded-full items-center justify-center mr-3"
           style={{ backgroundColor: ON_DARK.surface }}
         >
           <Feather name="arrow-left" size={20} color={ON_DARK.text} />
@@ -205,19 +205,19 @@ export function ScheduleHero({
         </Pressable>
       </View>
 
-      <View className="flex-row items-center justify-between mt-4 mb-3">
+      <View className="flex-row items-center justify-between mt-1 mb-1">
         <Pressable
           onPress={onPrev}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={tr("Tuần trước")}
-          className="w-11 h-11 rounded-full items-center justify-center"
+          className="w-9 h-9 rounded-full items-center justify-center"
         >
           <Feather name="chevron-left" size={22} color={ON_DARK.text} />
         </Pressable>
         <View className="items-center">
           <Text
-            className="text-base font-extrabold"
+            className="text-sm font-extrabold"
             style={{ color: ON_DARK.text }}
           >
             {monthLabel}
@@ -231,7 +231,7 @@ export function ScheduleHero({
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={tr("Tuần sau")}
-          className="w-11 h-11 rounded-full items-center justify-center"
+          className="w-9 h-9 rounded-full items-center justify-center"
         >
           <Feather name="chevron-right" size={22} color={ON_DARK.text} />
         </Pressable>

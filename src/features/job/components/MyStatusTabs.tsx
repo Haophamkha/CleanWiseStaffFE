@@ -31,7 +31,7 @@ export function MyStatusTabs({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="mt-3 -mx-5"
+      className="mt-1 -mx-5"
       contentContainerStyle={{ paddingHorizontal: 20 }}
     >
       {getLocalizedTabs(tr).map((t) => {
@@ -43,7 +43,7 @@ export function MyStatusTabs({
             onPress={() => onChange(t.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            style={{ marginRight: 24, paddingTop: 8 }}
+            style={{ marginRight: 24, paddingTop: 4 }}
           >
             <Text
               style={{
@@ -59,7 +59,7 @@ export function MyStatusTabs({
               style={{
                 height: 3,
                 borderRadius: 2,
-                marginTop: 8,
+                marginTop: 6,
                 backgroundColor: active ? COLORS.ink : "transparent",
               }}
             />

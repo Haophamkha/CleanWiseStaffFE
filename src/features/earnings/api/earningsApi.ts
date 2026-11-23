@@ -1,6 +1,7 @@
 import { baseApi } from "@/store/baseApi";
 
 export type EarningPeriod = "week" | "month";
+export type EarningsArgs = { period: EarningPeriod; offset?: number };
 // ONLINE = mọi hình thức trả trước qua app (chuyển khoản, MoMo, VNPay, thẻ)
 export type EarningPaymentMethod = "CASH" | "ONLINE";
 
@@ -84,21 +85,21 @@ const MONEY_TIMEOUT_MS = 30000; // gọi payOS có thể chậm hơn 10s mặc �
 
 export const earningsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getEarningsSummary: builder.query<EarningsSummary, EarningPeriod>({
-      query: (period) => ({
+    getEarningsSummary: builder.query<EarningsSummary, EarningsArgs>({
+      query: ({ period, offset }) => ({
         url: "/api/worker/earnings/summary/",
         method: "GET",
-        params: { period },
+        params: { period, offset: offset ?? 0 },
       }),
       transformResponse: unwrapResponse,
       providesTags: ["Wallet"],
     }),
 
-    getEarningsHistory: builder.query<EarningItem[], EarningPeriod>({
-      query: (period) => ({
+    getEarningsHistory: builder.query<EarningItem[], EarningsArgs>({
+      query: ({ period, offset }) => ({
         url: "/api/worker/earnings/history/",
         method: "GET",
-        params: { period },
+        params: { period, offset: offset ?? 0 },
       }),
       transformResponse: unwrapResponse,
       providesTags: ["Wallet"],

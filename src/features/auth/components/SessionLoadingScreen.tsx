@@ -1,11 +1,12 @@
 import { ON_DARK } from "@/constants/theme";
+import { performLogout } from "@/store/baseApi";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import Feather from "@expo/vector-icons/Feather";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Animated, BackHandler, Easing, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, Animated, BackHandler, Image, Easing, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 
@@ -117,7 +118,7 @@ export function SessionLoadingScreen({ error, onRetry, success = false, onComple
         </View>
       ))}
       {dots.map((dot, i) => <View key={`dot-${i}`} pointerEvents="none" style={{ position: "absolute", left: dot.x, top: dot.y, width: 3, height: 3, borderRadius: 2, backgroundColor: i % 2 ? CREAM : tint }} />)}
-      <Text style={styles.brand}>CleanWise<Text style={{ color: tint }}>.</Text></Text>
+      <Text style={styles.brand}>CleanWise</Text>
       <ScrollView style={styles.contentScroll} contentContainerStyle={[styles.content, { paddingBottom: Math.max(16, height * 0.075) }]} showsVerticalScrollIndicator={false} accessibilityLiveRegion="polite">
         <View style={{ width: stage, height: stage, alignItems: "center", justifyContent: "center" }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Svg width={stage} height={stage} viewBox="0 0 320 320" style={StyleSheet.absoluteFill}>
@@ -130,10 +131,26 @@ export function SessionLoadingScreen({ error, onRetry, success = false, onComple
               <Circle cx={279} cy={160} r={4} fill={CREAM} />
             </Svg>
           </Animated.View>
+          <View pointerEvents="none" style={{ position: "absolute", width: stage * 0.58, height: stage * 0.58, borderRadius: stage, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)" }} />
           <Animated.View style={{ transform: [{ scale: badgeScale }] }}>
-          <LinearGradient colors={[COLORS.primary, COLORS.primaryFill, COLORS.primaryFillDark]} style={[styles.badge, { borderColor: tint, width: stage * 0.4, height: stage * 0.4, borderRadius: stage }]}>
-            <Feather name={error ? "wifi-off" : showSuccess ? "check" : "home"} size={stage * 0.16} color={ON_DARK.text} />
-          </LinearGradient>
+          <View style={[styles.badge, { width: stage * 0.4, height: stage * 0.4, borderWidth: 0 }]} /* badgeFlat */>
+            {error ? (
+              <Feather name="wifi-off" size={stage * 0.16} color={ON_DARK.text} />
+            ) : (
+              <View>
+                <Image
+                  source={require("@assets/images/logo-mark.png")}
+                  style={{ width: stage * 0.34, height: stage * 0.34, borderRadius: stage * 0.085, shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 10 }}
+                  resizeMode="cover"
+                />
+                {showSuccess && (
+                  <View style={{ position: "absolute", right: -6, bottom: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: COLORS.primaryFill, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: ON_DARK.text }}>
+                    <Feather name="check" size={14} color={ON_DARK.text} />
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
           </Animated.View>
         </View>
         <Text style={[styles.eyebrow, { color: CREAM }]}>{showSuccess ? t("SẴN SÀNG") : t("CHÀO MỪNG TRỞ LẠI")}</Text>
@@ -141,10 +158,18 @@ export function SessionLoadingScreen({ error, onRetry, success = false, onComple
         <Text style={styles.subtitle}>
           {error ? t("Chưa thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.") : showSuccess ? t("Mọi thứ đã sẵn sàng. Cùng vào CleanWise nhé!") : mode === "login" ? t("Đang chuẩn bị không gian của bạn...") : t("Đang khôi phục phiên đăng nhập của bạn...")}
         </Text>
-        {error && <TouchableOpacity accessibilityRole="button" onPress={onRetry} style={styles.retry} activeOpacity={0.8}>
-          <Feather name="refresh-cw" color={COLORS.primaryFillDark} size={17} />
-          <Text style={[styles.retryText, { color: COLORS.primaryFillDark }]}>{t("Thử lại")}</Text>
-        </TouchableOpacity>}
+        {error && (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10, marginTop: 22 }}>
+            <TouchableOpacity accessibilityRole="button" onPress={onRetry} style={[styles.retry, { marginTop: 0, paddingHorizontal: 20 }]} activeOpacity={0.8}>
+              <Feather name="refresh-cw" color={COLORS.primaryFillDark} size={17} />
+              <Text style={[styles.retryText, { color: COLORS.primaryFillDark }]}>{t("Thử lại")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" onPress={async () => { await performLogout(); onRetry(); }} style={[styles.retry, { marginTop: 0, paddingHorizontal: 20, backgroundColor: "transparent", borderWidth: 1.5, borderColor: ON_DARK.text }]} activeOpacity={0.8}>
+              <Feather name="log-in" color={ON_DARK.text} size={17} />
+              <Text style={[styles.retryText, { color: ON_DARK.text }]}>{t("Đăng nhập lại")}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
       <View style={styles.footer}>
         {!error && <View style={styles.loading} accessibilityRole={showSuccess ? "text" : "progressbar"} accessibilityLabel={showSuccess ? t("Kết nối thành công") : t("Đang khôi phục phiên đăng nhập của bạn...")}>
@@ -168,7 +193,7 @@ const styles = StyleSheet.create({
   content: { flexGrow: 1, alignItems: "center", justifyContent: "center", width: "100%", paddingVertical: 16 },
   badge: { alignItems: "center", justifyContent: "center", borderWidth: 3 },
   eyebrow: { fontFamily: FONT, fontSize: 10, fontWeight: "700", letterSpacing: 2.3, marginTop: 4, textAlign: "center" },
-  title: { fontFamily: FONT, color: ON_DARK.text, fontSize: 24, fontWeight: "800", textAlign: "center", marginTop: 12, letterSpacing: -0.5 },
+  title: { fontFamily: FONT, color: ON_DARK.text, fontSize: 26, fontWeight: "800", textAlign: "center", marginTop: 12, letterSpacing: -0.5 },
   subtitle: { fontFamily: FONT, color: ON_DARK.textSoft, fontSize: 14, lineHeight: 22, textAlign: "center", marginTop: 10, maxWidth: 300 },
   footer: { width: "100%", maxWidth: 320, alignItems: "center", gap: 16 },
   loading: { flexDirection: "row", alignItems: "center", gap: 10 },

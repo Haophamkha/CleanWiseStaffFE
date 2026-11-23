@@ -126,13 +126,11 @@ export default function WorkerPaymentMethodsScreen() {
         <View className="flex-1 bg-black/40 justify-center px-6">
           <View className="bg-surface rounded-3xl p-5">
             {p.verifyMethodId !== null ? <>
-              <Text className="text-ink text-lg font-bold">{tr("Thông tin Sandbox")}</Text>
-              <Text className="text-ink-soft mt-2 leading-5">{tr("Nhập CCCD/CMND và điện thoại theo kịch bản test TINGEE.")}</Text>
+              <Text className="text-ink text-lg font-bold">{tr("Ti\u1ebfp t\u1ee5c x\u00e1c minh")}</Text>
               <TextInput keyboardAppearance={themeMode} className="border border-line rounded-2xl px-4 py-3 mt-4 text-ink" keyboardType="number-pad" value={p.identity} onChangeText={(value) => p.setIdentity(value.replace(/\D/g, "").slice(0, 14))} placeholder="CCCD/CMND test" />
               <TextInput keyboardAppearance={themeMode} className="border border-line rounded-2xl px-4 py-3 mt-3 text-ink" keyboardType="phone-pad" value={p.mobile} onChangeText={(value) => p.setMobile(value.replace(/\D/g, "").slice(0, 10))} placeholder={tr("Điện thoại test")} />
             </> : <>
-              <Text className="text-ink text-lg font-bold">{tr("Nhập OTP Sandbox")}</Text>
-              <Text className="text-ink-soft mt-2 leading-5">{tr("Nhập mã OTP giả lập của kịch bản TINGEE.")}</Text>
+              <Text className="text-ink text-lg font-bold">{tr("M\u00e3 OTP")}</Text>
               <TextInput keyboardAppearance={themeMode} className="border border-line rounded-2xl px-4 py-3 mt-4 text-ink" keyboardType="number-pad" value={p.otp} onChangeText={(value) => p.setOtp(value.replace(/\D/g, "").slice(0, 8))} placeholder={tr("Mã OTP")} maxLength={8} />
             </>}
             <View className="flex-row mt-5">

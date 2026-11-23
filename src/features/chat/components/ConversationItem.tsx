@@ -5,12 +5,12 @@ import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ChatAvatar } from "@/features/chat/components/ChatAvatar";
 import type { ChatInboxRow } from "@/features/chat/hooks/useChatInbox";
 import { useEffect, useRef } from "react";
-import { Animated, Easing, Pressable, Text, View } from "react-native";
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 
 type ConversationItemProps = {
   row: ChatInboxRow;
   onPress: (id: number) => void;
-  /** Thứ tự trong danh sách, dùng để xếp so le animation */
+  /** Thu tu trong danh sach, dung de xep so le animation */
   index?: number;
 };
 
@@ -52,7 +52,7 @@ export function ConversationItem({
       <Pressable
         onPress={() => onPress(row.id)}
         accessibilityRole="button"
-        accessibilityLabel={tr("Mở cuộc trò chuyện với {{value0}}", { value0: row.name })}
+        accessibilityLabel={tr("M\u1edf cu\u1ed9c tr\u00f2 chuy\u1ec7n v\u1edbi {{value0}}", { value0: row.name })}
         style={({ pressed }) => ({
           backgroundColor: pressed ? COLORS.canvas : COLORS.surface,
         })}
@@ -114,6 +114,7 @@ export function ConversationItem({
             </View>
           </View>
         </View>
+        <View style={{ height: StyleSheet.hairlineWidth, marginLeft: 86, backgroundColor: COLORS.border }} />
       </Pressable>
     </Animated.View>
   );

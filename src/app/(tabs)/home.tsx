@@ -51,6 +51,7 @@ export default function HomeScreen() {
             variant="greeting"
             name={workerName}
             avatar={workerAvatar}
+            count={todaySchedules.length}
           />
           <TodaySummary {...stats} />
 
@@ -60,6 +61,7 @@ export default function HomeScreen() {
 
           <View className="px-5 pt-7 pb-8">
             <View className="flex-row items-center mb-4">
+              <View className="w-1 h-5 rounded-full bg-ink-panel mr-2.5" />
               <Text className="text-ink text-lg font-extrabold">
                 {tr("Công việc hôm nay")}</Text>
               {todaySchedules.length > 0 && (
@@ -86,10 +88,19 @@ export default function HomeScreen() {
             ) : (
               todaySchedules.map((s, index) => (
                 <FadeInView key={s.id} delay={200 + Math.min(index, 5) * 70}>
-                  <TodayScheduleCard
+                  <View className="flex-row">
+                    <View className="items-center mr-3" style={{ width: 14 }}>
+                      <View style={{ width: 14, height: 14, borderRadius: 7, marginTop: 24, backgroundColor: COLORS.primaryFill, borderWidth: 3, borderColor: COLORS.accentLight }} />
+                      {index < todaySchedules.length - 1 && <View style={{ width: 2, flex: 1, backgroundColor: COLORS.line }} />}
+                    </View>
+                    <View className="flex-1">
+                      
+<TodayScheduleCard
                     schedule={s}
                     onPress={() => openJob(s.id)}
                   />
+                    </View>
+                  </View>
                 </FadeInView>
               ))
             )}

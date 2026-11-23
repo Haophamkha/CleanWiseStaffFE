@@ -123,22 +123,21 @@ export function ComplaintSheet({
       <Modal
         visible={visible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={close}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="flex-1 justify-end"
+          className="flex-1 justify-center px-5"
           style={{ backgroundColor: OVERLAY }}
         >
-          <Pressable className="flex-1" onPress={close} />
+          <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={close} />
           <View
             className="bg-surface px-5 pt-4"
             style={{
-              borderTopLeftRadius: RADIUS.sheet,
-              borderTopRightRadius: RADIUS.sheet,
-              maxHeight: "88%",
-              paddingBottom: 16 + insets.bottom,
+              borderRadius: RADIUS.sheet,
+              maxHeight: "85%",
+              paddingBottom: 16,
             }}
           >
             <View className="flex-row items-center mb-3">

@@ -7,6 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import type { ComponentProps, ReactNode } from "react";
 import {
+    Image,
     KeyboardAvoidingView,
     Platform,
     Pressable,
@@ -52,15 +53,7 @@ export function AuthScreen({
         <View className="px-6" style={{ paddingTop: insets.top + 20 }}>
           {/* Thương hiệu */}
           <View className="flex-row items-center">
-            <View
-              className="bg-primary-fill items-center justify-center"
-              style={[
-                { width: 40, height: 40, borderRadius: 20 },
-                SHADOWS.float,
-              ]}
-            >
-              <Feather name="briefcase" size={18} color={COLORS.white} />
-            </View>
+            <Image source={require("@assets/images/logo-mark.png")} style={[{ width: 48, height: 48, borderRadius: 15 }, SHADOWS.float]} resizeMode="cover" />
             <View className="ml-3">
               <Text
                 className="text-ink text-base font-extrabold"

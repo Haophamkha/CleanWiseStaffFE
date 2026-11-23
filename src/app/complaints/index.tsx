@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { RADIUS } from "@/constants/theme";
 import { useGetMyComplaintsQuery } from "@/features/complaint/api/complaintApi";
-import { ComplaintStatusBadge } from "@/features/complaint/components/ComplaintStatusBadge";
+import { ComplaintCard } from "@/features/complaint/components/ComplaintCard";
 import { ComplaintTabs, type ComplaintTab } from "@/features/complaint/components/ComplaintTabs";
 import { DisciplinePanel } from "@/features/complaint/components/DisciplinePanel";
 import { WorkerStatementPanel } from "@/features/complaint/components/WorkerStatementPanel";
@@ -74,110 +74,7 @@ export default function ComplaintListScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <PressableScale
-              onPress={() => router.push(`/complaints/${item.id}` as any)}
-              accessibilityRole="button"
-              containerStyle={{ marginBottom: 12 }}
-              className="bg-surface border border-line px-4 py-4"
-              style={[
-                {
-                  borderRadius: RADIUS.card,
-                },
-                SHADOWS.card,
-              ]}
-            >
-              {/* Header */}
-              <View className="flex-row items-start justify-between">
-                <View className="flex-1 flex-row items-center pr-3">
-                  <View className="w-10 h-10 rounded-xl bg-danger-light items-center justify-center mr-3">
-                    <Feather
-                      name="alert-circle"
-                      size={19}
-                      color={COLORS.danger}
-                    />
-                  </View>
-
-                  <View className="flex-1">
-                    <Text className="text-ink-muted text-[11px] font-semibold mb-0.5">
-                      {tr("MÃ KHIẾU NẠI")}</Text>
-
-                    <Text
-                      selectable
-                      className="text-ink text-sm font-extrabold"
-                      numberOfLines={1}
-                    >
-                      {item.code ?? `#${item.id}`}
-                    </Text>
-
-                    <Text
-                      className="text-ink-soft text-[11px] mt-0.5"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
-                    >
-                      {tr("Đơn")}{" "}{item.booking_code}
-                    </Text>
-                  </View>
-                </View>
-
-                <ComplaintStatusBadge
-                  status={item.status}
-                  label={item.status_label}
-                />
-              </View>
-
-              {/* Divider */}
-              <View className="h-px bg-line my-3.5" />
-
-              {/* Complaint type */}
-              <View>
-                <Text className="text-ink-muted text-[11px] font-semibold uppercase tracking-wide mb-1">
-                  {tr("Nội dung khiếu nại")}</Text>
-
-                <Text
-                  className="text-ink text-[15px] font-extrabold leading-5"
-                  numberOfLines={2}
-                >
-                  {item.issue_type_name}
-                </Text>
-              </View>
-
-              {/* Footer */}
-              <View className="flex-row items-center justify-between mt-4">
-                <View className="flex-row items-center flex-1">
-                  <View className="w-7 h-7 rounded-lg bg-surface-soft items-center justify-center mr-2">
-                    <Feather name="layers" size={13} color={COLORS.inkMuted} />
-                  </View>
-
-                  <View className="flex-1">
-                    <Text className="text-ink-soft text-[11px]">{tr("Giai đoạn")}</Text>
-
-                    <Text
-                      className="text-ink-muted text-xs font-semibold"
-                      numberOfLines={1}
-                    >
-                      {item.stage_label}
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center ml-3">
-                  <Feather name="clock" size={13} color={COLORS.inkMuted} />
-
-                  <Text className="text-ink-muted text-[11px] ml-1">
-                    {formatDateTime(item.created_at, tr)}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Detail hint */}
-              <View className="flex-row items-center justify-end mt-3 pt-3 border-t border-line">
-                <Text className="text-primary text-xs font-bold mr-1">
-                  {tr("Xem chi tiết")}</Text>
-
-                <Feather name="arrow-right" size={14} color={COLORS.primary} />
-              </View>
-            </PressableScale>
+            <ComplaintCard item={item} onPress={() => router.push(`/complaints/${item.id}` as any)} />
           )}
         />
       )}

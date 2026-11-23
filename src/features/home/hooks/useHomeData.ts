@@ -5,6 +5,7 @@ import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
 import { useGetMySchedulesQuery } from "@/features/job/api/jobsApi";
 import type { WorkerMySchedule } from "@/features/schedule/types/Schedule";
 import { useSingleNavigate } from "@/hooks/useSingleNavigate";
+import { toYMD } from "@/utils/format";
 import { router } from "expo-router";
 import { useMemo } from "react";
 
@@ -39,7 +40,7 @@ export function useHomeData() {
   const isActive = profile?.status === "ACTIVE";
 
   const { data: mySchedules, isLoading: isLoadingSchedules } =
-    useGetMySchedulesQuery(undefined, { skip: !isActive });
+    useGetMySchedulesQuery({ date_from: toYMD(new Date()), date_to: toYMD(new Date()), page_size: 50 } as any, { skip: !isActive });
 
   const todaySchedules = useMemo(() => {
     const today = new Date();

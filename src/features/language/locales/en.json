@@ -1,4 +1,14 @@
 {
+  "© 2026 CleanWise. Bảo lưu mọi quyền.": "© 2026 CleanWise. All rights reserved.",
+  "TP. Hồ Chí Minh, Việt Nam": "Ho Chi Minh City, Vietnam",
+  "Địa chỉ": "Address",
+  "8:00 - 20:00 mỗi ngày": "8:00 - 20:00 daily",
+  "Giờ hỗ trợ": "Support hours",
+  "Thu nhập minh bạch": "Transparent income",
+  "Lịch làm rõ ràng": "Clear schedule",
+  "Nhận việc nhanh": "Quick job pickup",
+  "Nền tảng đặt lịch dọn dẹp tại nhà. Ứng dụng giúp nhân viên nhận việc, theo dõi lịch làm và thu nhập một cách minh bạch.": "A home-cleaning booking platform. The app helps staff pick up jobs and track their schedule and income transparently.",
+  "Đăng nhập lại": "Log in again",
   "Dọn dẹp nhà": "Home cleaning",
   "Giải trình": "Statements",
   "Có khiếu nại cần giải trình": "A complaint needs your response",
@@ -1219,5 +1229,9 @@
   "Chưa thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.": "We couldn’t restore your session. Check your connection and try again.",
   "Đang khôi phục phiên đăng nhập của bạn...": "Restoring your signed-in session...",
   "Đang kết nối an toàn": "Connecting securely",
-  "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn.": "A cleaner home. A lighter day."
+  "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn.": "A cleaner home. A lighter day.",
+  "Chào buổi sáng,": "Good morning,",
+  "Chào buổi chiều,": "Good afternoon,",
+  "Chào buổi tối,": "Good evening,",
+  "Hôm nay bạn có {{value0}} ca": "You have {{value0}} shift(s) today"
 }

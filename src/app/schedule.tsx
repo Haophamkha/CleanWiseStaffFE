@@ -53,7 +53,7 @@ function ScheduleContent() {
             />
           }
           contentContainerStyle={{
-            paddingTop: 24,
+            paddingTop: 12,
             paddingHorizontal: 20,
             paddingBottom: 32 + insets.bottom,
           }}

@@ -14,6 +14,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function NotificationsScreen() {
   const { t: tr } = useTranslation();
@@ -21,6 +22,7 @@ export default function NotificationsScreen() {
   const { COLORS } = useAppTheme();
 
   const n = useNotifications();
+  const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-canvas">
@@ -35,7 +37,7 @@ export default function NotificationsScreen() {
       <FlatList
         data={n.rows}
         keyExtractor={(row) => row.key}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + insets.bottom }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
