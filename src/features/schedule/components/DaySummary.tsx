@@ -1,7 +1,8 @@
+// DaySummary compact
 import { useTranslation } from "react-i18next";
 
 import { useAppTheme } from "@/features/theme/ThemeProvider";
-import { ON_DARK, RADIUS } from "@/constants/theme";
+import { RADIUS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { Text, View } from "react-native";
@@ -29,38 +30,28 @@ function Stat({
   highlight?: boolean;
   flex?: number;
 }) {
-  const { COLORS, SHADOWS } = useAppTheme();
+  const { COLORS } = useAppTheme();
 
   return (
-    <View
-      className={`p-3.5 ${
-        highlight ? "bg-primary-fill" : "bg-surface border border-line"
-      }`}
-      style={[{ flex, borderRadius: RADIUS.card }, SHADOWS.card]}
-    >
-      <View
-        className={`w-8 h-8 rounded-full items-center justify-center ${
-          highlight ? "" : "bg-accent-light"
-        }`}
-        style={highlight ? { backgroundColor: ON_DARK.surface } : undefined}
-      >
+    <View className="items-center justify-center px-2" style={{ flex }}>
+      <View className="flex-row items-center" style={{ gap: 5 }}>
         <Feather
           name={icon}
-          size={15}
-          color={highlight ? ON_DARK.text : COLORS.ink}
+          size={13}
+          color={highlight ? COLORS.primary : COLORS.inkMuted}
         />
+        <Text
+          className="text-base font-extrabold"
+          style={{ color: highlight ? COLORS.primary : COLORS.ink }}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {value}
+        </Text>
       </View>
       <Text
-        className={`font-extrabold mt-3 ${highlight ? "text-xl" : "text-2xl"}`}
-        style={{ color: highlight ? ON_DARK.text : COLORS.ink }}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
-        {value}
-      </Text>
-      <Text
-        className="text-xs mt-0.5"
-        style={{ color: highlight ? ON_DARK.textSoft : COLORS.inkSoft }}
+        className="text-[11px] mt-0.5"
+        style={{ color: COLORS.inkSoft }}
         numberOfLines={1}
       >
         {label}
@@ -77,24 +68,30 @@ export function DaySummary({
   incomeLabel,
 }: DaySummaryProps) {
   const { t: tr } = useTranslation();
+  const { COLORS, SHADOWS } = useAppTheme();
 
   return (
-    <View className="mb-6">
-      <View className={count > 0 ? "mb-4" : ""}>
-        <Text className="text-ink text-2xl font-extrabold">{title}</Text>
-        <Text className="text-ink-muted text-sm mt-0.5">{dateLabel}</Text>
+    <View className="mb-4">
+      <View className={`flex-row items-baseline ${count > 0 ? "mb-3" : ""}`} style={{ gap: 8 }}>
+        <Text className="text-ink text-xl font-extrabold">{title}</Text>
+        <Text className="text-ink-muted text-sm">{"\u00B7"} {dateLabel}</Text>
       </View>
 
       {count > 0 && (
-        <View className="flex-row" style={{ gap: 10 }}>
-          <Stat icon="briefcase" label={tr("ca làm")} value={String(count)} />
-          <Stat icon="clock" label={tr("thời gian")} value={hoursLabel} />
+        <View
+          className="flex-row items-center bg-surface border border-line py-3"
+          style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
+        >
+          <Stat icon="briefcase" label={tr("ca l\u00e0m")} value={String(count)} />
+          <View style={{ width: 1, height: 28, backgroundColor: COLORS.line }} />
+          <Stat icon="clock" label={tr("th\u1eddi gian")} value={hoursLabel} />
+          <View style={{ width: 1, height: 28, backgroundColor: COLORS.line }} />
           <Stat
             icon="trending-up"
-            label={tr("thu nhập ngày")}
+            label={tr("thu nh\u1eadp ng\u00e0y")}
             value={incomeLabel}
             highlight
-            flex={1.6}
+            flex={1.5}
           />
         </View>
       )}

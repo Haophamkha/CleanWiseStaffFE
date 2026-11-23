@@ -70,8 +70,7 @@ function JobsContent() {
               <Text className="mt-1 text-warning-dark text-xs">{t("Điểm & xử lý")}</Text>
             </PressableScale>
           )}
-          <SortBar value={jobs.sort} onChange={jobs.selectSort} />
-          {distanceAction}
+          <SortBar value={jobs.sort} onChange={jobs.selectSort} onEnableLocation={!jobs.location && hasJobs ? jobs.enableDistance : undefined} locating={jobs.isLocating} />
           <AvailableJobsList
             state={jobs.available}
             location={jobs.location}

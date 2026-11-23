@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { uuid } from "expo";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 import { baseApi } from "@/store/baseApi";
 import { useAppDispatch } from "@/store/hooks";
@@ -163,6 +163,24 @@ export function useChatbot() {
       Alert.alert(tr("Không xoá được hội thoại"), tr("Hội thoại có thể đang xử lý. Vui lòng thử lại sau."));
     }
   };
+
+  // Vao man hinh: tu mo cuoc hoi thoai gan nhat (neu co)
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (bootRef.current) return;
+    bootRef.current = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const page = await fetchConvs({ page: 1 }, false).unwrap();
+        const latest = page.results[0];
+        if (latest) await openConversation(latest);
+      } catch {
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     conversationId, messages, draft, setDraft, sending, loading, closed, animateId, setAnimateId,

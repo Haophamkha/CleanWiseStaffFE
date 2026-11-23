@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useAppTheme } from "@/features/theme/ThemeProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { useGetWorkerProfileQuery } from "@/features/auth/api/authApi";
+import { EmailChange } from "@/features/profile-setup/components/EmailChangeCard";
 
 import { PersonalInfoForm } from "@/features/profile-setup/components/PersonalInfoForm";
 import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
@@ -23,6 +25,7 @@ export default function PersonalInfoStep() {
 
   const insets = useSafeAreaInsets();
   const form = usePersonalInfo();
+  const { data: me } = useGetWorkerProfileQuery();
 
   if (form.isLoadingProfile) {
     return (
@@ -49,6 +52,11 @@ export default function PersonalInfoStep() {
         showsVerticalScrollIndicator={false}
       >
         <PersonalInfoForm form={form} />
+        {!!me && (
+          <View className="mt-6">
+            <EmailChange currentEmail={me.email} />
+          </View>
+        )}
       </ScrollView>
 
       <View

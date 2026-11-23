@@ -31,13 +31,13 @@ function StatBox({
 
   return (
     <View
-      className={`p-3.5 ${
+      className={`p-4 ${
         highlight ? "bg-primary-fill" : "bg-surface border border-line"
       }`}
       style={[{ flex, borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <View
-        className={`w-8 h-8 rounded-full items-center justify-center ${
+        className={`w-9 h-9 rounded-full items-center justify-center ${
           highlight ? "" : "bg-accent-light"
         }`}
         style={highlight ? { backgroundColor: ON_DARK.surface } : undefined}
@@ -49,7 +49,7 @@ function StatBox({
         />
       </View>
       <Text
-        className={`font-extrabold mt-3 ${highlight ? "text-xl" : "text-2xl"}`}
+        className={`font-extrabold mt-3 ${highlight ? "text-2xl" : "text-3xl"}`}
         style={{ color: highlight ? ON_DARK.text : COLORS.ink }}
         numberOfLines={1}
         adjustsFontSizeToFit

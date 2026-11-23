@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import {
   HistorySection,
   PeriodSummaryCard,
+  PeriodNavigator,
   PeriodTabs,
   SettlementCard,
   WalletCard,
@@ -14,13 +15,11 @@ import TopupModal from "@/features/earnings/components/TopupModal";
 import WithdrawModal from "@/features/earnings/components/WithdrawModal";
 import { useEarnings } from "@/features/earnings/hooks/useEarnings";
 import { SimpleHeader } from "@/features/profile-setup/components/SimpleHeader";
-import { Feather } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -69,39 +68,14 @@ export default function EarningsScreen() {
             />
           }
         >
-          <WalletCard wallet={e.data.wallet} onWithdraw={e.openWithdraw} />
-
-          <TouchableOpacity
-            onPress={e.openTopup}
-            activeOpacity={0.85}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 14,
-              marginBottom: 16,
-              borderRadius: 16,
-              backgroundColor: COLORS.primaryLight,
-              borderWidth: 1,
-              borderColor: COLORS.primaryBorder,
-            }}
-          >
-            <Feather name="plus-circle" size={18} color={COLORS.primaryDark} />
-            <Text
-              style={{
-                marginLeft: 8,
-                fontWeight: "700",
-                color: COLORS.primaryDark,
-              }}
-            >
-              {tr("Nạp tiền ký quỹ")}</Text>
-          </TouchableOpacity>
+          <WalletCard wallet={e.data.wallet} onWithdraw={e.openWithdraw} onTopup={e.openTopup} />
 
           <PeriodTabs
             tabs={e.periodTabs}
             value={e.period}
             onChange={e.setPeriod}
           />
+          <PeriodNavigator label={e.data.period.rangeText} canNext={e.offset < 0} onPrev={e.goPrev} onNext={e.goNext} />
           <PeriodSummaryCard period={e.data.period} />
           <SettlementCard settlement={e.data.settlement} />
           <HistorySection loading={e.historyLoading} rows={e.historyRows} />

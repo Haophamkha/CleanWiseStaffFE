@@ -1,4 +1,14 @@
 {
+  "© 2026 CleanWise. Bảo lưu mọi quyền.": "© 2026 CleanWise. Bảo lưu mọi quyền.",
+  "TP. Hồ Chí Minh, Việt Nam": "TP. Hồ Chí Minh, Việt Nam",
+  "Địa chỉ": "Địa chỉ",
+  "8:00 - 20:00 mỗi ngày": "8:00 - 20:00 mỗi ngày",
+  "Giờ hỗ trợ": "Giờ hỗ trợ",
+  "Thu nhập minh bạch": "Thu nhập minh bạch",
+  "Lịch làm rõ ràng": "Lịch làm rõ ràng",
+  "Nhận việc nhanh": "Nhận việc nhanh",
+  "Nền tảng đặt lịch dọn dẹp tại nhà. Ứng dụng giúp nhân viên nhận việc, theo dõi lịch làm và thu nhập một cách minh bạch.": "Nền tảng đặt lịch dọn dẹp tại nhà. Ứng dụng giúp nhân viên nhận việc, theo dõi lịch làm và thu nhập một cách minh bạch.",
+  "Đăng nhập lại": "Đăng nhập lại",
   "Dọn dẹp nhà": "Dọn dẹp nhà",
   "Giải trình": "Giải trình",
   "Có khiếu nại cần giải trình": "Có khiếu nại cần giải trình",
@@ -1218,5 +1228,9 @@
   "Chưa thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.": "Chưa thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.",
   "Đang khôi phục phiên đăng nhập của bạn...": "Đang khôi phục phiên đăng nhập của bạn...",
   "Đang kết nối an toàn": "Đang kết nối an toàn",
-  "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn.": "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn."
+  "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn.": "Nhà sạch hơn, cuộc sống nhẹ nhàng hơn.",
+  "Chào buổi sáng,": "Chào buổi sáng,",
+  "Chào buổi chiều,": "Chào buổi chiều,",
+  "Chào buổi tối,": "Chào buổi tối,",
+  "Hôm nay bạn có {{value0}} ca": "Hôm nay bạn có {{value0}} ca"
 }

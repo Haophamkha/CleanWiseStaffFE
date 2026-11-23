@@ -59,11 +59,13 @@ export function useEarnings() {
 
   const { COLORS } = useAppTheme();
 
-  const [period, setPeriod] = useState<EarningPeriod>("week");
+  const [period, setPeriodRaw] = useState<EarningPeriod>("week");
+  const [offset, setOffset] = useState(0);
+  const setPeriod = (next: EarningPeriod) => { setPeriodRaw(next); setOffset(0); };
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
-  const summaryQuery = useGetEarningsSummaryQuery(period);
-  const historyQuery = useGetEarningsHistoryQuery(period);
+  const summaryQuery = useGetEarningsSummaryQuery({ period, offset });
+  const historyQuery = useGetEarningsHistoryQuery({ period, offset });
   const walletTxQuery = useGetWalletTransactionsQuery();
 
   const summary = summaryQuery.data;
@@ -152,6 +154,9 @@ export function useEarnings() {
   return {
     period,
     setPeriod,
+    offset,
+    goPrev: () => setOffset((o) => o - 1),
+    goNext: () => setOffset((o) => Math.min(o + 1, 0)),
     periodTabs: getLocalizedPeriodTabs(tr),
     isLoading: summaryQuery.isLoading,
     isError: summaryQuery.isError || !data,

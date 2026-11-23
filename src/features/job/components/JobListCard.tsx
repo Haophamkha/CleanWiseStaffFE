@@ -62,7 +62,7 @@ export function JobListCard({
         accessibilityLabel={tr("Xem công việc {{value0}}", { value0: serviceName })}
         accessibilityHint={actionLabel}
         containerStyle={{ marginHorizontal: 6, marginBottom: 10 }}
-        className={`gap-2 rounded-2xl border bg-surface p-3 ${invitation ? "border-primary" : "border-line"}`}
+        className={`gap-2.5 rounded-2xl border bg-surface px-4 py-3.5 ${invitation ? "border-primary" : "border-line"}`}
         style={SHADOWS.card}
       >
         {invitation ? (
@@ -72,50 +72,48 @@ export function JobListCard({
           </View>
         ) : null}
 
-        <View className="flex-row items-center gap-2">
-          <View className="h-9 w-9 items-center justify-center rounded-full bg-accent-light">
-            <Feather name={perSession ? "layers" : "briefcase"} size={17} color={COLORS.accentDark} />
-          </View>
-
-          <View className="min-w-0 flex-1 gap-1">
-            <Text className="text-sm font-bold text-ink" numberOfLines={2}>{serviceName}</Text>
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="min-w-0 flex-1">
+            <Text className="text-[15px] font-bold text-ink" numberOfLines={1}>{serviceName}</Text>
             {ward || distance ? (
-              <View className="flex-row items-center gap-1.5">
+              <View className="mt-1 flex-row items-center gap-1">
                 <Feather name="map-pin" size={12} color={COLORS.inkMuted} />
-                {ward ? <Text className="min-w-0 shrink text-xs text-ink-soft" numberOfLines={1}>{ward}</Text> : null}
+                {ward ? <Text className="min-w-0 shrink text-[13px] text-ink-soft" numberOfLines={1}>{ward}</Text> : null}
                 {distance ? (
-                  <Text className="text-xs font-semibold text-ink-soft">{ward ? "· " : ""}{distance}</Text>
+                  <Text className="text-[13px] font-semibold text-ink-soft">{ward ? "\u00B7 " : ""}{distance}</Text>
                 ) : null}
               </View>
             ) : null}
           </View>
-        </View>
 
-        <View className="flex-row flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <View className="shrink flex-row items-center gap-1.5">
-            <Feather name="calendar" size={13} color={COLORS.inkMuted} />
-            <Text className="shrink text-xs text-ink-soft">
-              <Text className="capitalize font-bold text-ink">{date}</Text>
-              {" · "}{time}
-            </Text>
+          <View className="items-end">
+            <Text className="text-[10px] text-ink-muted">{tr(perSession ? "Thu nhập / buổi" : "Thu nhập")}</Text>
+            <Text className="text-lg font-extrabold text-primary-dark">{price ?? "\u2014"}</Text>
           </View>
-          {badges}
         </View>
 
-        <View className="flex-row items-center justify-between gap-2 border-t border-line pt-2">
-          <View className="shrink">
-            <Text className="text-[11px] text-ink-muted">
-              {tr(perSession ? "Thu nhập / buổi" : "Thu nhập")}
-            </Text>
-            <Text className="text-base font-extrabold text-ink">{price ?? "—"}</Text>
+        {badges ? (
+          <View className="flex-row flex-wrap items-center gap-x-2 gap-y-1">{badges}</View>
+        ) : null}
+
+        <View className="flex-row items-center justify-between gap-3 border-t border-line pt-3">
+          <View className="min-w-0 flex-1 gap-1">
+            <View className="flex-row items-center gap-1.5">
+                <Feather name="calendar" size={13} color={COLORS.inkMuted} />
+                <Text className="capitalize text-[13px] font-bold text-ink">{date}</Text>
+              </View>
+            <View className="flex-row items-center gap-1.5">
+              <Feather name="clock" size={13} color={COLORS.inkMuted} />
+              <Text className="text-[13px] text-ink-soft">{time}</Text>
+            </View>
           </View>
           <View
-            className={`min-h-9 shrink flex-row items-center justify-center gap-1 rounded-full px-3 py-1.5 ${
+            className={`h-10 flex-row items-center justify-center gap-1 rounded-full px-4 ${
               available ? "bg-primary-fill" : isDark ? "bg-accent-fill" : "bg-accent-dark"
             }`}
           >
-            <Text className="shrink text-center text-xs font-bold text-white">{actionLabel}</Text>
-            <Feather name={available ? "chevron-right" : "arrow-right"} size={13} color={COLORS.white} />
+            <Text numberOfLines={1} className="text-xs font-bold text-white">{actionLabel}</Text>
+            <Feather name={available ? "chevron-right" : "arrow-right"} size={14} color={COLORS.white} />
           </View>
         </View>
       </PressableScale>

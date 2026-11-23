@@ -1,15 +1,22 @@
+import { useAppTheme } from "@/features/theme/ThemeProvider";
+import { Feather } from "@expo/vector-icons";
 import type { AvailableSort } from "@/features/schedule/types/Schedule";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 export function SortBar({
   value,
   onChange,
+  onEnableLocation,
+  locating,
 }: {
   value: AvailableSort;
   onChange: (s: AvailableSort) => void;
+  onEnableLocation?: () => void;
+  locating?: boolean;
 }) {
   const { t: tr } = useTranslation();
+  const { COLORS } = useAppTheme();
   const options: { key: AvailableSort; label: string }[] = [
     { key: "time", label: tr("Sớm nhất") },
     { key: "distance", label: tr("Gần tôi") },
@@ -17,8 +24,8 @@ export function SortBar({
   ];
 
   return (
-    <View className="pt-5">
-      <ScrollView
+    <View className="flex-row items-center pt-3">
+      <ScrollView style={{ flex: 1 }}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ alignItems: "center", gap: 8, paddingHorizontal: 20 }}
@@ -41,6 +48,21 @@ export function SortBar({
           );
         })}
       </ScrollView>
+      {onEnableLocation ? (
+        <Pressable
+          onPress={onEnableLocation}
+          disabled={locating}
+          accessibilityRole="button"
+          accessibilityLabel={tr("B\u1eadt v\u1ecb tr\u00ed \u0111\u1ec3 xem kho\u1ea3ng c\u00e1ch")}
+          className="mx-5 h-[34px] w-[34px] items-center justify-center rounded-full border border-line bg-surface"
+        >
+          {locating ? (
+            <ActivityIndicator size="small" color={COLORS.accentDark} />
+          ) : (
+            <Feather name="navigation" size={14} color={COLORS.accentDark} />
+          )}
+        </Pressable>
+      ) : null}
     </View>
   );
 }

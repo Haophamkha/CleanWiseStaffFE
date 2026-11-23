@@ -18,7 +18,7 @@ export function DayFilterBar({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="mt-3 -mx-5"
+      className="mt-1 -mx-5"
       contentContainerStyle={{ paddingHorizontal: 20 }}
     >
       {chips.map((chip) => {
@@ -29,7 +29,7 @@ export function DayFilterBar({
             onPress={() => onSelect(chip.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            style={{ marginRight: 22, paddingTop: 8, alignItems: "center" }}
+            style={{ marginRight: 22, paddingTop: 4, alignItems: "center" }}
           >
             <Text
               style={{
@@ -54,7 +54,7 @@ export function DayFilterBar({
                 height: 3,
                 alignSelf: "stretch",
                 borderRadius: 2,
-                marginTop: 6,
+                marginTop: 4,
                 backgroundColor: active ? COLORS.ink : "transparent",
               }}
             />

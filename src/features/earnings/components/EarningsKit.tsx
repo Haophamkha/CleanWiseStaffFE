@@ -20,9 +20,11 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 export function WalletCard({
   wallet,
   onWithdraw,
+  onTopup,
 }: {
   wallet: EarningsData["wallet"];
-  onWithdraw?: () => void; // không truyền = ẩn nút "Rút tiền"
+  onWithdraw?: () => void;
+  onTopup?: () => void;
 }) {
   const { t: tr } = useTranslation();
 
@@ -36,7 +38,7 @@ export function WalletCard({
       style={[{ borderRadius: RADIUS.hero }, SHADOWS.card]}
     >
       <View
-        className="overflow-hidden p-5"
+        className="overflow-hidden p-4"
         style={{ borderRadius: RADIUS.hero }}
       >
         <View
@@ -68,8 +70,21 @@ export function WalletCard({
             color={COLORS.surface}
             icon="arrow-down-circle"
             onPress={onWithdraw}
-            style={{ marginTop: 16 }}
+            style={{ marginTop: 12 }}
           />
+        )}
+        {onTopup && (
+          <Pressable
+            onPress={onTopup}
+            accessibilityRole="button"
+            className="flex-row items-center justify-center"
+            style={{ marginTop: 10, height: 46, borderRadius: 999, borderWidth: 1.5, borderColor: ON_DARK.border }}
+          >
+            <Feather name="plus-circle" size={17} color={ON_DARK.text} />
+            <Text className="ml-2 text-[13px]" style={[TYPE.label, { color: ON_DARK.text }]}>
+              {tr("N\u1ea1p ti\u1ec1n k\u00fd qu\u1ef9")}
+            </Text>
+          </Pressable>
         )}
 
         <View
@@ -107,7 +122,7 @@ export function PeriodTabs({
   onChange: (key: EarningPeriod) => void;
 }) {
   return (
-    <View className="flex-row bg-accent-light border border-line rounded-full p-1 mt-5">
+    <View className="flex-row bg-accent-light border border-line rounded-full p-1 mt-4">
       {tabs.map((tab) => {
         const active = value === tab.key;
         return (
@@ -196,7 +211,7 @@ export function PeriodSummaryCard({
 
   return (
     <View
-      className="bg-surface border border-line p-5 mt-4"
+      className="bg-surface border border-line p-4 mt-3"
       style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <Text className="text-ink-muted text-xs">{period.rangeText}</Text>
@@ -231,7 +246,7 @@ export function SettlementCard({
 
   return (
     <View
-      className="bg-surface border border-line p-5 mt-4"
+      className="bg-surface border border-line p-4 mt-3"
       style={[{ borderRadius: RADIUS.card }, SHADOWS.card]}
     >
       <Text className="text-ink text-base font-extrabold mb-1">
@@ -311,7 +326,7 @@ export function HistorySection({
   const { COLORS, SHADOWS } = useAppTheme();
 
   return (
-    <View className="mt-6">
+    <View className="mt-4">
       <Text
         className="text-ink-muted text-xs mb-2.5 ml-1"
         style={[TYPE.label, { letterSpacing: 1 }]}
@@ -415,7 +430,7 @@ export function WalletTransactionsSection({
   const { COLORS, SHADOWS } = useAppTheme();
 
   return (
-    <View className="mt-6">
+    <View className="mt-4">
       <Text
         className="text-ink-muted text-xs mb-2.5 ml-1"
         style={[TYPE.label, { letterSpacing: 1 }]}
@@ -438,6 +453,48 @@ export function WalletTransactionsSection({
           ))}
         </View>
       )}
+    </View>
+  );
+}
+
+/* Chon ky: lui / tien */
+
+export function PeriodNavigator({
+  label,
+  canNext,
+  onPrev,
+  onNext,
+}: {
+  label: string;
+  canNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const { COLORS } = useAppTheme();
+
+  return (
+    <View className="flex-row items-center justify-between mt-3">
+      <Pressable
+        onPress={onPrev}
+        hitSlop={8}
+        accessibilityRole="button"
+        className="w-10 h-10 rounded-full bg-surface border border-line items-center justify-center"
+      >
+        <Feather name="chevron-left" size={20} color={COLORS.ink} />
+      </Pressable>
+      <Text className="text-ink text-sm" style={TYPE.label}>
+        {label}
+      </Text>
+      <Pressable
+        onPress={onNext}
+        disabled={!canNext}
+        hitSlop={8}
+        accessibilityRole="button"
+        className="w-10 h-10 rounded-full bg-surface border border-line items-center justify-center"
+        style={{ opacity: canNext ? 1 : 0.35 }}
+      >
+        <Feather name="chevron-right" size={20} color={COLORS.ink} />
+      </Pressable>
     </View>
   );
 }

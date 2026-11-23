@@ -5,13 +5,14 @@ import { NotificationBellButton } from "@/components/common/NotificationBellButt
 import { ON_DARK, RADIUS } from "@/constants/theme";
 import { formatDayLabel } from "@/utils/format";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useMemo } from "react";
 import { Image, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type HomeHeaderProps =
   | { variant: "brand" }
-  | { variant: "greeting"; name: string; avatar: string | null };
+  | { variant: "greeting"; name: string; avatar: string | null; count?: number };
 
 export function HomeHeader(props: HomeHeaderProps) {
   const { t: tr } = useTranslation();
@@ -20,6 +21,8 @@ export function HomeHeader(props: HomeHeaderProps) {
 
   const insets = useSafeAreaInsets();
   const isGreeting = props.variant === "greeting";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? tr("Ch\u00e0o bu\u1ed5i s\u00e1ng,") : hour < 18 ? tr("Ch\u00e0o bu\u1ed5i chi\u1ec1u,") : tr("Ch\u00e0o bu\u1ed5i t\u1ed1i,");
   const today = useMemo(() => formatDayLabel(new Date().toISOString(), tr), [tr]);
 
   return (
@@ -33,6 +36,7 @@ export function HomeHeader(props: HomeHeaderProps) {
       }}
     >
       {/* Họa tiết vòng tròn mờ cho đỡ phẳng */}
+      <LinearGradient pointerEvents="none" colors={[ON_DARK.surface, "transparent"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
       <View
         pointerEvents="none"
         style={{
@@ -93,7 +97,7 @@ export function HomeHeader(props: HomeHeaderProps) {
           </View>
           <View className="ml-3 flex-1">
             <Text className="text-xs" style={{ color: ON_DARK.textSoft }}>
-              {tr("Xin chào,")}</Text>
+              {greeting}</Text>
             <Text
               className="text-xl font-extrabold text-white"
               numberOfLines={1}
@@ -106,16 +110,14 @@ export function HomeHeader(props: HomeHeaderProps) {
                 className="text-xs ml-1.5"
                 style={{ color: ON_DARK.textMuted }}
               >
-                {today}
+                {today}{props.count !== undefined ? " \u00b7 " + tr("H\u00f4m nay b\u1ea1n c\u00f3 {{value0}} ca", { value0: props.count }) : ""}
               </Text>
             </View>
           </View>
         </View>
       ) : (
         <View className="flex-row items-center">
-          <View className="w-10 h-10 rounded-full bg-primary-fill items-center justify-center mr-3">
-            <Feather name="briefcase" size={18} color={COLORS.white} />
-          </View>
+          <Image source={require("@assets/images/logo-mark.png")} style={{ width: 40, height: 40, borderRadius: 13, marginRight: 12 }} resizeMode="cover" />
           <Text
             className="text-white text-lg font-extrabold"
             style={{ letterSpacing: 0.3 }}
